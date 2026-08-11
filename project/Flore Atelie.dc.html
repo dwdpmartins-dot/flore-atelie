@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- META PIXEL: inserir código aqui -->
+<!-- GOOGLE TAG MANAGER: inserir código aqui -->
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="./image-slot.js"></script>
+  <style>
+    body{margin:0;background:#FAF7F2;font-family:'Work Sans',sans-serif;color:#33362C;}
+    a{color:#6B7C5C;text-decoration:none;}
+    a:hover{color:#C4836A;}
+    *{box-sizing:border-box;}
+    ::selection{background:#E8C4B8;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    @keyframes petalPop{0%{opacity:0;}100%{opacity:1;}}
+    @media (max-width: 860px){
+      .desktop-nav{display:none !important;}
+      .mobile-menu-btn{display:flex !important;align-items:center;justify-content:center;}
+      .cat-grid, .steps-grid, .test-grid{grid-template-columns:1fr !important;}
+      .gallery-grid{grid-template-columns:repeat(2,1fr) !important;gap:10px !important;}
+      .footer-grid{grid-template-columns:1fr 1fr !important;}
+      .builder-grid{grid-template-columns:1fr !important;}
+      .about-grid{grid-template-columns:1fr !important;}
+      .lightbox-grid{grid-template-columns:1fr !important;}
+      .inspirado-grid{grid-template-columns:1fr !important;}
+      .lightbox-photo{max-height:30vh !important;height:30vh !important;aspect-ratio:auto !important;overflow:hidden !important;}
+      .lightbox-grid{max-height:92vh !important;}
+      .mobile-tabbar{display:flex !important;}
+      .review-row{flex-direction:column !important;align-items:flex-start !important;}
+      .review-row strong{text-align:left !important;max-width:100% !important;}
+    }
+    @media (min-width: 861px){
+      .mobile-tabbar{display:none !important;}
+    }
+    @media (max-width: 520px){
+      .footer-grid{grid-template-columns:1fr !important;}
+    }
+    .gallery-hover-item:hover .gallery-hover-overlay{opacity:1 !important;}
+  </style>
+</helmet>
+
+<div style="min-height:100vh;display:flex;flex-direction:column;position:relative;">
+
+  <header style="position:sticky;top:0;z-index:40;background:rgba(250,247,242,0.94);backdrop-filter:blur(6px);border-bottom:1px solid rgba(107,124,92,0.15);">
+    <div style="max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;">
+      <div style="display:flex;align-items:center;gap:12px;cursor:pointer;" onClick="{{ goHome }}">
+        <img src="./assets/logo-flore.png" alt="Florê Ateliê" style="width:44px;height:44px;object-fit:contain;" />
+        <div style="display:flex;flex-direction:column;line-height:1;">
+          <span style="font-family:'Playfair Display',serif;font-size:20px;letter-spacing:0.5px;color:#4B5740;">Florê Ateliê</span>
+          <span style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Boutique Floral</span>
+        </div>
+      </div>
+
+      <nav style="display:flex;align-items:center;gap:30px;" class="desktop-nav">
+        <a href="#" onClick="{{ goCatalog }}" style="font-size:14px;color:{{ navColor.catalog }};">Catálogo</a>
+        <a href="#" onClick="{{ goSubscription }}" style="font-size:14px;color:{{ navColor.subscription }};">Assinatura</a>
+        <a href="#" onClick="{{ goBuilder }}" style="font-size:14px;color:{{ navColor.builder }};">Monte seu Buquê</a>
+        <a href="#" onClick="{{ goAccount }}" style="font-size:14px;color:{{ navColor.account }};">Minha Conta</a>
+      </nav>
+
+      <div style="display:flex;align-items:center;gap:18px;" class="header-social">
+        <a href="https://www.instagram.com/floreatelie.floral" target="_blank" aria-label="Instagram" style="display:flex;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4B5740" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="#4B5740" stroke="none"/></svg>
+        </a>
+        <a href="https://wa.me/5511942364723?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Flor%C3%AA%20Ateli%C3%AA%20e%20gostaria%20de%20saber%20mais." aria-label="WhatsApp" style="display:flex;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#4B5740"><path d="M17.6 6.32A8.9 8.9 0 0 0 12.05 3.5C7.34 3.5 3.5 7.34 3.5 12.05c0 1.6.44 3.1 1.2 4.4L3.5 20.5l4.15-1.09a8.5 8.5 0 0 0 4.4 1.2h.01c4.71 0 8.55-3.84 8.55-8.55a8.5 8.5 0 0 0-2.51-6.24zM12.05 19a7.5 7.5 0 0 1-3.83-1.05l-.27-.16-2.85.75.76-2.78-.18-.28a7.44 7.44 0 0 1-1.14-3.98c0-4.13 3.36-7.49 7.5-7.49a7.44 7.44 0 0 1 5.3 2.2 7.44 7.44 0 0 1 2.19 5.3c0 4.13-3.36 7.49-7.48 7.49z"/></svg>
+        </a>
+        <a href="https://www.tiktok.com/@flore.ateliee" target="_blank" aria-label="TikTok" style="display:flex;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#4B5740"><path d="M16.5 3c.3 2 1.7 3.6 3.7 3.9v2.5c-1.4 0-2.7-.4-3.7-1.1v6.4c0 3-2.4 5.3-5.3 5.3S6 17.7 6 14.7s2.4-5.3 5.3-5.3c.4 0 .8 0 1.1.1v2.6c-.3-.1-.7-.2-1.1-.2-1.5 0-2.7 1.2-2.7 2.8s1.2 2.8 2.7 2.8 2.8-1.2 2.8-2.8V3h2.4z"/></svg>
+        </a>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <button onClick="{{ goCheckoutPage }}" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;" aria-label="Carrinho">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4B5740" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <sc-if value="{{ cartCount }}" hint-placeholder-val="{{ false }}">
+            <span style="position:absolute;top:-4px;right:-4px;background:#C4836A;color:#FAF7F2;font-size:10px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;">{{ cartCount }}</span>
+          </sc-if>
+        </button>
+        <button onClick="{{ toggleMobileMenu }}" style="display:none;background:none;border:none;cursor:pointer;" class="mobile-menu-btn" aria-label="Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4B5740" stroke-width="1.6"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <sc-if value="{{ mobileMenuOpen }}" hint-placeholder-val="{{ false }}">
+      <nav style="display:flex;flex-direction:column;padding:8px 28px 20px;gap:14px;border-top:1px solid rgba(107,124,92,0.15);">
+        <a href="#" onClick="{{ goCatalog }}" style="font-size:14px;color:#4B5740;">Catálogo</a>
+        <a href="#" onClick="{{ goSubscription }}" style="font-size:14px;color:#4B5740;">Assinatura</a>
+        <a href="#" onClick="{{ goBuilder }}" style="font-size:14px;color:#4B5740;">Monte seu Buquê</a>
+        <a href="#" onClick="{{ goAccount }}" style="font-size:14px;color:#4B5740;">Minha Conta</a>
+      </nav>
+    </sc-if>
+  </header>
+
+  <main style="flex:1;">
+
+    <sc-if value="{{ route.home }}" hint-placeholder-val="{{ true }}">
+      <section data-screen-label="Home" style="display:flex;flex-direction:column;">
+
+        <div style="position:relative;min-height:640px;display:flex;align-items:center;overflow:hidden;background:#6B7C5C;">
+          <div style="position:absolute;inset:0;z-index:0;">
+            <image-slot id="hero-main" shape="rect" src="./assets/flore-hero-box.jpg" placeholder="Foto: composição floral autoral da Florê" style="width:100%;height:100%;"></image-slot>
+          </div>
+          <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(100deg, rgba(75,87,64,0.92) 0%, rgba(75,87,64,0.78) 32%, rgba(75,87,64,0.15) 62%, rgba(75,87,64,0) 78%);"></div>
+          <div style="position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;padding:60px clamp(28px,6vw,90px);gap:26px;max-width:640px;animation:fadeUp 0.8s ease both;">
+            <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#E8C4B8;">Ateliê floral autoral</span>
+            <h1 style="font-family:'Playfair Display',serif;font-size:clamp(38px,5.2vw,64px);line-height:1.08;color:#FAF7F2;margin:0;font-style:italic;font-weight:500;">Onde o cuidado <br/>floresce.</h1>
+            <p style="font-size:17px;line-height:1.7;color:#EFE8DC;max-width:440px;font-weight:300;">Na Florê, cada composição floresce de um cuidado que começa antes da primeira flor — na escolha, no gesto, no tempo dedicado a cada detalhe. Assine e receba esse cuidado todo mês, ou componha o seu, flor a flor.</p>
+            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;">
+              <button onClick="{{ goSubscription }}" style="background:#FAF7F2;color:#4B5740;border:none;padding:15px 28px;border-radius:2px;font-size:14px;letter-spacing:0.5px;cursor:pointer;font-family:'Work Sans';">Assine e Encante</button>
+              <button onClick="{{ goBuilder }}" style="background:transparent;color:#FAF7F2;border:1px solid rgba(250,247,242,0.6);padding:15px 28px;border-radius:2px;font-size:14px;letter-spacing:0.5px;cursor:pointer;font-family:'Work Sans';">Monte seu Buquê</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:90px 28px 40px;max-width:1180px;margin:0 auto;">
+          <div style="text-align:center;margin-bottom:50px;">
+            <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Galeria</span>
+            <h2 style="font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,36px);font-style:italic;color:#4B5740;margin:10px 0 12px;">Buquês reais da Florê</h2>
+            <p style="font-size:15px;color:#7C7F6D;max-width:560px;margin:0 auto;">Composições que já saíram do nosso ateliê — do dia a dia às ocasiões mais especiais. Clique em uma foto para usá-la como inspiração no seu pedido.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:18px;" class="gallery-grid">
+            <sc-for list="{{ galleryPhotos }}" as="g" hint-placeholder-count="10">
+              <div onClick="{{ g.onOpen }}" style="position:relative;border-radius:2px;overflow:hidden;aspect-ratio:3/4;cursor:pointer;" class="gallery-hover-item">
+                <image-slot id="gallery-{{ $index }}" shape="rect" src="{{ g.src }}" placeholder="{{ g.caption }}" style="width:100%;height:100%;"></image-slot>
+                <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(43,49,36,0.55),transparent 45%);opacity:0;transition:opacity 0.25s;display:flex;align-items:flex-end;padding:14px;pointer-events:none;" class="gallery-hover-overlay">
+                  <span style="color:#FAF7F2;font-size:12px;letter-spacing:0.5px;">Usar como inspiração →</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ galleryLightboxOpen }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeGalleryLightbox }}" style="position:fixed;inset:0;background:rgba(43,49,36,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;padding:30px;overflow-y:auto;">
+              <div onClick="{{ stopPropagation }}" style="background:#FAF7F2;max-width:820px;width:100%;max-height:90vh;overflow-y:auto;border-radius:2px;display:grid;grid-template-columns:1.1fr 1fr;align-items:start;position:relative;" class="lightbox-grid">
+                <button onClick="{{ closeGalleryLightbox }}" style="position:absolute;top:12px;right:12px;z-index:10;width:34px;height:34px;border-radius:50%;background:rgba(43,49,36,0.55);border:none;color:#FAF7F2;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>
+                <div style="width:100%;max-height:90vh;aspect-ratio:4/5;align-self:start;" class="lightbox-photo">
+                  <image-slot id="gallery-{{ galleryLightboxPhoto.idx }}" shape="rect" src="{{ galleryLightboxPhoto.src }}" placeholder="{{ galleryLightboxPhoto.caption }}" style="width:100%;height:100%;"></image-slot>
+                </div>
+                <div style="padding:36px 32px;display:flex;flex-direction:column;gap:18px;max-height:90vh;overflow-y:auto;box-sizing:border-box;">
+                  <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Referência da galeria</span>
+                  <h3 style="font-family:'Playfair Display',serif;font-style:italic;font-size:22px;color:#4B5740;margin:0;">{{ galleryLightboxPhoto.caption }}</h3>
+                  <p style="font-size:13.5px;color:#7C7F6D;line-height:1.75;margin:0;">Gostou dessa composição? Leve essa referência para o pedido "Buquê Inspirado da Florê" e nossa equipe monta algo no mesmo espírito para você — ou use como ponto de partida no "Monte seu Buquê".</p>
+                  <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                    <a href="#" onClick="{{ goAvulsoInspiradoFromGallery }}" style="background:#4B5740;color:#FAF7F2;text-align:center;padding:13px;border-radius:2px;font-size:13px;">Pedir algo parecido</a>
+                    <a href="#" onClick="{{ goBuilderFromGallery }}" style="background:none;border:1px solid #4B5740;color:#4B5740;text-align:center;padding:13px;border-radius:2px;font-size:13px;">Montar meu buquê</a>
+                  </div>
+                  <button onClick="{{ closeGalleryLightbox }}" style="align-self:flex-start;background:none;border:none;color:#8A8D7C;font-size:12.5px;cursor:pointer;margin-top:4px;">Fechar ×</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="background:#F3EDE3;padding:80px 28px 90px;">
+          <div style="max-width:1180px;margin:0 auto;">
+            <div style="text-align:center;margin-bottom:36px;">
+              <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Nossas formas de encantar</span>
+              <h2 style="font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,36px);font-style:italic;color:#4B5740;margin:10px 0 12px;">Escolha o seu jeito de florir</h2>
+              <p style="font-size:14px;color:#8A8D7C;max-width:460px;margin:0 auto;">Escolha o formato → componha com carinho → receba no dia certo.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;" class="cat-grid">
+              <sc-for list="{{ categoryPreviews }}" as="cat" hint-placeholder-count="3">
+                <div onClick="{{ cat.onCardClick }}" style="background:#FAF7F2;border-radius:2px;overflow:hidden;cursor:pointer;transition:transform 0.25s;box-shadow:0 1px 3px rgba(75,87,64,0.08);" style-hover="transform:translateY(-4px);">
+                  <image-slot id="{{ cat.imgId }}" shape="rect" src="{{ cat.src }}" placeholder="{{ cat.placeholder }}" style="width:100%;height:220px;"></image-slot>
+                  <div style="padding:24px;">
+                    <h3 style="font-family:'Playfair Display',serif;font-size:20px;font-style:italic;color:#4B5740;margin:0 0 8px;">{{ cat.title }}</h3>
+                    <p style="font-size:14px;color:#7C7F6D;line-height:1.6;margin:0 0 14px;">{{ cat.desc }}</p>
+                    <span style="font-size:13px;color:#C4836A;letter-spacing:0.3px;">{{ cat.cta }} →</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="max-width:1180px;margin:0 auto;padding:100px 28px;display:grid;grid-template-columns:0.55fr 1fr;gap:56px;align-items:center;" class="about-grid">
+          <div style="border-radius:2px;overflow:hidden;aspect-ratio:4/5;width:100%;max-width:300px;justify-self:center;">
+            <image-slot id="evelyn-portrait" shape="rect" src="./assets/flore-evelyn-3.jpg" placeholder="Foto: Evelyn Martins" style="width:100%;height:100%;"></image-slot>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:22px;">
+            <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Sobre a Florê</span>
+            <h2 style="font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,38px);font-style:italic;color:#4B5740;margin:0;line-height:1.3;">Um ateliê que floresce em cada detalhe.</h2>
+            <p style="font-size:16px;line-height:1.85;color:#5C5F51;font-weight:300;">A Florê Ateliê nasceu das mãos de <strong style="font-weight:500;color:#4B5740;">Evelyn Martins</strong>, de um jeito bem simples de olhar para as flores: elas não são um presente qualquer, são um gesto de cuidado que a gente entrega inteiro. Cada composição carrega tempo, escolha e intenção — a flor certa, no ponto certo, para o momento certo. A Florê floresce assim, um arranjo de cada vez, sempre com a mesma pergunta guiando as mãos de Evelyn: isso vai fazer alguém sorrir?</p>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:8px;">
+              <div style="text-align:left;">
+                <div style="font-family:'Playfair Display',serif;font-style:italic;font-size:16px;color:#4B5740;">Evelyn Martins</div>
+                <div style="font-size:12px;color:#8A8D7C;">Idealizadora da Florê Ateliê</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:#4B5740;padding:100px 28px;">
+          <div style="max-width:1080px;margin:0 auto;text-align:center;">
+            <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#E8C4B8;">O que dizem</span>
+            <h2 style="font-family:'Playfair Display',serif;font-size:clamp(26px,3vw,36px);font-style:italic;color:#FAF7F2;margin:10px 0 56px;">Relatos de quem recebeu</h2>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:32px;max-width:820px;margin:0 auto;" class="test-grid">
+              <sc-for list="{{ testimonials }}" as="t" hint-placeholder-count="2">
+                <div style="background:rgba(250,247,242,0.06);border:1px solid rgba(250,247,242,0.14);padding:30px 26px;border-radius:2px;text-align:left;display:flex;flex-direction:column;gap:16px;">
+                  <span style="font-family:'Playfair Display',serif;font-size:30px;color:#C4836A;line-height:0.5;">"</span>
+                  <p style="font-size:14px;line-height:1.8;color:#EFE8DC;margin:0;font-style:italic;">{{ t.quote }}</p>
+                  <span style="font-size:12px;color:#B9C0AA;">— {{ t.name }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.catalog }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Catálogo" style="max-width:1240px;margin:0 auto;padding:64px 28px 100px;">
+        <div style="text-align:center;margin-bottom:50px;">
+          <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Catálogo</span>
+          <h1 style="font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,42px);font-style:italic;color:#4B5740;margin:10px 0 12px;">Buquês e arranjos autorais</h1>
+          <p style="font-size:15px;color:#7C7F6D;max-width:560px;margin:0 auto;">Composições já prontas para encantar, com entrega em até 24 horas. Prefere escolher flor a flor? <a href="#" onClick="{{ goBuilder }}">Monte seu buquê</a>.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:30px;" class="cat-grid">
+          <sc-for list="{{ readyBouquets }}" as="b" hint-placeholder-count="6">
+            <div style="background:#FFFFFF;border-radius:2px;overflow:hidden;box-shadow:0 1px 4px rgba(75,87,64,0.08);display:flex;flex-direction:column;">
+              <image-slot id="{{ b.imgId }}" shape="rect" src="{{ b.src }}" placeholder="Foto do buquê" style="width:100%;height:230px;"></image-slot>
+              <div style="padding:22px;display:flex;flex-direction:column;gap:8px;flex:1;">
+                <h3 style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:#4B5740;margin:0;">{{ b.name }}</h3>
+                <p style="font-size:13px;color:#7C7F6D;line-height:1.6;margin:0;flex:1;">{{ b.desc }}</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px;flex-wrap:wrap;">
+                  <span style="font-family:'Playfair Display',serif;font-size:17px;color:#4B5740;">R$ {{ b.price }}</span>
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="display:flex;align-items:center;gap:8px;border:1px solid #D8CFC0;border-radius:2px;padding:4px 8px;">
+                      <button onClick="{{ b.decQty }}" style="background:none;border:none;color:#4B5740;font-size:15px;cursor:pointer;width:18px;">−</button>
+                      <span style="font-size:13px;color:#4B5740;min-width:14px;text-align:center;">{{ b.qty }}</span>
+                      <button onClick="{{ b.incQty }}" style="background:none;border:none;color:#4B5740;font-size:15px;cursor:pointer;width:18px;">+</button>
+                    </div>
+                    <button onClick="{{ b.add }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:10px 16px;border-radius:2px;font-size:12px;letter-spacing:0.3px;cursor:pointer;">Adicionar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.avulso }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Buquê Avulso" style="max-width:1080px;margin:0 auto;padding:64px 28px 100px;">
+        <div style="text-align:center;margin-bottom:44px;">
+          <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Buquê Avulso</span>
+          <h1 style="font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,42px);font-style:italic;color:#4B5740;margin:10px 0 12px;">Escolha sua forma de pedir</h1>
+        </div>
+        <div style="display:flex;gap:14px;justify-content:center;margin-bottom:48px;flex-wrap:wrap;">
+          <button onClick="{{ setAvulsoModeZero }}" style="padding:12px 22px;border-radius:2px;border:1px solid #4B5740;background:{{ zeroBg }};color:{{ zeroColor }};font-size:13px;cursor:pointer;">Montar do zero</button>
+          <button onClick="{{ setAvulsoModeInspirado }}" style="padding:12px 22px;border-radius:2px;border:1px solid #4B5740;background:{{ inspiradoBg }};color:{{ inspiradoColor }};font-size:13px;cursor:pointer;">Inspirado da Florê</button>
+          <button onClick="{{ setAvulsoModePronto }}" style="padding:12px 22px;border-radius:2px;border:1px solid #4B5740;background:{{ prontoBg }};color:{{ prontoColor }};font-size:13px;cursor:pointer;">Prontos</button>
+        </div>
+
+        <sc-if value="{{ isZero }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;background:#F3EDE3;padding:50px 30px;border-radius:2px;display:flex;flex-direction:column;align-items:center;gap:18px;">
+            <p style="font-size:15px;color:#5C5F51;max-width:460px;line-height:1.7;">Escolha cada flor, veja a composição se formar em camadas e finalize com uma ilustração gerada especialmente para o seu buquê.</p>
+            <button onClick="{{ goBuilder }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:15px 30px;border-radius:2px;font-size:14px;cursor:pointer;">Ir para o compositor →</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isInspirado }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;" class="inspirado-grid">
+            <image-slot id="inspirado-photo" shape="rect" src="{{ referencePhotoSrc }}" placeholder="Foto: buquê inspirado da Florê" style="width:100%;height:320px;"></image-slot>
+            <div style="display:flex;flex-direction:column;gap:18px;">
+              <sc-if value="{{ hasReference }}" hint-placeholder-val="{{ false }}">
+                <p style="font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#C4836A;margin:0;">Referência escolhida: {{ referencePhotoCaption }}</p>
+              </sc-if>
+              <p style="font-size:15px;color:#5C5F51;line-height:1.7;">Escolha apenas o tamanho — nossa equipe monta um arranjo autoral com as flores da estação, na paleta da Florê.</p>
+              <div style="display:flex;gap:10px;">
+                <sc-for list="{{ sizesList }}" as="sz" hint-placeholder-count="3">
+                  <button onClick="{{ sz.onClick }}" style="width:52px;height:52px;border-radius:50%;border:1px solid #4B5740;background:{{ sz.bg }};color:{{ sz.color }};cursor:pointer;font-size:14px;">{{ sz.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+                <span style="font-family:'Playfair Display',serif;font-size:22px;color:#4B5740;">R$ {{ inspiradoPrice }}</span>
+                <button onClick="{{ addInspirado }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px 26px;border-radius:2px;font-size:13px;cursor:pointer;">Adicionar ao carrinho</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPronto }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;" class="cat-grid">
+            <sc-for list="{{ readyOptions }}" as="r" hint-placeholder-count="3">
+              <div style="background:#FFFFFF;border-radius:2px;overflow:hidden;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+                <image-slot id="{{ r.imgId }}" shape="rect" src="{{ r.src }}" placeholder="Foto do arranjo" style="width:100%;height:210px;"></image-slot>
+                <div style="padding:20px;display:flex;flex-direction:column;gap:8px;">
+                  <h3 style="font-family:'Playfair Display',serif;font-size:17px;font-style:italic;color:#4B5740;margin:0;">{{ r.name }}</h3>
+                  <p style="font-size:13px;color:#7C7F6D;margin:0;">{{ r.desc }}</p>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap;">
+                    <span style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;">R$ {{ r.price }}</span>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <div style="display:flex;align-items:center;gap:8px;border:1px solid #D8CFC0;border-radius:2px;padding:4px 8px;">
+                        <button onClick="{{ r.decQty }}" style="background:none;border:none;color:#4B5740;font-size:15px;cursor:pointer;width:18px;">−</button>
+                        <span style="font-size:13px;color:#4B5740;min-width:14px;text-align:center;">{{ r.qty }}</span>
+                        <button onClick="{{ r.incQty }}" style="background:none;border:none;color:#4B5740;font-size:15px;cursor:pointer;width:18px;">+</button>
+                      </div>
+                      <button onClick="{{ r.add }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:9px 14px;border-radius:2px;font-size:12px;cursor:pointer;">Adicionar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.subscription }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Assinatura" style="max-width:900px;margin:0 auto;padding:64px 28px 110px;">
+        <div style="text-align:center;margin-bottom:44px;">
+          <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Assinatura</span>
+          <h1 style="font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,42px);font-style:italic;color:#4B5740;margin:10px 0 12px;">Assine e encante, sempre</h1>
+          <p style="font-size:15px;color:#7C7F6D;max-width:520px;margin:0 auto;">Flores novas chegando no ritmo que você escolher — com uma mensagem sua em cada entrega.</p>
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:8px;margin-bottom:48px;">
+          <sc-for list="{{ subStepDots }}" as="d" hint-placeholder-count="3">
+            <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:{{ d.bg }};color:{{ d.color }};border:1px solid #4B5740;">{{ d.n }}</div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ subscriptionGateNotOk }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:60px 0;display:flex;flex-direction:column;align-items:center;gap:16px;">
+            <p style="font-size:14px;color:#7C7F6D;max-width:400px;">Para assinar, entre na sua conta e confirme nome e WhatsApp — assim conseguimos avisar sobre cada entrega.</p>
+            <button onClick="{{ goAccountForSub }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px 28px;border-radius:2px;font-size:14px;cursor:pointer;">Ir para Minha Conta</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ subscriptionGateOk }}" hint-placeholder-val="{{ true }}">
+
+        <sc-if value="{{ showSubManageCard }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#F3EDE3;padding:28px;border-radius:2px;display:flex;flex-direction:column;gap:14px;max-width:520px;margin:0 auto;">
+            <p style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#C4836A;margin:0;">Você já é assinante</p>
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#4B5740;"><span>Plano</span><strong>{{ activeSubscription.freq }} · {{ activeSubscription.size }}</strong></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#4B5740;"><span>Próxima entrega</span><strong>{{ nextDeliveryDate }}</strong></div>
+            <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+              <button onClick="{{ startSubEdit }}" style="flex:1;background:#4B5740;color:#FAF7F2;border:none;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Alterar plano</button>
+              <button onClick="{{ editSubscriptionMessage }}" style="flex:1;background:#FFFFFF;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Editar mensagem</button>
+              <button onClick="{{ openCancelModal }}" style="flex:1;background:none;border:1px solid #C4836A;color:#C4836A;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Cancelar</button>
+            </div>
+          </div>
+
+          <sc-if value="{{ showPauseModal }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closePauseModal }}" style="position:fixed;inset:0;background:rgba(43,49,36,0.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;">
+              <div onClick="{{ stopPropagation }}" style="background:#FAF7F2;max-width:420px;width:100%;border-radius:2px;padding:32px;display:flex;flex-direction:column;gap:16px;">
+                <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Pausar assinatura</span>
+                <h3 style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#4B5740;margin:0;">Um intervalo, não um adeus.</h3>
+                <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Ao pausar, você não será cobrada nem receberá entregas até decidir retomar. Não há prazo — sua assinatura fica esperando por você pelo tempo que precisar.</p>
+                <div style="display:flex;gap:10px;margin-top:8px;">
+                  <button onClick="{{ closePauseModal }}" style="flex:1;background:none;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Voltar</button>
+                  <button onClick="{{ confirmPauseSubscription }}" style="flex:1;background:#4B5740;color:#FAF7F2;border:none;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Confirmar pausa</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showCancelModal }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeCancelModal }}" style="position:fixed;inset:0;background:rgba(43,49,36,0.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;">
+              <div onClick="{{ stopPropagation }}" style="background:#FAF7F2;max-width:420px;width:100%;border-radius:2px;padding:32px;display:flex;flex-direction:column;gap:16px;">
+                <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Cancelar assinatura</span>
+                <h3 style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#4B5740;margin:0;">Tem certeza que deseja se despedir?</h3>
+                <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Ao cancelar, sua assinatura termina de vez — não há entregas nem cobranças futuras. Se só precisa de um tempo, pausar pode ser a escolha mais gentil.</p>
+                <div style="display:flex;gap:10px;margin-top:8px;">
+                  <button onClick="{{ closeCancelModal }}" style="flex:1;background:none;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Voltar</button>
+                  <button onClick="{{ confirmCancelSubscription }}" style="flex:1;background:#C4836A;color:#FAF7F2;border:none;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Confirmar cancelamento</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ showSubWizard }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ subStepIs1 }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:36px;">
+            <div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:#4B5740;margin:0 0 16px;">Frequência</h3>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <sc-for list="{{ subFreqOptions }}" as="f" hint-placeholder-count="3">
+                  <button onClick="{{ f.onClick }}" style="padding:14px 24px;border-radius:2px;border:1px solid #4B5740;background:{{ f.bg }};color:{{ f.color }};font-size:14px;cursor:pointer;">{{ f.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:#4B5740;margin:0 0 16px;">Tamanho</h3>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+                <sc-for list="{{ subSizeOptions }}" as="sz" hint-placeholder-count="3">
+                  <button onClick="{{ sz.onClick }}" style="padding:20px;border-radius:2px;border:1px solid #4B5740;background:{{ sz.bg }};color:{{ sz.color }};cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;">
+                    <span style="font-family:'Playfair Display',serif;font-size:20px;">{{ sz.label }}</span>
+                    <span style="font-size:12px;">R$ {{ sz.price }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+              <button onClick="{{ goSubStep2 }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:15px 30px;border-radius:2px;font-size:14px;cursor:pointer;">Continuar →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ subStepIs2 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:36px;">
+            <div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:#4B5740;margin:0 0 12px;">Dia de entrega</h3>
+              <p style="font-size:13px;color:#8A8D7C;margin:0 0 16px;">{{ subDayLabel }}</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <sc-for list="{{ subDayOptions }}" as="d" hint-placeholder-count="6">
+                  <button onClick="{{ d.onClick }}" style="padding:10px 16px;border-radius:2px;border:1px solid #4B5740;background:{{ d.bg }};color:{{ d.color }};font-size:13px;cursor:pointer;">{{ d.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:#4B5740;margin:0 0 12px;">Mensagem do cartão</h3>
+              <p style="font-size:13px;color:#8A8D7C;margin:0 0 12px;">Você pode trocar essa mensagem antes de cada entrega.</p>
+              <sc-if value="{{ messageEditLockNotice }}" hint-placeholder-val="{{ false }}">
+                <p style="font-size:12.5px;color:#8C3B2C;background:#F6E9D3;padding:12px 16px;border-radius:2px;margin:0 0 12px;">Essa entrega já está confirmada com a mensagem anterior. Sua alteração valerá a partir da próxima entrega, em {{ messageEditEffectiveDate }}.</p>
+              </sc-if>
+              <textarea value="{{ subMessage }}" onChange="{{ onSubMessageChange }}" maxLength="180" placeholder="Escreva como se fosse um bilhete à mão…" style="width:100%;min-height:110px;padding:16px;border:1px solid #D8CFC0;border-radius:2px;font-family:'Work Sans';font-size:14px;resize:vertical;background:#FFFFFF;"></textarea>
+              <p style="font-size:11.5px;color:#A7AB97;margin:6px 0 0;text-align:right;">{{ subMessageCharCount }}/180</p>
+            </div>
+            <div style="display:flex;justify-content:space-between;">
+              <button onClick="{{ goSubStep1OrCancel }}" style="background:none;border:none;color:#7C7F6D;font-size:14px;cursor:pointer;">← Voltar</button>
+              <button onClick="{{ step2BtnAction }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:15px 30px;border-radius:2px;font-size:14px;cursor:pointer;">{{ step2BtnLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ subStepIs3 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:22px;">
+            <div>
+              <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:10px;">Entregar em</label>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <sc-for list="{{ checkoutAddressList }}" as="a" hint-placeholder-count="2">
+                  <button onClick="{{ a.onClick }}" style="text-align:left;padding:14px 16px;border:1.5px solid {{ a.borderColor }};background:{{ a.bg }};border-radius:2px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;">
+                    <div style="width:16px;height:16px;border-radius:50%;border:1.5px solid #4B5740;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;">
+                      <sc-if value="{{ a.selected }}" hint-placeholder-val="{{ false }}"><div style="width:8px;height:8px;border-radius:50%;background:#4B5740;"></div></sc-if>
+                    </div>
+                    <div>
+                      <div style="font-size:13.5px;color:#4B5740;font-weight:500;">{{ a.label }}</div>
+                      <div style="font-size:12.5px;color:#7C7F6D;margin-top:3px;">{{ a.line }}</div>
+                    </div>
+                  </button>
+                </sc-for>
+              </div>
+              <button onClick="{{ toggleNewAddressForm }}" style="background:none;border:none;color:#C4836A;font-size:13px;cursor:pointer;margin-top:12px;padding:0;">{{ newAddressToggleLabel }}</button>
+              <div style="margin-top:16px;">
+                <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:8px;">Esta assinatura é um presente? Nome de quem vai receber (opcional)</label>
+                <input value="{{ subRecipientName }}" onChange="{{ onSubRecipientNameChange }}" maxLength="60" placeholder="Nome de quem vai receber" style="width:100%;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+              </div>
+            </div>
+            <div>
+              <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:10px;">Forma de pagamento</label>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <sc-for list="{{ savedCards }}" as="c" hint-placeholder-count="1">
+                  <button onClick="{{ c.onClick }}" style="text-align:left;padding:14px 16px;border:1.5px solid {{ c.borderColor }};background:{{ c.bg }};border-radius:2px;cursor:pointer;display:flex;align-items:center;gap:12px;">
+                    <div style="width:16px;height:16px;border-radius:50%;border:1.5px solid #4B5740;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                      <sc-if value="{{ c.selected }}" hint-placeholder-val="{{ false }}"><div style="width:8px;height:8px;border-radius:50%;background:#4B5740;"></div></sc-if>
+                    </div>
+                    <span style="font-size:13.5px;color:#4B5740;">{{ c.brand }} •••• {{ c.last4 }}</span>
+                  </button>
+                </sc-for>
+              </div>
+              <button onClick="{{ toggleNewCardForm }}" style="background:none;border:none;color:#C4836A;font-size:13px;cursor:pointer;margin-top:12px;padding:0;">{{ newCardToggleLabel }}</button>
+              <sc-if value="{{ showNewCardForm }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:16px;background:#F3EDE3;border-radius:2px;">
+                  <input value="{{ newCardNumber }}" onChange="{{ onNewCardNumberChange }}" maxLength="19" inputMode="numeric" placeholder="Número do cartão" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  <input value="{{ newCardName }}" onChange="{{ onNewCardNameChange }}" maxLength="60" placeholder="Nome impresso no cartão" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  <input value="{{ newCardCpf }}" onChange="{{ onNewCardCpfChange }}" maxLength="14" inputMode="numeric" placeholder="CPF do titular" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  <div style="display:flex;gap:10px;">
+                    <input value="{{ newCardExpiry }}" onChange="{{ onNewCardExpiryChange }}" maxLength="5" inputMode="numeric" placeholder="MM/AA" style="flex:1;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                    <input value="{{ newCardCvv }}" onChange="{{ onNewCardCvvChange }}" maxLength="4" inputMode="numeric" placeholder="CVV" style="flex:1;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  </div>
+                  <button onClick="{{ saveNewCard }}" style="align-self:flex-start;background:#4B5740;color:#FAF7F2;border:none;padding:11px 20px;border-radius:2px;font-size:13px;cursor:pointer;opacity:{{ newCardSaveOpacity }};">Salvar cartão</button>
+                </div>
+              </sc-if>
+              <p style="font-size:11.5px;color:#A7AB97;margin:14px 0 0;">Assinaturas são cobradas mensalmente via cartão de crédito. Em breve, PIX recorrente também estará disponível.</p>
+            </div>
+            <sc-if value="{{ deliveryPaymentCooldownActive }}" hint-placeholder-val="{{ false }}">
+              <p style="font-size:12.5px;color:#C4836A;background:#F6E9D3;padding:12px 16px;border-radius:2px;margin:0;">Sua próxima entrega é em {{ deliveryPaymentCooldownUntil }} — entrega e forma de pagamento só podem ser alteradas até 3 dias antes dessa data. Essa alteração valerá a partir do ciclo seguinte.</p>
+            </sc-if>
+            <div style="display:flex;justify-content:space-between;">
+              <button onClick="{{ goSubStep2 }}" style="background:none;border:none;color:#7C7F6D;font-size:14px;cursor:pointer;">← Voltar</button>
+              <button onClick="{{ step3ContinueAction }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px 28px;border-radius:2px;font-size:14px;cursor:pointer;opacity:{{ step3ContinueOpacity }};">Continuar →</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ subStepIs4 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:26px;">
+            <div style="background:#F3EDE3;padding:34px;border-radius:2px;display:flex;flex-direction:column;gap:16px;">
+              <div style="display:flex;justify-content:space-between;gap:14px;font-size:14px;color:#4B5740;flex-wrap:wrap;" class="review-row"><span style="flex-shrink:0;">Frequência</span><strong style="text-align:right;">{{ subDayLabel }}</strong></div>
+              <div style="display:flex;justify-content:space-between;gap:14px;font-size:14px;color:#4B5740;flex-wrap:wrap;" class="review-row"><span style="flex-shrink:0;">Tamanho</span><strong style="text-align:right;">{{ subSize }}</strong></div>
+              <div style="display:flex;justify-content:space-between;gap:14px;font-size:14px;color:#4B5740;flex-wrap:wrap;" class="review-row"><span style="flex-shrink:0;">Endereço</span><strong style="max-width:280px;text-align:right;">{{ subSelectedAddressLine }}</strong></div>
+              <sc-if value="{{ subHasRecipient }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;justify-content:space-between;gap:14px;font-size:14px;color:#4B5740;flex-wrap:wrap;" class="review-row"><span style="flex-shrink:0;">Presente para</span><strong style="text-align:right;">{{ subRecipientName }}</strong></div>
+              </sc-if>
+              <div style="display:flex;justify-content:space-between;gap:14px;font-size:14px;color:#4B5740;flex-wrap:wrap;" class="review-row"><span style="flex-shrink:0;">Mensagem</span><strong style="max-width:280px;text-align:right;font-style:italic;word-break:break-word;overflow-wrap:break-word;white-space:normal;">{{ subMessageOrPlaceholder }}</strong></div>
+              <div style="height:1px;background:rgba(75,87,64,0.2);"></div>
+              <div style="display:flex;justify-content:space-between;gap:14px;font-family:'Playfair Display',serif;font-size:20px;color:#4B5740;flex-wrap:wrap;" class="review-row"><span>Valor por ciclo</span><strong>R$ {{ subPrice }}</strong></div>
+            </div>
+            <p style="font-size:12.5px;color:#8A8D7C;line-height:1.7;">Você pode ajustar, pausar ou cancelar sua assinatura a qualquer momento em Minha Conta.</p>
+            <div style="display:flex;justify-content:space-between;">
+              <button onClick="{{ goSubStep3 }}" style="background:none;border:none;color:#7C7F6D;font-size:14px;cursor:pointer;">← Voltar</button>
+              <button onClick="{{ confirmSubscription }}" style="background:#C4836A;color:#FAF7F2;border:none;padding:15px 30px;border-radius:2px;font-size:14px;cursor:pointer;">Confirmar assinatura</button>
+            </div>
+          </div>
+
+          <sc-if value="{{ showDeclinedModal }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ closeDeclinedModal }}" style="position:fixed;inset:0;background:rgba(43,49,36,0.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;">
+              <div onClick="{{ stopPropagation }}" style="background:#FAF7F2;max-width:420px;width:100%;border-radius:2px;padding:32px;display:flex;flex-direction:column;gap:16px;">
+                <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Pagamento não aprovado</span>
+                <h3 style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#4B5740;margin:0;">Algo não deu certo por aqui.</h3>
+                <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Não conseguimos confirmar a cobrança com o cartão selecionado. Sua assinatura ainda não foi ativada — tente novamente ou use outro cartão.</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                  <button onClick="{{ closeDeclinedModal }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Tentar novamente</button>
+                  <button onClick="{{ declinedUseOtherCard }}" style="background:none;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Usar outro cartão</button>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ subStepIs5 }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px;padding:40px 0;">
+            <div style="width:64px;height:64px;border-radius:50%;background:#E8C4B8;display:flex;align-items:center;justify-content:center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4B5740" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-style:italic;color:#4B5740;margin:0;">{{ confirmedTitle }}</h2>
+            <p style="font-size:13.5px;color:#4B5740;margin:0;">{{ subFreq }} · {{ subSize }} · R$ {{ subPrice }} por ciclo</p>
+            <p style="font-size:14px;color:#7C7F6D;max-width:420px;">Sua próxima entrega está agendada para {{ nextDeliveryDate }}, conforme a frequência {{ subFreq }} escolhida. Gerencie, edite a mensagem ou pause quando quiser em Minha Conta.</p>
+            <sc-if value="{{ subHasPlanChangePending }}" hint-placeholder-val="{{ false }}">
+              <p style="font-size:13px;color:#8C3B2C;background:#F6E9D3;padding:12px 16px;border-radius:2px;max-width:420px;margin:0;">Sua próxima entrega já está confirmada com o plano anterior. A alteração de plano vale a partir de {{ subPlanChangeEffectiveDate }}.</p>
+            </sc-if>
+            <button onClick="{{ goAccount }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px 28px;border-radius:2px;font-size:14px;cursor:pointer;">Ir para Minha Conta</button>
+          </div>
+        </sc-if>
+
+        </sc-if>
+        </sc-if>
+
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.builder }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Monte seu Buquê" style="max-width:1320px;margin:0 auto;padding:50px 24px 110px;">
+        <div style="text-align:center;margin-bottom:36px;">
+          <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Monte seu Buquê</span>
+          <h1 style="font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,38px);font-style:italic;color:#4B5740;margin:10px 0 8px;">Componha, flor a flor</h1>
+          <p style="font-size:14px;color:#7C7F6D;">Arraste as flores para o vaso, ou toque no "+". O preview se monta na hora.</p>
+        </div>
+
+        <sc-if value="{{ isBuild }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:250px 1fr 300px;gap:24px;align-items:start;" class="builder-grid">
+
+            <div style="display:flex;flex-direction:column;gap:10px;background:#FFFFFF;border-radius:2px;padding:16px;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+              <h3 style="font-family:'Playfair Display',serif;font-size:15px;color:#4B5740;margin:0 0 6px;">Flores disponíveis</h3>
+              <sc-for list="{{ flowerCards }}" as="f" hint-placeholder-count="6">
+                <div draggable="true" onDragStart="{{ f.onDragStart }}" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:2px;cursor:grab;border:1px solid rgba(75,87,64,0.1);">
+                  <svg width="40" height="40" viewBox="0 0 64 64" style="flex-shrink:0;">
+                    <sc-for list="{{ f.petalsSvg }}" as="p" hint-placeholder-count="8">
+                      <ellipse cx="{{ p.cx }}" cy="{{ p.cy }}" rx="{{ p.rx }}" ry="{{ p.ry }}" transform="{{ p.transform }}" fill="{{ f.petalColor }}" stroke="rgba(0,0,0,0.06)" stroke-width="0.5"></ellipse>
+                    </sc-for>
+                    <circle cx="32" cy="32" r="{{ f.centerR }}" fill="{{ f.centerColor }}"></circle>
+                  </svg>
+                  <div style="flex:1;">
+                    <div style="font-size:12.5px;color:#4B5740;">{{ f.name }}</div>
+                    <div style="font-size:11px;color:#8A8D7C;">R$ {{ f.price }} / unid.</div>
+                  </div>
+                  <button onClick="{{ f.onAdd }}" style="width:26px;height:26px;border-radius:50%;border:1px solid #4B5740;background:#FAF7F2;color:#4B5740;cursor:pointer;font-size:15px;line-height:1;">+</button>
+                </div>
+              </sc-for>
+            </div>
+
+            <div data-builder-canvas ondrop="{{ onCanvasDrop }}" ondragover="{{ onCanvasDragOver }}" onPointerMove="{{ onCanvasPointerMove }}" onPointerUp="{{ onCanvasPointerUp }}" onPointerLeave="{{ onCanvasPointerUp }}" style="position:relative;background:#EFE6D8;border-radius:4px;height:460px;overflow:hidden;touch-action:none;">
+              <div style="position:absolute;left:50%;bottom:110px;width:2px;height:2px;">
+                <sc-for list="{{ placedFlowers }}" as="p" hint-placeholder-count="0">
+                  <svg width="70" height="70" viewBox="0 0 64 64" onPointerDown="{{ p.onFlowerPointerDown }}" style="{{ p.styleStr }}">
+                    <sc-for list="{{ p.type.petalsSvg }}" as="pt" hint-placeholder-count="8">
+                      <ellipse cx="{{ pt.cx }}" cy="{{ pt.cy }}" rx="{{ pt.rx }}" ry="{{ pt.ry }}" transform="{{ pt.transform }}" fill="{{ p.type.petalColor }}" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"></ellipse>
+                    </sc-for>
+                    <circle cx="32" cy="32" r="{{ p.type.centerR }}" fill="{{ p.type.centerColor }}"></circle>
+                  </svg>
+                </sc-for>
+              </div>
+              <div style="position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:170px;height:90px;background:linear-gradient(180deg,#C9AE8C,#9C7B54);clip-path:polygon(18% 0,82% 0,100% 100%,0% 100%);z-index:500;"></div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:16px;background:#FFFFFF;border-radius:2px;padding:20px;box-shadow:0 1px 4px rgba(75,87,64,0.08);position:sticky;top:90px;">
+              <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0;">Seu buquê</h3>
+              <sc-if value="{{ hasFlowers }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:10px;max-height:220px;overflow-y:auto;">
+                  <sc-for list="{{ chosenList }}" as="c" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;color:#4B5740;">
+                      <span style="flex:1;">{{ c.type.name }}</span>
+                      <div style="display:flex;align-items:center;gap:6px;">
+                        <button onClick="{{ c.dec }}" style="width:20px;height:20px;border-radius:50%;border:1px solid #C9CBB8;background:none;cursor:pointer;font-size:12px;">−</button>
+                        <span>{{ c.qty }}</span>
+                        <button onClick="{{ c.inc }}" style="width:20px;height:20px;border-radius:50%;border:1px solid #C9CBB8;background:none;cursor:pointer;font-size:12px;">+</button>
+                      </div>
+                      <span style="width:48px;text-align:right;">R$ {{ c.subtotal }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <textarea value="{{ builderMessage }}" onChange="{{ onBuilderMessageChange }}" maxLength="180" placeholder="Mensagem para o cartão…" style="width:100%;min-height:64px;padding:10px;border:1px solid #D8CFC0;border-radius:2px;font-family:'Work Sans';font-size:13px;resize:vertical;"></textarea>
+              <p style="font-size:11px;color:#A7AB97;margin:4px 0 0;text-align:right;">{{ builderMessageCharCount }}/180</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(75,87,64,0.12);padding-top:12px;">
+                <span style="font-size:13px;color:#7C7F6D;">Total</span>
+                <span style="font-family:'Playfair Display',serif;font-size:19px;color:#4B5740;">R$ {{ builderTotal }}</span>
+              </div>
+              <sc-if value="{{ aiEnabled }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ generateIllustration }}" disabled="{{ builderDisabled }}" style="background:#C4836A;color:#FAF7F2;border:none;padding:13px;border-radius:2px;font-size:13px;cursor:pointer;opacity:{{ builderBtnOpacity }};">Gerar minha ilustração</button>
+              </sc-if>
+              <button onClick="{{ addBuilderToCart }}" disabled="{{ builderDisabled }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:13px;border-radius:2px;font-size:13px;cursor:pointer;opacity:{{ builderBtnOpacity }};">Adicionar ao carrinho</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isGenerating }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:100px 0;">
+            <div style="width:48px;height:48px;border-radius:50%;border:3px solid #E8C4B8;border-top-color:#C4836A;animation:spin 0.9s linear infinite;"></div>
+            <p style="font-size:14px;color:#7C7F6D;">Gerando sua ilustração, com exatamente as flores escolhidas…</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:22px;max-width:520px;margin:0 auto;">
+            <div style="width:100%;padding:8px 8px 0;background:#FFFFFF;border-radius:4px;box-shadow:0 6px 24px rgba(75,87,64,0.14);">
+              <div style="position:relative;background:linear-gradient(180deg,#F3EDE3,#E9DFCF);border-radius:2px;height:420px;overflow:hidden;">
+                <div style="position:absolute;left:50%;bottom:100px;width:2px;height:2px;z-index:1;">
+                  <sc-for list="{{ placedFlowers }}" as="p" hint-placeholder-count="0">
+                    <div style="{{ p.stemStyleStr }}"></div>
+                  </sc-for>
+                  <sc-for list="{{ placedFlowers }}" as="p" hint-placeholder-count="0">
+                    <svg width="80" height="80" viewBox="0 0 64 64" style="{{ p.resultStyleStr }}">
+                      <sc-for list="{{ p.type.petalsSvg }}" as="pt" hint-placeholder-count="8">
+                        <ellipse cx="{{ pt.cx }}" cy="{{ pt.cy }}" rx="{{ pt.rx }}" ry="{{ pt.ry }}" transform="{{ pt.transform }}" fill="{{ p.type.petalColor }}" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"></ellipse>
+                      </sc-for>
+                      <circle cx="32" cy="32" r="{{ p.type.centerR }}" fill="{{ p.type.centerColor }}"></circle>
+                    </svg>
+                  </sc-for>
+                </div>
+                <div style="position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:190px;height:100px;background:linear-gradient(180deg,#C9AE8C,#9C7B54);clip-path:polygon(18% 0,82% 0,100% 100%,0% 100%);z-index:500;"></div>
+              </div>
+              <div style="padding:14px 6px 18px;text-align:center;">
+                <span style="font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Ilustração gerada por IA · simulação</span>
+                <p style="font-size:12.5px;color:#8A8D7C;margin:6px 0 0;">Representação do seu buquê no estilo Florê, com exatamente as flores e quantidades escolhidas.</p>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;">
+              <button onClick="{{ resetBuilder }}" style="background:none;border:1px solid #4B5740;color:#4B5740;padding:13px 24px;border-radius:2px;font-size:13px;cursor:pointer;">Recomeçar</button>
+              <button onClick="{{ addBuilderToCart }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:13px 24px;border-radius:2px;font-size:13px;cursor:pointer;">Adicionar ao carrinho — R$ {{ builderTotal }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.account }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Minha Conta" style="max-width:900px;margin:0 auto;padding:64px 28px 110px;">
+        <sc-if value="{{ notLoggedIn }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ isAuthLogin }}" hint-placeholder-val="{{ true }}">
+            <div style="max-width:360px;margin:60px auto;display:flex;flex-direction:column;gap:16px;text-align:center;">
+              <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-style:italic;color:#4B5740;margin:0 0 6px;">Entrar na sua conta</h1>
+              <input value="{{ loginEmail }}" onChange="{{ onLoginEmailChange }}" placeholder="seu@email.com" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+              <input value="{{ loginPassword }}" onChange="{{ onLoginPasswordChange }}" type="password" placeholder="Senha" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+              <button onClick="{{ doLogin }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px;border-radius:2px;font-size:14px;cursor:pointer;opacity:{{ loginBtnOpacity }};">Entrar com e-mail</button>
+              <button onClick="{{ doLogin }}" style="background:#FFFFFF;color:#4B5740;border:1px solid #D8CFC0;padding:14px;border-radius:2px;font-size:14px;cursor:pointer;">Entrar com Google</button>
+              <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <a href="#" onClick="{{ goSignupView }}" style="font-size:12.5px;">Criar conta</a>
+                <a href="#" onClick="{{ goForgotView }}" style="font-size:12.5px;">Esqueci minha senha</a>
+              </div>
+            </div>
+            <p style="font-size:11px;color:#A7AB97;text-align:center;margin-top:14px;">Login simulado para este protótipo — a integração real com Google OAuth entra na implementação final. Senhas nunca ficam em texto puro: armazenamos apenas o hash, com varredura de segurança e criptografia de ponta a ponta para dados sensíveis e de pagamento.</p>
+          </sc-if>
+
+          <sc-if value="{{ isAuthSignup }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:360px;margin:60px auto;display:flex;flex-direction:column;gap:14px;text-align:center;">
+              <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-style:italic;color:#4B5740;margin:0 0 6px;">Criar sua conta</h1>
+              <input value="{{ signupName }}" onChange="{{ onSignupNameChange }}" placeholder="Nome completo" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+              <input value="{{ signupEmail }}" onChange="{{ onSignupEmailChange }}" placeholder="seu@email.com" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+              <input value="{{ signupPhone }}" onChange="{{ onSignupPhoneChange }}" maxLength="15" placeholder="WhatsApp / celular" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+              <input value="{{ signupPassword }}" onChange="{{ onSignupPasswordChange }}" type="password" placeholder="Senha" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+              <sc-if value="{{ signupHasExistsError }}" hint-placeholder-val="{{ false }}">
+                <p style="font-size:12.5px;color:#C4836A;margin:0;text-align:left;">Já existe uma conta com esse e-mail. <a href="#" onClick="{{ goLoginView }}">Entrar</a> ou <a href="#" onClick="{{ goForgotView }}">recuperar senha</a>.</p>
+              </sc-if>
+              <button onClick="{{ doSignup }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px;border-radius:2px;font-size:14px;cursor:pointer;">Criar conta</button>
+              <a href="#" onClick="{{ goLoginView }}" style="font-size:12.5px;">Já tenho conta</a>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isAuthForgot }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:360px;margin:60px auto;display:flex;flex-direction:column;gap:14px;text-align:center;">
+              <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-style:italic;color:#4B5740;margin:0 0 6px;">Recuperar senha</h1>
+              <sc-if value="{{ forgotSent }}" hint-placeholder-val="{{ false }}">
+                <p style="font-size:13.5px;color:#5C5F51;">Se {{ forgotEmail }} estiver cadastrado, você receberá um link para redefinir sua senha em breve (simulação).</p>
+              </sc-if>
+              <sc-if value="{{ forgotNotSent }}" hint-placeholder-val="{{ true }}">
+                <input value="{{ forgotEmail }}" onChange="{{ onForgotEmailChange }}" placeholder="seu@email.com" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                <button onClick="{{ doForgotPassword }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px;border-radius:2px;font-size:14px;cursor:pointer;">Enviar link de redefinição</button>
+              </sc-if>
+              <a href="#" onClick="{{ goLoginView }}" style="font-size:12.5px;">Voltar ao login</a>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ loggedIn }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:36px;flex-wrap:wrap;gap:12px;">
+            <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-style:italic;color:#4B5740;margin:0;">Minha Conta</h1>
+            <button onClick="{{ logout }}" style="background:none;border:1px solid #D8CFC0;color:#7C7F6D;padding:8px 16px;border-radius:2px;font-size:12px;cursor:pointer;">Sair</button>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:34px;border-bottom:1px solid rgba(75,87,64,0.15);flex-wrap:wrap;">
+            <sc-for list="{{ accountTabs }}" as="t" hint-placeholder-count="4">
+              <button onClick="{{ t.onClick }}" style="padding:10px 18px;border:none;background:{{ t.bg }};color:{{ t.color }};border-radius:2px 2px 0 0;font-size:13px;cursor:pointer;">{{ t.label }}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ isTabDados }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:14px;max-width:420px;">
+              <div>
+                <label style="font-size:12px;color:#7C7F6D;display:block;margin-bottom:6px;">Nome completo</label>
+                <input value="{{ customerName }}" onChange="{{ onCustomerNameChange }}" maxLength="60" placeholder="Nome completo" style="width:100%;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+              </div>
+              <div>
+                <label style="font-size:12px;color:#7C7F6D;display:block;margin-bottom:6px;">Apelido</label>
+                <input value="{{ customerNickname }}" onChange="{{ onCustomerNicknameChange }}" maxLength="30" placeholder="Como prefere ser chamada(o)" style="width:100%;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+              </div>
+              <div>
+                <label style="font-size:12px;color:#7C7F6D;display:block;margin-bottom:6px;">WhatsApp / celular</label>
+                <input value="{{ customerPhone }}" onChange="{{ onCustomerPhoneChange }}" maxLength="15" inputMode="numeric" placeholder="(11) 90000-0000" style="width:100%;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+              </div>
+              <div>
+                <label style="font-size:12px;color:#7C7F6D;display:block;margin-bottom:6px;">E-mail</label>
+                <input value="{{ loginEmail }}" disabled="{{ true }}" style="width:100%;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;background:#F3EDE3;color:#8A8D7C;" />
+              </div>
+              <p style="font-size:11.5px;color:#A7AB97;margin:0;">Preenchidos aqui, esses dados já vêm prontos no checkout.</p>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isTabPedidos }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-if value="{{ hasActiveSub }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:18px 20px;background:#EFE9DC;border-radius:2px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border:1px solid #D8CFC0;">
+                  <div>
+                    <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#C4836A;margin-bottom:4px;">Assinatura · {{ activeSubscription.freq }} · {{ activeSubscription.size }}</div>
+                    <div style="font-size:13px;color:#4B5740;">Próxima entrega: {{ nextDeliveryDate }} · Mensagem: "{{ activeSubMessageTruncated }}"</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:14px;">
+                    <span style="font-size:12px;color:#6B7C5C;background:#EDF0E4;padding:5px 10px;border-radius:20px;">{{ activeSubscription.status }}</span>
+                    <button onClick="{{ goTabAssinatura }}" style="background:none;border:none;color:#C4836A;font-size:12.5px;cursor:pointer;">Gerenciar →</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-for list="{{ orderHistory }}" as="o" hint-placeholder-count="3">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#FFFFFF;border-radius:2px;box-shadow:0 1px 3px rgba(75,87,64,0.06);flex-wrap:wrap;gap:8px;">
+                  <div><div style="font-size:13px;color:#4B5740;">{{ o.item }}</div><div style="font-size:11px;color:#8A8D7C;">{{ o.id }} · {{ o.date }}</div></div>
+                  <span style="font-size:12px;color:{{ o.statusColor }};background:{{ o.statusBg }};padding:5px 10px;border-radius:20px;">{{ o.status }}</span>
+                  <span style="font-family:'Playfair Display',serif;font-size:15px;color:#4B5740;">R$ {{ o.total }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isTabAssinatura }}" hint-placeholder-val="{{ false }}">
+            <sc-if value="{{ hasActiveSub }}" hint-placeholder-val="{{ false }}">
+              <div style="background:#F3EDE3;padding:28px;border-radius:2px;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:14px;color:#4B5740;"><span>Plano</span><strong>{{ activeSubscription.freq }} · {{ activeSubscription.size }}</strong></div>
+                <sc-if value="{{ subIsPaused }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;justify-content:space-between;font-size:14px;color:#4B5740;"><span>Status</span><strong>Pausada desde {{ activeSubscription.pausedSince }}</strong></div>
+                  <p style="font-size:12px;color:#8A8D7C;margin:0;font-style:italic;">Sem data de término prevista — sua assinatura espera por você.</p>
+                </sc-if>
+                <sc-if value="{{ subNotPaused }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;justify-content:space-between;font-size:14px;color:#4B5740;"><span>Status</span><strong>{{ activeSubscription.status }}</strong></div>
+                </sc-if>
+                <div style="display:flex;justify-content:space-between;font-size:14px;color:#4B5740;"><span>Valor por ciclo</span><strong>R$ {{ activeSubscription.price }}</strong></div>
+                <div style="display:flex;gap:10px;margin-top:10px;">
+                  <button onClick="{{ pauseOrResumeClick }}" style="flex:1;background:#FFFFFF;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">{{ subToggleLabel }}</button>
+                  <button onClick="{{ editSubscriptionMessage }}" style="flex:1;background:#FFFFFF;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Editar mensagem</button>
+                  <button onClick="{{ openCancelModal }}" style="flex:1;background:none;border:1px solid #C4836A;color:#C4836A;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Cancelar</button>
+                </div>
+              </div>
+
+              <sc-if value="{{ showPauseModal }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ closePauseModal }}" style="position:fixed;inset:0;background:rgba(43,49,36,0.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;">
+                  <div onClick="{{ stopPropagation }}" style="background:#FAF7F2;max-width:420px;width:100%;border-radius:2px;padding:32px;display:flex;flex-direction:column;gap:16px;">
+                    <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Pausar assinatura</span>
+                    <h3 style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#4B5740;margin:0;">Um intervalo, não um adeus.</h3>
+                    <sc-if value="{{ nextCycleCutoffPassed }}" hint-placeholder-val="{{ false }}">
+                      <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Esse ciclo já está confirmado e a entrega seguirá normalmente. Sua pausa será aplicada a partir da próxima entrega, em {{ nextEffectiveDate }}.</p>
+                    </sc-if>
+                    <sc-if value="{{ nextCycleCutoffPassed }}" hint-placeholder-val="{{ true }}">
+                      <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Ao pausar, você não será cobrada nem receberá entregas até decidir retomar. Não há prazo — sua assinatura fica esperando por você pelo tempo que precisar.</p>
+                    </sc-if>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                      <button onClick="{{ closePauseModal }}" style="flex:1;background:none;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Voltar</button>
+                      <button onClick="{{ confirmPauseSubscription }}" style="flex:1;background:#4B5740;color:#FAF7F2;border:none;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Confirmar pausa</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ showCancelModal }}" hint-placeholder-val="{{ false }}">
+                <div onClick="{{ closeCancelModal }}" style="position:fixed;inset:0;background:rgba(43,49,36,0.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;">
+                  <div onClick="{{ stopPropagation }}" style="background:#FAF7F2;max-width:420px;width:100%;border-radius:2px;padding:32px;display:flex;flex-direction:column;gap:16px;">
+                    <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Cancelar assinatura</span>
+                    <h3 style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#4B5740;margin:0;">Tem certeza que deseja se despedir?</h3>
+                    <sc-if value="{{ nextCycleCutoffPassed }}" hint-placeholder-val="{{ false }}">
+                      <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Esse ciclo já está confirmado e a entrega seguirá normalmente. Sua solicitação de cancelamento será aplicada a partir da próxima entrega, em {{ nextEffectiveDate }}.</p>
+                    </sc-if>
+                    <sc-if value="{{ nextCycleCutoffPassed }}" hint-placeholder-val="{{ true }}">
+                      <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Ao cancelar, sua assinatura termina de vez — não há entregas nem cobranças futuras. Se só precisa de um tempo, pausar pode ser a escolha mais gentil.</p>
+                    </sc-if>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                      <button onClick="{{ closeCancelModal }}" style="flex:1;background:none;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Voltar</button>
+                      <button onClick="{{ confirmCancelSubscription }}" style="flex:1;background:#C4836A;color:#FAF7F2;border:none;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Confirmar cancelamento</button>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{ subHasPendingAction }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#F6E9D3;border:1px solid #D9A441;padding:14px 18px;border-radius:2px;font-size:12.5px;color:#5C4326;margin-top:14px;">{{ pendingActionLabel }}</div>
+              </sc-if>
+
+              <sc-if value="{{ subPaymentFailed }}" hint-placeholder-val="{{ false }}">
+                <div style="background:#FBE3E0;border:1px solid #C4836A;padding:16px 18px;border-radius:2px;margin-top:14px;display:flex;flex-direction:column;gap:10px;">
+                  <strong style="font-size:13px;color:#8C3B2C;">Não conseguimos cobrar seu cartão para o próximo ciclo.</strong>
+                  <p style="font-size:12.5px;color:#5C5F51;margin:0;">Atualize os dados do cartão antes de {{ nextDeliveryDate }} — se não houver atualização até a entrega, esse ciclo será pulado automaticamente, sem custo.</p>
+                  <button onClick="{{ goTabCartoes }}" style="align-self:flex-start;background:#4B5740;color:#FAF7F2;border:none;padding:10px 18px;border-radius:2px;font-size:12.5px;cursor:pointer;">Atualizar cartão</button>
+                </div>
+              </sc-if>
+
+              <div style="margin-top:14px;padding:18px 20px;background:#FFFFFF;border-radius:2px;box-shadow:0 1px 3px rgba(75,87,64,0.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                <div>
+                  <div style="font-size:12px;color:#8A8D7C;">Próxima entrega</div>
+                  <div style="font-size:14px;color:#4B5740;">{{ nextDeliveryDate }}</div>
+                  <div style="font-size:11.5px;color:#8A8D7C;margin-top:4px;">Prazo p/ cancelar ou pausar sem afetar este ciclo: {{ nextCutoffDate }}</div>
+                </div>
+                <sc-if value="{{ nextCycleCutoffPassed }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-size:11.5px;color:#8C3B2C;background:#F6E9D3;padding:5px 12px;border-radius:20px;">Ciclo confirmado</span>
+                </sc-if>
+              </div>
+
+              <div style="margin-top:28px;">
+                <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 14px;">Entregas e mensagens</h3>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <sc-for list="{{ activeDeliveries }}" as="dl" hint-placeholder-count="3">
+                    <div style="padding:16px 18px;background:#FFFFFF;border-radius:2px;box-shadow:0 1px 3px rgba(75,87,64,0.06);display:flex;flex-direction:column;gap:6px;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:13px;color:#4B5740;font-weight:500;">Entrega de {{ dl.date }}</span>
+                        <sc-if value="{{ dl.cutoffPassed }}" hint-placeholder-val="{{ false }}">
+                          <span style="font-size:10.5px;color:#8C3B2C;background:#F6E9D3;padding:3px 10px;border-radius:20px;">Ciclo confirmado</span>
+                        </sc-if>
+                      </div>
+                      <div style="font-size:11.5px;color:#8A8D7C;">Prazo p/ cancelar/pausar/editar mensagem: {{ dl.cutoffDate }}</div>
+                      <sc-if value="{{ activeSubHasRecipient }}" hint-placeholder-val="{{ false }}">
+                        <div style="font-size:11.5px;color:#8A8D7C;">Presente para: {{ activeSubRecipientName }}</div>
+                      </sc-if>
+                      <span style="font-size:12.5px;color:#8A8D7C;font-style:italic;">"{{ dl.message }}"</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <p style="font-size:11.5px;color:#A7AB97;margin-top:10px;">A mesma mensagem vale para todas as entregas. Use "Editar mensagem" acima para trocá-la a qualquer momento.</p>
+              </div>
+            </sc-if>
+            <sc-if value="{{ notHasActiveSub }}" hint-placeholder-val="{{ true }}">
+              <div style="text-align:center;padding:50px 0;display:flex;flex-direction:column;align-items:center;gap:14px;">
+                <p style="font-size:14px;color:#7C7F6D;">Você ainda não tem uma assinatura ativa.</p>
+                <button onClick="{{ goSubscription }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:13px 24px;border-radius:2px;font-size:13px;cursor:pointer;">Assinar agora</button>
+              </div>
+            </sc-if>
+          </sc-if>
+
+          <sc-if value="{{ isTabEnderecos }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{ addresses }}" as="a" hint-placeholder-count="2">
+                <div style="padding:16px 18px;background:#FFFFFF;border-radius:2px;box-shadow:0 1px 3px rgba(75,87,64,0.06);">
+                  <div style="font-size:13px;color:#4B5740;font-weight:500;">{{ a.label }}</div>
+                  <div style="font-size:12.5px;color:#8A8D7C;">{{ a.line }}</div>
+                </div>
+              </sc-for>
+              <button onClick="{{ toggleNewAddressForm }}" style="background:none;border:none;color:#C4836A;font-size:13px;cursor:pointer;padding:0;text-align:left;">{{ newAddressToggleLabel }}</button>
+              <sc-if value="{{ showNewAddressForm }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;background:#F3EDE3;border-radius:2px;">
+                  <input value="{{ newAddressCep }}" onChange="{{ onNewAddressCepChange }}" placeholder="CEP (obrigatório)" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;max-width:160px;" />
+                  <input value="{{ newAddressResolvedStreet }}" disabled="{{ true }}" placeholder="Endereço (preenchido pelo CEP)" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;background:#F3EDE3;color:#4B5740;" />
+                  <sc-if value="{{ newAddressFieldsDisabled }}" hint-placeholder-val="{{ true }}">
+                    <p style="font-size:11.5px;color:#A7AB97;margin:0;">Digite um CEP válido para liberar endereço, número e complemento.</p>
+                  </sc-if>
+                  <div style="display:flex;gap:10px;">
+                    <input value="{{ newAddressNumber }}" onChange="{{ onNewAddressNumberChange }}" disabled="{{ newAddressFieldsDisabled }}" placeholder="Número" style="flex:1;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                    <input value="{{ newAddressComplement }}" onChange="{{ onNewAddressComplementChange }}" disabled="{{ newAddressFieldsDisabled }}" placeholder="Complemento (opcional)" style="flex:2;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  </div>
+                  <button onClick="{{ saveNewAddress }}" style="align-self:flex-start;background:#4B5740;color:#FAF7F2;border:none;padding:11px 20px;border-radius:2px;font-size:13px;cursor:pointer;">Salvar endereço</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isTabCartoes }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{ savedCards }}" as="c" hint-placeholder-count="1">
+                <div style="padding:16px 18px;background:#FFFFFF;border-radius:2px;box-shadow:0 1px 3px rgba(75,87,64,0.06);display:flex;justify-content:space-between;">
+                  <span style="font-size:13px;color:#4B5740;">{{ c.brand }} •••• {{ c.last4 }}</span>
+                  <span style="font-size:12px;color:#8A8D7C;">criptografado</span>
+                </div>
+              </sc-for>
+              <button onClick="{{ toggleNewCardForm }}" style="background:none;border:none;color:#C4836A;font-size:13px;cursor:pointer;padding:0;text-align:left;">{{ newCardToggleLabel }}</button>
+              <sc-if value="{{ showNewCardForm }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px;background:#F3EDE3;border-radius:2px;">
+                  <input value="{{ newCardNumber }}" onChange="{{ onNewCardNumberChange }}" maxLength="19" inputMode="numeric" placeholder="Número do cartão" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  <input value="{{ newCardName }}" onChange="{{ onNewCardNameChange }}" maxLength="60" placeholder="Nome impresso no cartão" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  <input value="{{ newCardCpf }}" onChange="{{ onNewCardCpfChange }}" maxLength="14" inputMode="numeric" placeholder="CPF do titular" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  <div style="display:flex;gap:10px;">
+                    <input value="{{ newCardExpiry }}" onChange="{{ onNewCardExpiryChange }}" maxLength="5" inputMode="numeric" placeholder="MM/AA" style="flex:1;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                    <input value="{{ newCardCvv }}" onChange="{{ onNewCardCvvChange }}" maxLength="4" inputMode="numeric" placeholder="CVV" style="flex:1;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  </div>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#4B5740;cursor:pointer;"><input type="checkbox" checked="{{ saveNewCardChecked }}" onChange="{{ toggleSaveCard }}" style="width:16px;height:16px;" />Salvar cartão para próximas compras</label>
+                  <button onClick="{{ saveNewCard }}" style="align-self:flex-start;background:#4B5740;color:#FAF7F2;border:none;padding:11px 20px;border-radius:2px;font-size:13px;cursor:pointer;opacity:{{ newCardSaveOpacity }};">Salvar cartão</button>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.checkout }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Checkout" style="max-width:720px;margin:0 auto;padding:60px 28px 110px;">
+        <h1 style="font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,36px);font-style:italic;color:#4B5740;margin:0 0 30px;text-align:center;">Finalizar pedido</h1>
+
+        <sc-if value="{{ checkoutStepIs4 }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px;padding:30px 0;">
+            <div style="width:64px;height:64px;border-radius:50%;background:#E8C4B8;display:flex;align-items:center;justify-content:center;">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4B5740" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-style:italic;color:#4B5740;margin:0;">Pedido confirmado</h2>
+            <p style="font-size:14px;color:#7C7F6D;max-width:400px;">Total pago: R$ {{ checkoutTotal }}. Vamos preparar tudo com carinho — entrega prevista para {{ deliveryDateLabel }} — e avisar quando saírmos.</p>
+            <div style="display:flex;gap:12px;">
+              <button onClick="{{ goAccountPedidos }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px 24px;border-radius:2px;font-size:13px;cursor:pointer;">Ver meus pedidos</button>
+              <button onClick="{{ goHome }}" style="background:none;border:1px solid #4B5740;color:#4B5740;padding:14px 24px;border-radius:2px;font-size:13px;cursor:pointer;">Voltar à home</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ checkoutStepIs1 }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:60px 0;display:flex;flex-direction:column;align-items:center;gap:14px;">
+              <p style="font-size:14px;color:#7C7F6D;font-style:italic;">Seu carrinho ainda espera pela primeira flor.</p>
+              <button onClick="{{ goCatalog }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:13px 24px;border-radius:2px;font-size:13px;cursor:pointer;">Ver catálogo</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notCartEmpty }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:26px;">
+              <sc-for list="{{ cartItems }}" as="c" hint-placeholder-count="2">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px;background:#FFFFFF;border-radius:2px;box-shadow:0 1px 3px rgba(75,87,64,0.06);">
+                  <div style="flex:1;">
+                    <div style="font-size:13.5px;color:#4B5740;">{{ c.label }}</div>
+                    <div style="font-size:11px;color:#8A8D7C;">{{ c.kind }}</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <button onClick="{{ c.decQ }}" style="width:22px;height:22px;border-radius:50%;border:1px solid #C9CBB8;background:none;cursor:pointer;">−</button>
+                    <span style="font-size:13px;">{{ c.qty }}</span>
+                    <button onClick="{{ c.incQ }}" style="width:22px;height:22px;border-radius:50%;border:1px solid #C9CBB8;background:none;cursor:pointer;">+</button>
+                  </div>
+                  <span style="width:60px;text-align:right;font-size:13.5px;color:#4B5740;">R$ {{ c.price }}</span>
+                  <button onClick="{{ c.remove }}" style="background:none;border:none;color:#C4836A;cursor:pointer;font-size:12px;">Remover</button>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-bottom:24px;">
+              <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:8px;">Mensagem para o cartão (opcional)</label>
+              <textarea value="{{ cartMessage }}" onChange="{{ onCartMessageChange }}" maxLength="180" placeholder="Escreva como se fosse um bilhete à mão…" style="width:100%;min-height:80px;padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-family:'Work Sans';font-size:13.5px;resize:vertical;background:#FFFFFF;"></textarea>
+              <p style="font-size:11px;color:#A7AB97;margin:4px 0 0;text-align:right;">{{ cartMessageCharCount }}/180</p>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;color:#4B5740;padding-top:14px;border-top:1px solid rgba(75,87,64,0.12);margin-bottom:24px;"><span>Subtotal</span><strong>R$ {{ checkoutSubtotal }}</strong></div>
+            <div style="display:flex;justify-content:flex-end;">
+              <button onClick="{{ goCheckoutStep2 }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px 28px;border-radius:2px;font-size:14px;cursor:pointer;">Continuar →</button>
+            </div>
+          </sc-if>
+        </sc-if>
+
+        <sc-if value="{{ checkoutStepIs2 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:22px;">
+            <div>
+              <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:10px;">Seus dados de contato</label>
+              <sc-if value="{{ hasCustomerInfo }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:14px 16px;background:#FFFFFF;border-radius:2px;border:1px solid #D8CFC0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <div>
+                    <div style="font-size:13.5px;color:#4B5740;">{{ customerName }}</div>
+                    <div style="font-size:12.5px;color:#8A8D7C;">{{ customerPhone }}</div>
+                  </div>
+                  <button onClick="{{ editCustomerInfo }}" style="background:none;border:none;color:#C4836A;font-size:12.5px;cursor:pointer;">Editar</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ notHasCustomerInfo }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                  <input value="{{ customerName }}" onChange="{{ onCustomerNameChange }}" maxLength="60" placeholder="Nome completo" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                  <input value="{{ customerPhone }}" onChange="{{ onCustomerPhoneChange }}" onBlur="{{ confirmCustomerInfo }}" maxLength="15" inputMode="numeric" placeholder="WhatsApp / celular" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                  <p style="font-size:11px;color:#A7AB97;margin:0;">Usamos para confirmar entregas e ajustes de última hora. Preenchido uma vez, fica salvo na sua conta.</p>
+                </div>
+              </sc-if>
+            </div>
+            <div>
+              <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:10px;">Entregar em</label>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <sc-for list="{{ checkoutAddressList }}" as="a" hint-placeholder-count="2">
+                  <button onClick="{{ a.onClick }}" style="text-align:left;padding:14px 16px;border:1.5px solid {{ a.borderColor }};background:{{ a.bg }};border-radius:2px;cursor:pointer;display:flex;align-items:flex-start;gap:12px;">
+                    <div style="width:16px;height:16px;border-radius:50%;border:1.5px solid #4B5740;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;">
+                      <sc-if value="{{ a.selected }}" hint-placeholder-val="{{ false }}"><div style="width:8px;height:8px;border-radius:50%;background:#4B5740;"></div></sc-if>
+                    </div>
+                    <div>
+                      <div style="font-size:13.5px;color:#4B5740;font-weight:500;">{{ a.label }}<sc-if value="{{ a.preferred }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;color:#C4836A;font-weight:400;margin-left:8px;">· Padrão</span></sc-if></div>
+                      <div style="font-size:12.5px;color:#7C7F6D;margin-top:3px;">{{ a.line }}</div>
+                    </div>
+                  </button>
+                </sc-for>
+              </div>
+              <button onClick="{{ toggleNewAddressForm }}" style="background:none;border:none;color:#C4836A;font-size:13px;cursor:pointer;margin-top:12px;padding:0;">{{ newAddressToggleLabel }}</button>
+              <sc-if value="{{ showNewAddressForm }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;padding:16px;background:#F3EDE3;border-radius:2px;">
+                  <input value="{{ newAddressCep }}" onChange="{{ onNewAddressCepChange }}" placeholder="CEP (obrigatório)" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;max-width:160px;" />
+                  <input value="{{ newAddressResolvedStreet }}" disabled="{{ true }}" placeholder="Endereço (preenchido pelo CEP)" style="padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;background:#F3EDE3;color:#4B5740;" />
+                  <sc-if value="{{ newAddressFieldsDisabled }}" hint-placeholder-val="{{ true }}">
+                    <p style="font-size:11.5px;color:#A7AB97;margin:0;">Digite um CEP válido para liberar endereço, número e complemento.</p>
+                  </sc-if>
+                  <div style="display:flex;gap:10px;">
+                    <input value="{{ newAddressNumber }}" onChange="{{ onNewAddressNumberChange }}" disabled="{{ newAddressFieldsDisabled }}" placeholder="Número" style="flex:1;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                    <input value="{{ newAddressComplement }}" onChange="{{ onNewAddressComplementChange }}" disabled="{{ newAddressFieldsDisabled }}" placeholder="Complemento (opcional)" style="flex:2;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;" />
+                  </div>
+                  <p style="font-size:11px;color:#A7AB97;margin:0;">Rua e bairro são preenchidos automaticamente pelo CEP.</p>
+                  <button onClick="{{ saveNewAddress }}" style="align-self:flex-start;background:#4B5740;color:#FAF7F2;border:none;padding:11px 20px;border-radius:2px;font-size:13px;cursor:pointer;">Salvar endereço</button>
+                </div>
+              </sc-if>
+            </div>
+            <div>
+              <label style="font-size:12.5px;color:#7C7F6D;">Distância estimada até você: {{ checkoutDistanceKm }} km <span style="color:#A7AB97;">(calculada pelo CEP do endereço selecionado)</span></label>
+            </div>
+            <div>
+              <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:10px;">Período de entrega em {{ deliveryDateLabel }} (horário comercial)</label>
+              <div style="display:flex;gap:10px;">
+                <button onClick="{{ setDeliveryPeriodManha }}" style="flex:1;padding:12px;border:1px solid #4B5740;background:{{ periodManhaBg }};color:{{ periodManhaColor }};border-radius:2px;font-size:13.5px;cursor:pointer;">Manhã (9h–12h)</button>
+                <button onClick="{{ setDeliveryPeriodTarde }}" style="flex:1;padding:12px;border:1px solid #4B5740;background:{{ periodTardeBg }};color:{{ periodTardeColor }};border-radius:2px;font-size:13.5px;cursor:pointer;">Tarde (13h–18h)</button>
+              </div>
+            </div>
+            <div style="background:#F3EDE3;padding:18px 20px;border-radius:2px;display:flex;justify-content:space-between;font-size:14px;color:#4B5740;">
+              <span>Frete estimado</span><strong>R$ {{ checkoutFee }}</strong>
+            </div>
+            <p style="font-size:12px;color:#8A8D7C;margin:-10px 0 0;">Entrega prevista para {{ deliveryDateLabel }}, no período escolhido.</p>
+            <div style="display:flex;justify-content:space-between;">
+              <button onClick="{{ goCheckoutStep1 }}" style="background:none;border:none;color:#7C7F6D;font-size:14px;cursor:pointer;">← Voltar</button>
+              <button onClick="{{ goCheckoutStep3Guarded }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px 28px;border-radius:2px;font-size:14px;cursor:pointer;opacity:{{ step2ContinueOpacity }};">Continuar →</button>
+            </div>
+            <p style="font-size:11.5px;color:#C4836A;margin:-14px 0 0;text-align:right;">Nome, WhatsApp e um endereço com CEP são obrigatórios para continuar.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ checkoutStepIs3 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:22px;">
+            <div style="display:flex;gap:10px;">
+              <button onClick="{{ setPaymentCard }}" style="flex:1;padding:14px;border:1px solid #4B5740;border-radius:2px;background:{{ cardBg }};color:{{ cardColor }};cursor:pointer;font-size:13px;">Cartão de crédito</button>
+              <button onClick="{{ setPaymentPix }}" style="flex:1;padding:14px;border:1px solid #4B5740;border-radius:2px;background:{{ pixBg }};color:{{ pixColor }};cursor:pointer;font-size:13px;">PIX</button>
+            </div>
+
+            <sc-if value="{{ isCard }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <sc-for list="{{ savedCards }}" as="c" hint-placeholder-count="1">
+                  <button onClick="{{ c.onClick }}" style="text-align:left;padding:14px 16px;border:1.5px solid {{ c.borderColor }};background:{{ c.bg }};border-radius:2px;cursor:pointer;display:flex;align-items:center;gap:12px;">
+                    <div style="width:16px;height:16px;border-radius:50%;border:1.5px solid #4B5740;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                      <sc-if value="{{ c.selected }}" hint-placeholder-val="{{ false }}"><div style="width:8px;height:8px;border-radius:50%;background:#4B5740;"></div></sc-if>
+                    </div>
+                    <span style="font-size:13.5px;color:#4B5740;">{{ c.brand }} •••• {{ c.last4 }}</span>
+                  </button>
+                </sc-for>
+                <button onClick="{{ toggleNewCardForm }}" style="background:none;border:none;color:#C4836A;font-size:13px;cursor:pointer;margin-top:4px;padding:0;text-align:left;">{{ newCardToggleLabel }}</button>
+                <sc-if value="{{ showNewCardForm }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:12px;margin-top:6px;padding:16px;background:#F3EDE3;border-radius:2px;">
+                    <input value="{{ newCardNumber }}" onChange="{{ onNewCardNumberChange }}" maxLength="19" inputMode="numeric" placeholder="Número do cartão" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                    <input value="{{ newCardName }}" onChange="{{ onNewCardNameChange }}" maxLength="60" placeholder="Nome impresso no cartão" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                    <input value="{{ newCardCpf }}" onChange="{{ onNewCardCpfChange }}" maxLength="14" inputMode="numeric" placeholder="CPF do titular" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                    <div style="display:flex;gap:12px;">
+                      <input value="{{ newCardExpiry }}" onChange="{{ onNewCardExpiryChange }}" maxLength="5" inputMode="numeric" placeholder="MM/AA" style="flex:1;padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                      <input value="{{ newCardCvv }}" onChange="{{ onNewCardCvvChange }}" maxLength="4" inputMode="numeric" placeholder="CVV" style="flex:1;padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+                    </div>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:#4B5740;cursor:pointer;"><input type="checkbox" checked="{{ saveNewCardChecked }}" onChange="{{ toggleSaveCard }}" style="width:16px;height:16px;" />Salvar cartão para próximas compras</label>
+                  <button onClick="{{ saveNewCard }}" style="align-self:flex-start;background:#4B5740;color:#FAF7F2;border:none;padding:11px 20px;border-radius:2px;font-size:13px;cursor:pointer;opacity:{{ newCardSaveOpacity }};">Salvar cartão</button>
+                  </div>
+                </sc-if>
+                <p style="font-size:11px;color:#A7AB97;margin-top:6px;">Dados protegidos com criptografia e tokenização — nunca armazenados em texto puro.</p>
+                <sc-if value="{{ hasInstallmentOptions }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:10px;">
+                    <label style="font-size:12.5px;color:#7C7F6D;display:block;margin-bottom:8px;">Parcelamento</label>
+                    <select value="{{ installments }}" onChange="{{ onInstallmentsChange }}" style="width:100%;padding:12px;border:1px solid #D8CFC0;border-radius:2px;font-size:13.5px;background:#FFFFFF;color:#4B5740;">
+                      <sc-for list="{{ installmentOptions }}" as="opt" hint-placeholder-count="3">
+                        <option value="{{ opt.n }}">{{ opt.label }}</option>
+                      </sc-for>
+                    </select>
+                    <p style="font-size:11px;color:#A7AB97;margin:8px 0 0;">{{ installmentInterestNote }}</p>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isPix }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 0;">
+                <div style="width:180px;height:180px;background:#FFFFFF;border:1px solid #D8CFC0;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);padding:10px;">
+                  <sc-for list="{{ pixSquares }}" as="q" hint-placeholder-count="64">
+                    <div style="background:{{ q }};"></div>
+                  </sc-for>
+                </div>
+                <p style="font-size:12.5px;color:#7C7F6D;">Escaneie o QR ou copie o código PIX (simulação).</p>
+                <p style="font-size:11px;color:#A7AB97;margin:0;">Expira em {{ pixCountdown }}</p>
+                <p style="font-size:11px;color:#A7AB97;margin:0;text-align:center;max-width:280px;">Após a expiração, um novo código será gerado automaticamente.</p>
+              </div>
+            </sc-if>
+
+            <div style="background:#F3EDE3;padding:18px 20px;border-radius:2px;display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;font-size:13.5px;color:#4B5740;"><span>Buquê/Assinatura</span><span>R$ {{ checkoutSubtotal }}</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13.5px;color:#4B5740;"><span>Frete</span><span>R$ {{ checkoutFee }}</span></div>
+              <div style="display:flex;justify-content:space-between;font-family:'Playfair Display',serif;font-size:19px;color:#4B5740;padding-top:8px;border-top:1px solid rgba(75,87,64,0.15);">
+                <span>Total</span><strong>R$ {{ checkoutTotal }}</strong>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;">
+              <button onClick="{{ goCheckoutStep2 }}" style="background:none;border:none;color:#7C7F6D;font-size:14px;cursor:pointer;">← Voltar</button>
+              <button onClick="{{ confirmOrder }}" style="background:#C4836A;color:#FAF7F2;border:none;padding:15px 30px;border-radius:2px;font-size:14px;cursor:pointer;">Confirmar pagamento</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showDeclinedModal }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ closeDeclinedModal }}" style="position:fixed;inset:0;background:rgba(43,49,36,0.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;">
+            <div onClick="{{ stopPropagation }}" style="background:#FAF7F2;max-width:420px;width:100%;border-radius:2px;padding:32px;display:flex;flex-direction:column;gap:16px;">
+              <span style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#C4836A;">Pagamento não aprovado</span>
+              <h3 style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#4B5740;margin:0;">Algo não deu certo por aqui.</h3>
+              <p style="font-size:13.5px;color:#5C5F51;line-height:1.75;margin:0;">Não conseguimos confirmar o pagamento com o cartão selecionado. Seu pedido não foi finalizado — tente novamente, use outro cartão, ou troque a forma de pagamento.</p>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;">
+                <button onClick="{{ closeDeclinedModal }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Tentar novamente</button>
+                <button onClick="{{ declinedUseOtherCard }}" style="background:none;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Usar outro cartão</button>
+                <button onClick="{{ declinedSwitchToPix }}" style="background:none;border:1px solid #4B5740;color:#4B5740;padding:12px;border-radius:2px;font-size:13px;cursor:pointer;">Trocar para PIX</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.admin }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Admin" style="max-width:900px;margin:0 auto;padding:60px 28px 110px;">
+
+        <sc-if value="{{ adminLoggedIn }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;">Painel Admin</span>
+        <h1 style="font-family:'Playfair Display',serif;font-size:30px;font-style:italic;color:#4B5740;margin:8px 0 40px;">Gestão da Florê</h1>
+
+        <div style="background:#FFFFFF;border-radius:2px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(75,87,64,0.08);display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 4px;">Geração de ilustração por IA</h3>
+            <p style="font-size:12.5px;color:#8A8D7C;margin:0;">Preview por camadas permanece sempre ativo, sem custo. Isso controla apenas a ilustração final.</p>
+          </div>
+          <button onClick="{{ toggleAi }}" style="padding:10px 18px;border:none;border-radius:20px;background:{{ aiToggleBg }};color:#FAF7F2;font-size:12px;cursor:pointer;">{{ aiToggleLabel }}</button>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:2px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 4px;">Próximas cobranças confirmadas</h3>
+          <p style="font-size:12px;color:#8A8D7C;margin:0 0 16px;">Ciclos que já passaram do prazo de corte (3 dias úteis antes da entrega) — compre as flores com base nessa lista.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <sc-for list="{{ adminUpcomingCharges }}" as="u" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#F3EDE3;border-radius:2px;">
+                <span style="font-size:12.5px;color:#4B5740;">{{ u.customer }} — {{ u.plan }}</span>
+                <span style="font-size:12px;color:#8A8D7C;">entrega {{ u.date }} · cobrado {{ u.cutoffDate }}</span>
+                <span style="font-size:11px;color:{{ u.statusColor }};">{{ u.statusLabel }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ adminNoUpcomingCharges }}" hint-placeholder-val="{{ false }}">
+              <p style="font-size:12.5px;color:#A7AB97;margin:0;">Nenhum ciclo confirmado no momento.</p>
+            </sc-if>
+          </div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(75,87,64,0.1);display:flex;gap:10px;">
+            <button onClick="{{ simulatePaymentFailure }}" style="background:none;border:1px solid #C4836A;color:#C4836A;padding:9px 16px;border-radius:2px;font-size:12px;cursor:pointer;">Simular falha de cobrança (demo)</button>
+            <button onClick="{{ clearPaymentFailure }}" style="background:none;border:1px solid #4B5740;color:#4B5740;padding:9px 16px;border-radius:2px;font-size:12px;cursor:pointer;">Limpar falha (demo)</button>
+          </div>
+          <div style="margin-top:10px;">
+            <button onClick="{{ toggleSimulateDecline }}" style="background:none;border:1px solid #C4836A;color:#C4836A;padding:9px 16px;border-radius:2px;font-size:12px;cursor:pointer;">{{ declineToggleLabel }}</button>
+            <span style="font-size:11px;color:#8A8D7C;margin-left:10px;">Quando ativo, todo checkout/assinatura mostra o pagamento recusado (para testar esse fluxo).</span>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:2px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 16px;">Fórmula de frete</h3>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+            <div><label style="font-size:11.5px;color:#8A8D7C;">Taxa base (R$)</label><input type="number" value="{{ shippingBase }}" onChange="{{ onShippingBaseChange }}" style="width:100%;padding:10px;border:1px solid #D8CFC0;border-radius:2px;margin-top:4px;" /></div>
+            <div><label style="font-size:11.5px;color:#8A8D7C;">Km incluídos</label><input type="number" value="{{ shippingFreeKm }}" onChange="{{ onShippingFreeKmChange }}" style="width:100%;padding:10px;border:1px solid #D8CFC0;border-radius:2px;margin-top:4px;" /></div>
+            <div><label style="font-size:11.5px;color:#8A8D7C;">R$/km adicional</label><input type="number" value="{{ shippingPerKm }}" onChange="{{ onShippingPerKmChange }}" style="width:100%;padding:10px;border:1px solid #D8CFC0;border-radius:2px;margin-top:4px;" /></div>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:2px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 16px;">Assinatura — preços por frequência × tamanho</h3>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <sc-for list="{{ adminPlanRows }}" as="row" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="width:90px;font-size:13px;color:#4B5740;">{{ row.freq }}</span>
+                <sc-for list="{{ row.sizes }}" as="sz" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="font-size:11.5px;color:#8A8D7C;">{{ sz.label }}</span>
+                    <input type="number" value="{{ sz.price }}" onChange="{{ sz.onChange }}" style="width:70px;padding:8px;border:1px solid #D8CFC0;border-radius:2px;" />
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:2px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 4px;">Buquê Inspirado da Florê — preço padrão</h3>
+          <p style="font-size:12px;color:#8A8D7C;margin:0 0 14px;">Usado quando o cliente não escolhe uma referência específica da galeria.</p>
+          <div style="display:flex;gap:16px;">
+            <sc-for list="{{ adminInspiradoSizes }}" as="sz" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:11.5px;color:#8A8D7C;">{{ sz.label }}</span>
+                <input type="number" value="{{ sz.price }}" onChange="{{ sz.onChange }}" style="width:70px;padding:8px;border:1px solid #D8CFC0;border-radius:2px;" />
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:2px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 16px;">Flores — preços e disponibilidade</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ adminFlowers }}" as="f" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="flex:1;font-size:13px;color:#4B5740;">{{ f.name }}</span>
+                <span style="font-size:12px;color:#8A8D7C;">R$</span>
+                <input type="number" value="{{ f.price }}" onChange="{{ f.onPriceChange }}" style="width:70px;padding:8px;border:1px solid #D8CFC0;border-radius:2px;" />
+                <button onClick="{{ f.onToggle }}" style="width:110px;padding:8px;border:none;border-radius:20px;background:{{ f.activeBg }};color:#FAF7F2;font-size:11px;cursor:pointer;">{{ f.activeLabel }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:#FFFFFF;border-radius:2px;padding:24px;box-shadow:0 1px 4px rgba(75,87,64,0.08);">
+          <h3 style="font-family:'Playfair Display',serif;font-size:16px;color:#4B5740;margin:0 0 16px;">Arranjos do catálogo</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ adminBouquets }}" as="b" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="flex:1;font-size:13px;color:#4B5740;">{{ b.name }}</span>
+                <button onClick="{{ b.onToggle }}" style="width:130px;padding:8px;border:none;border-radius:20px;background:{{ b.activeBg }};color:#FAF7F2;font-size:11px;cursor:pointer;">{{ b.activeLabel }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ adminLoggedIn }}" hint-placeholder-val="{{ true }}"><span style="display:none;"></span></sc-if>
+        <sc-if value="{{ adminNotLoggedIn }}" hint-placeholder-val="{{ false }}">
+          <div style="max-width:360px;margin:80px auto;display:flex;flex-direction:column;gap:16px;">
+            <span style="font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#C4836A;text-align:center;">Acesso restrito</span>
+            <h1 style="font-family:'Playfair Display',serif;font-size:24px;font-style:italic;color:#4B5740;margin:0 0 8px;text-align:center;">Painel Admin</h1>
+            <input value="{{ adminUser }}" onChange="{{ onAdminUserChange }}" placeholder="Usuário" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+            <input value="{{ adminPass }}" onChange="{{ onAdminPassChange }}" type="password" placeholder="Senha" style="padding:14px;border:1px solid #D8CFC0;border-radius:2px;font-size:14px;" />
+            <button onClick="{{ doAdminLogin }}" style="background:#4B5740;color:#FAF7F2;border:none;padding:14px;border-radius:2px;font-size:14px;cursor:pointer;">Entrar</button>
+            <sc-if value="{{ adminLoginError }}" hint-placeholder-val="{{ false }}">
+              <p style="font-size:12.5px;color:#C4836A;text-align:center;margin:0;">Usuário ou senha inválidos.</p>
+            </sc-if>
+            <p style="font-size:11px;color:#A7AB97;text-align:center;margin:6px 0 0;">Acesso simulado para este protótipo — login real entra na implementação final.</p>
+          </div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.privacy }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Política de Privacidade" style="max-width:720px;margin:0 auto;padding:64px 28px 110px;">
+        <h1 style="font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,36px);font-style:italic;color:#4B5740;margin:0 0 28px;">Política de Privacidade</h1>
+        <div style="display:flex;flex-direction:column;gap:20px;font-size:14px;line-height:1.8;color:#5C5F51;">
+          <p>A Florê Ateliê respeita sua privacidade e trata seus dados pessoais em conformidade com a Lei Geral de Proteção de Dados (LGPD).</p>
+          <p><strong style="color:#4B5740;">Dados de pagamento.</strong> Informações de cartão de crédito são criptografadas e tokenizadas por nosso processador de pagamentos — nunca armazenamos números de cartão em texto puro em nossos servidores.</p>
+          <p><strong style="color:#4B5740;">Dados de entrega.</strong> Endereços e telefones são usados exclusivamente para viabilizar entregas e comunicação sobre seu pedido ou assinatura.</p>
+          <p><strong style="color:#4B5740;">Seus direitos.</strong> Você pode solicitar a qualquer momento a exclusão, correção ou exportação dos seus dados, escrevendo para contato@floreatelie.com.br.</p>
+          <p><strong style="color:#4B5740;">Cookies e mensuração.</strong> Utilizamos ferramentas de mensuração (como Meta Pixel e Google Tag Manager) para entender a origem de nossos visitantes e melhorar a experiência do site.</p>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ route.terms }}" hint-placeholder-val="{{ false }}">
+      <section data-screen-label="Termos de Uso" style="max-width:720px;margin:0 auto;padding:64px 28px 110px;">
+        <h1 style="font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,36px);font-style:italic;color:#4B5740;margin:0 0 28px;">Termos de Uso</h1>
+        <div style="display:flex;flex-direction:column;gap:20px;font-size:14px;line-height:1.8;color:#5C5F51;">
+          <p>Ao utilizar o site da Florê Ateliê, você concorda com os termos abaixo.</p>
+          <p><strong style="color:#4B5740;">Pedidos e pagamentos.</strong> Os preços exibidos incluem os produtos escolhidos; o frete é calculado e exibido antes da confirmação do pagamento. Pagamentos são processados de forma segura via cartão de crédito ou PIX.</p>
+          <p><strong style="color:#4B5740;">Assinaturas.</strong> Você pode pausar, ajustar ou cancelar sua assinatura a qualquer momento pela área Minha Conta, antes do próximo ciclo de entrega.</p>
+          <p><strong style="color:#4B5740;">Entregas.</strong> Os prazos e períodos de entrega informados são estimativas operacionais e podem variar conforme localidade e disponibilidade do parceiro logístico.</p>
+          <p><strong style="color:#4B5740;">Produtos autorais.</strong> Fotos de catálogo e galeria são ilustrativas; composições artesanais podem apresentar pequenas variações naturais entre flores e folhagens da estação.</p>
+          <p><strong style="color:#4B5740;">Dúvidas.</strong> Fale conosco pelo WhatsApp ou em contato@floreatelie.com.br.</p>
+        </div>
+      </section>
+    </sc-if>
+
+  </main>
+
+  <footer style="background:#3A3F32;color:#D8DBC9;padding:70px 28px 30px;">
+    <div style="max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;" class="footer-grid">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <img src="./assets/logo-flore.png" alt="Florê" style="width:34px;height:34px;object-fit:contain;" />
+          <span style="font-family:'Playfair Display',serif;font-size:17px;color:#FAF7F2;">Florê Ateliê</span>
+        </div>
+        <p style="font-size:13px;line-height:1.7;color:#A7AB97;max-width:280px;">Boutique floral artesanal. Composições autorais para quem entende que flor certa muda o dia de alguém.</p>
+      </div>
+      <div>
+        <h4 style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#8FA080;margin:0 0 16px;">Navegue</h4>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="#" onClick="{{ goCatalog }}" style="font-size:13px;color:#D8DBC9;">Catálogo</a>
+          <a href="#" onClick="{{ goSubscription }}" style="font-size:13px;color:#D8DBC9;">Assinatura</a>
+          <a href="#" onClick="{{ goBuilder }}" style="font-size:13px;color:#D8DBC9;">Monte seu Buquê</a>
+          <a href="#" onClick="{{ goAccount }}" style="font-size:13px;color:#D8DBC9;">Minha Conta</a>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#8FA080;margin:0 0 16px;">Contato</h4>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="https://www.instagram.com/floreatelie.floral" target="_blank" style="font-size:13px;color:#D8DBC9;">Instagram</a>
+          <a href="https://wa.me/5511942364723?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Flor%C3%AA%20Ateli%C3%AA%20e%20gostaria%20de%20saber%20mais." style="font-size:13px;color:#D8DBC9;">WhatsApp</a>
+          <a href="https://www.tiktok.com/@flore.ateliee" target="_blank" style="font-size:13px;color:#D8DBC9;">TikTok</a>
+          <span style="font-size:13px;color:#D8DBC9;">contato@floreatelie.com.br</span>
+        </div>
+      </div>
+      <div>
+        <h4 style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#8FA080;margin:0 0 16px;">Legal</h4>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a href="#" onClick="{{ goPrivacy }}" style="font-size:13px;color:#D8DBC9;">Política de Privacidade</a>
+          <a href="#" onClick="{{ goTerms }}" style="font-size:13px;color:#D8DBC9;">Termos de Uso</a>
+        </div>
+      </div>
+    </div>
+    <div style="max-width:1180px;margin:46px auto 0;padding-top:22px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#7C806C;">© 2026 Florê Ateliê — Idealizado por Evelyn Martins. Todos os direitos reservados.</div>
+  </footer>
+
+  <a href="https://wa.me/5511942364723?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Flor%C3%AA%20Ateli%C3%AA%20e%20gostaria%20de%20saber%20mais." style="position:fixed;bottom:24px;right:24px;z-index:50;width:56px;height:56px;border-radius:50%;background:#4B5740;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.25);">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="#FAF7F2"><path d="M17.6 6.32A8.9 8.9 0 0 0 12.05 3.5C7.34 3.5 3.5 7.34 3.5 12.05c0 1.6.44 3.1 1.2 4.4L3.5 20.5l4.15-1.09a8.5 8.5 0 0 0 4.4 1.2h.01c4.71 0 8.55-3.84 8.55-8.55a8.5 8.5 0 0 0-2.51-6.24zM12.05 19a7.5 7.5 0 0 1-3.83-1.05l-.27-.16-2.85.75.76-2.78-.18-.28a7.44 7.44 0 0 1-1.14-3.98c0-4.13 3.36-7.49 7.5-7.49a7.44 7.44 0 0 1 5.3 2.2 7.44 7.44 0 0 1 2.19 5.3c0 4.13-3.36 7.49-7.48 7.49zm4.1-5.61c-.22-.11-1.32-.65-1.53-.72-.2-.08-.35-.11-.5.11-.15.22-.57.72-.7.87-.13.15-.26.16-.48.05-.22-.11-.94-.35-1.79-1.1-.66-.59-1.11-1.32-1.24-1.54-.13-.22-.01-.34.11-.45.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.11-.5-1.2-.68-1.65-.18-.44-.36-.38-.5-.38-.13 0-.28-.01-.43-.01-.15 0-.39.06-.6.28-.2.22-.78.76-.78 1.86s.8 2.16.91 2.31c.11.15 1.52 2.32 3.69 3.16 2.17.84 2.17.56 2.56.53.39-.04 1.32-.54 1.5-1.06.19-.52.19-.97.13-1.06-.05-.09-.2-.15-.42-.26z"/></svg>
+  </a>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#3A3F32;color:#FAF7F2;padding:14px 22px;border-radius:2px;font-size:13px;z-index:60;box-shadow:0 4px 16px rgba(0,0,0,0.2);">{{ toast }}</div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    this._pixTimer = setInterval(() => { if (this.state.checkoutStep===3 && this.state.paymentMethod==='pix') this.forceUpdate(); }, 1000);
+  }
+  componentWillUnmount() {
+    if (this._pixTimer) clearInterval(this._pixTimer);
+  }
+  state = {
+    route: 'home',
+    cart: [],
+    lastPaidTotal: 0,
+    mobileMenuOpen: false,
+    toast: null,
+    avulsoMode: 'zero',
+    avulsoSize: 'M',
+    subStep: 1,
+    subEditingMode: false,
+    subMessageOnlyEdit: false,
+    pendingRoute: null,
+    adminLoggedIn: false,
+    adminUser: '',
+    adminPass: '',
+    adminLoginError: false,
+    simulateDeclinedPayment: false,
+    showDeclinedModal: false,
+    declinedContext: 'order',
+    authView: 'login',
+    registeredAccounts: [{ email:'cliente@exemplo.com', password:'123456', name:'Mariana Duarte', phone:'(11) 98877-4521' }],
+    signupName: '', signupEmail: '', signupPhone: '', signupPassword: '', signupError: '',
+    forgotEmail: '', forgotSent: false,
+    subRecipientName: '',
+    planOverrides: {},
+    inspiradoBasePrices: { P:99, M:139, G:189 },
+    showPauseModal: false,
+    showCancelModal: false,
+    catalogCategory: 'Todos',
+    saveNewCardChecked: true,
+    subFreq: 'Mensal',
+    subSize: 'M',
+    subMessage: '',
+    subDay: 'Segunda',
+    activeSubscription: null,
+    loggedIn: false,
+    builderQty: {},
+    builderMessage: '',
+    builderStage: 'build',
+    aiEnabled: true,
+    loginEmail: '',
+    loginPassword: '',
+    accountTab: 'pedidos',
+    addresses: [
+      { id:'a1', label:'Casa', line:'Rua das Flores, 120 — Jardim Botânico, São Paulo', preferred:true, distanceKm:3.4 },
+      { id:'a2', label:'Trabalho', line:'Av. Paulista, 900 — Bela Vista, São Paulo', distanceKm:6.1 },
+    ],
+    checkoutStep: 1,
+    checkoutAddress: '',
+    customerName: '', customerPhone: '', customerNickname: '', customerInfoConfirmed: false,
+    checkoutAddressId: 'a1',
+    showNewAddressForm: false,
+    newAddressLabel: '',
+    newAddressLine: '',
+    newAddressCep: '', newAddressNumber: '', newAddressComplement: '', newAddressResolvedStreet: '',
+    checkoutDistanceKm: 3,
+    catalogQty: {},
+    cartMessage: '',
+    deliveryPeriod: 'manha',
+    paymentMethod: 'card',
+    installments: 1,
+    orderConfirmed: false,
+    shippingBase: 30, shippingFreeKm: 3, shippingPerKm: 4,
+    flowerOverrides: {}, bouquetActive: {},
+    builderPosOverrides: {},
+    galleryLightboxIdx: null,
+    referenceGalleryIdx: null,
+    editingDeliveryId: null,
+    savedCards: [{ id:'c1', brand:'Visa', last4:'4242' }],
+    checkoutCardId: 'c1',
+    showNewCardForm: false,
+    newCardNumber: '', newCardName: '', newCardExpiry: '', newCardCvv: '', newCardCpf: '',
+  };
+
+  toggleAi = () => this.setState(s => ({ aiEnabled: !s.aiEnabled }));
+  setShippingField = (f,v) => this.setState({ [f]: Number(v) });
+  setFlowerPrice = (id,v) => this.setState(s => ({ flowerOverrides: {...s.flowerOverrides, [id]: {...s.flowerOverrides[id], price: Number(v)}} }));
+  toggleFlowerActive = (id) => this.setState(s => { const cur = s.flowerOverrides[id]?.active !== false; return { flowerOverrides: {...s.flowerOverrides, [id]: {...s.flowerOverrides[id], active: !cur}} }; });
+  toggleBouquetActive = (id) => this.setState(s => ({ bouquetActive: {...s.bouquetActive, [id]: !(s.bouquetActive[id] !== false)} }));
+
+  orderHistory = [
+    { id:'#1051', date:'29/07/2026', item:'Buquê Montado', status:'Em andamento', total:112 },
+    { id:'#1042', date:'12/07/2026', item:'Assinatura Mensal · M', status:'Entregue', total:159 },
+    { id:'#1031', date:'28/06/2026', item:'Carta Terracota', status:'Entregue', total:139 },
+    { id:'#1015', date:'02/06/2026', item:'Buquê Montado', status:'Entregue', total:64 },
+  ];
+
+  setLoginEmail = (v) => this.setState({ loginEmail: v });
+  onLoginPasswordChange = (e) => this.setState({ loginPassword: e.target.value });
+  doLogin = () => this.setState(s => ({
+    loggedIn: true,
+    customerName: s.customerName || 'Mariana Duarte',
+    customerPhone: s.customerPhone || '(11) 98877-4521',
+    customerInfoConfirmed: true,
+    route: s.pendingRoute || s.route,
+    pendingRoute: null,
+  }));
+  logout = () => this.setState({ loggedIn: false, loginEmail: '' });
+  goSignupView = () => this.setState({ authView: 'signup', signupError: '' });
+  goLoginView = () => this.setState({ authView: 'login', signupError: '' });
+  goForgotView = () => this.setState({ authView: 'forgot', forgotSent: false });
+  onSignupNameChange = (e) => this.setState({ signupName: e.target.value });
+  onSignupEmailChange = (e) => this.setState({ signupEmail: e.target.value, signupError: '' });
+  onSignupPhoneChange = (e) => {
+    const digits = e.target.value.replace(/\D/g,'').slice(0,11);
+    const p1 = digits.slice(0,2), p2 = digits.slice(2,7), p3 = digits.slice(7,11);
+    const formatted = digits.length ? `(${p1}${p1.length===2?') ':''}${p2}${p3?'-':''}${p3}` : '';
+    this.setState({ signupPhone: formatted });
+  };
+  onSignupPasswordChange = (e) => this.setState({ signupPassword: e.target.value });
+  doSignup = () => this.setState(s => {
+    const email = s.signupEmail.trim().toLowerCase();
+    if (!email || !s.signupName.trim() || !s.signupPassword.trim()) return {};
+    if (s.registeredAccounts.some(a=>a.email===email)) return { signupError: 'exists' };
+    const account = { email, password: s.signupPassword, name: s.signupName.trim(), phone: s.signupPhone };
+    return {
+      registeredAccounts: [...s.registeredAccounts, account],
+      loggedIn: true, loginEmail: email,
+      customerName: s.signupName.trim(), customerPhone: s.signupPhone, customerInfoConfirmed: true,
+      signupName: '', signupEmail: '', signupPhone: '', signupPassword: '', signupError: '', authView: 'login',
+    };
+  });
+  onForgotEmailChange = (e) => this.setState({ forgotEmail: e.target.value });
+  doForgotPassword = () => this.setState(s => s.forgotEmail.trim() ? { forgotSent: true } : {});
+  setAccountTab = (t) => this.setState({ accountTab: t });
+  goTabAssinatura = () => this.setAccountTab('assinatura');
+  goTabCartoes = () => this.setAccountTab('cartoes');
+
+  setCheckoutStep = (n) => {
+    if (n === 3) this.pixDeadline = Date.now() + 30*60*1000;
+    this.setState({ checkoutStep: n });
+  };
+  pixCountdownLabel(s) {
+    if (!this.pixDeadline) this.pixDeadline = Date.now() + 30*60*1000;
+    const msLeft = Math.max(0, this.pixDeadline - Date.now());
+    const totalSec = Math.floor(msLeft/1000);
+    const mm = String(Math.floor(totalSec/60)).padStart(2,'0');
+    const ss = String(totalSec%60).padStart(2,'0');
+    return `${mm}:${ss}`;
+  }
+  setCheckoutField = (f,v) => this.setState({ [f]: v });
+  goToCheckout = () => this.setState({ route:'checkout', checkoutStep: this.state.cart.length ? 1 : 1 });
+  confirmOrder = () => this.setState(s => {
+    if (s.simulateDeclinedPayment) return { showDeclinedModal: true, declinedContext: 'order' };
+    const fee = this.shippingFee(s);
+    const total = s.cart.reduce((a,c)=>a+c.qty*c.price,0);
+    return { orderConfirmed: true, checkoutStep: 4, cart: [], lastPaidTotal: Math.round((total+fee)*100)/100, loggedIn: true };
+  });
+  closeDeclinedModal = () => this.setState({ showDeclinedModal: false });
+  declinedUseOtherCard = () => this.setState({ showDeclinedModal: false, showNewCardForm: true });
+  declinedSwitchToPix = () => this.setState({ showDeclinedModal: false, paymentMethod: 'pix' });
+  toggleSimulateDecline = () => this.setState(s => ({ simulateDeclinedPayment: !s.simulateDeclinedPayment }));
+  startNewCheckout = () => this.setState({ checkoutStep:1, orderConfirmed:false });
+
+  setAvulsoMode = (m) => this.setState({ avulsoMode: m });
+  setAvulsoSize = (s) => this.setState({ avulsoSize: s });
+
+  weekdays = ['Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  freqDayLabel = (freq, day) => freq==='Semanal' ? `Toda ${day.toLowerCase()}-feira` : freq==='Quinzenal' ? `A cada 15 dias, ${day.toLowerCase()}-feira` : `Toda primeira ${day.toLowerCase()}-feira do mês`;
+
+  setSubStep = (n) => this.setState({ subStep: n });
+  saveMessageOnlyEdit = () => this.setState(s => ({
+    activeSubscription: {
+      ...s.activeSubscription,
+      message: s.subMessage,
+      deliveries: s.activeSubscription.deliveries.map(d => d.cutoffPassed ? d : { ...d, message: s.subMessage }),
+    },
+    subEditingMode: false, subMessageOnlyEdit: false, subStep: 1,
+    route: 'account', accountTab: 'assinatura',
+  }));
+  goSubStep1OrCancel = () => {
+    if (this.state.subMessageOnlyEdit) this.setState({ subEditingMode: false, subMessageOnlyEdit: false, subStep: 1, route: 'account', accountTab: 'assinatura' });
+    else this.setSubStep(1);
+  };
+  startSubEdit = () => this.setState(s => ({
+    subEditingMode: true, subMessageOnlyEdit: false,
+    subFreq: s.activeSubscription ? s.activeSubscription.freq : s.subFreq,
+    subSize: s.activeSubscription ? s.activeSubscription.size : s.subSize,
+    subDay: s.activeSubscription ? s.activeSubscription.day : s.subDay,
+    subMessage: s.activeSubscription ? s.activeSubscription.message : s.subMessage,
+    subRecipientName: s.activeSubscription ? (s.activeSubscription.recipientName || '') : s.subRecipientName,
+    subStep: 1,
+  }));
+  setSubField = (field, val) => this.setState({ [field]: val });
+  fmtDate = (dt) => `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
+  subtractBusinessDays = (date, n) => {
+    const d = new Date(date);
+    let left = n;
+    while (left > 0) {
+      d.setDate(d.getDate()-1);
+      const dow = d.getDay();
+      if (dow !== 0 && dow !== 6) left--;
+    }
+    return d;
+  };
+  computeDeliveryDates = (freq, count) => {
+    const stepDays = freq==='Semanal' ? 7 : freq==='Quinzenal' ? 15 : 30;
+    const out = [];
+    const d = new Date();
+    for (let i=1;i<=count;i++){ d.setDate(d.getDate()+stepDays); out.push(new Date(d)); }
+    return out.map(dt => this.fmtDate(dt));
+  };
+  stepDaysForFreq = (freq) => freq==='Semanal' ? 7 : freq==='Quinzenal' ? 15 : 30;
+  parseDateStr = (str) => { const [dd,mm,yyyy] = str.split('/').map(Number); return new Date(yyyy, mm-1, dd); };
+  nextOccurrenceOfWeekday = (fromDate, weekdayName) => {
+    const targetIdx = ({Segunda:1,Terça:2,Quarta:3,Quinta:4,Sexta:5,Sábado:6})[weekdayName] ?? 1;
+    const d = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+    while (d.getDay() !== targetIdx) d.setDate(d.getDate()+1);
+    return d;
+  };
+  buildDeliverySchedule = (freq, count, message, startDate) => {
+    const stepDays = this.stepDaysForFreq(freq);
+    const now = new Date();
+    const realToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const today = startDate ? new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()) : realToday;
+    const out = [];
+    const d = new Date(today);
+    for (let i=1;i<=count;i++){
+      d.setDate(d.getDate()+stepDays);
+      const deliveryDate = new Date(d);
+      const cutoffDate = this.subtractBusinessDays(deliveryDate, 3);
+      out.push({
+        id: 'd'+i,
+        date: this.fmtDate(deliveryDate),
+        cutoffDate: this.fmtDate(cutoffDate),
+        cutoffPassed: cutoffDate.getTime() <= realToday.getTime(),
+        paymentStatus: 'pending',
+        message: message || '',
+      });
+    }
+    return out;
+  };
+  startEditDelivery = (id) => this.setState({ editingDeliveryId: id });
+  setDeliveryMessage = (id, v) => this.setState(s => ({ activeSubscription: { ...s.activeSubscription, deliveries: s.activeSubscription.deliveries.map(d => d.id===id ? {...d, message:v} : d) } }));
+  saveDeliveryMessage = () => this.setState({ editingDeliveryId: null });
+  confirmSubscription = () => {
+    const s = this.state;
+    if (s.simulateDeclinedPayment) { this.setState({ showDeclinedModal: true, declinedContext: 'subscription' }); return; }
+    const isEditingExisting = s.subEditingMode && !!s.activeSubscription;
+    const firstDelivery = isEditingExisting ? s.activeSubscription.deliveries[0] : null;
+    const firstLocked = !!(firstDelivery && firstDelivery.cutoffPassed);
+    if (firstLocked) {
+      const basis = this.parseDateStr(firstDelivery.date);
+      const restDeliveries = this.buildDeliverySchedule(s.subFreq, 2, s.subMessage, basis);
+      const deliveries = [firstDelivery, ...restDeliveries];
+      const sub = {
+        ...s.activeSubscription,
+        freq: s.subFreq, size: s.subSize, day: s.subDay, message: s.subMessage,
+        price: this.planPrice(s, s.subFreq, s.subSize), status: 'ativa', deliveries,
+        recipientName: s.subRecipientName,
+        pendingPlanChange: { freq: s.subFreq, size: s.subSize, effectiveDate: restDeliveries[0] ? restDeliveries[0].date : firstDelivery.date },
+        lastDeliveryPaymentChangeAt: Date.now(),
+      };
+      this.setState({ activeSubscription: sub, subStep: 5, subEditingMode: false });
+      return;
+    }
+    const deliveries = this.buildDeliverySchedule(s.subFreq, 3, s.subMessage);
+    const sub = {
+      id: (s.activeSubscription && s.activeSubscription.id) || 'sub-'+Date.now(),
+      freq: s.subFreq, size: s.subSize, day: s.subDay,
+      message: s.subMessage, price: this.planPrice(s, s.subFreq, s.subSize), status: 'ativa', deliveries,
+      recipientName: s.subRecipientName,
+      pendingAction: null, paymentFailedCycle: false, pendingPlanChange: null,
+      lastDeliveryPaymentChangeAt: Date.now(),
+    };
+    this.setState({ activeSubscription: sub, subStep: 5, subEditingMode: false });
+  };
+  todayLabel = () => { const d = new Date(); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; };
+  openPauseModal = () => this.setState({ showPauseModal: true });
+  closePauseModal = () => this.setState({ showPauseModal: false });
+  pauseOrResumeClick = () => {
+    if (this.state.activeSubscription && this.state.activeSubscription.status === 'pausada') this.resumeSubscription();
+    else this.openPauseModal();
+  };
+  confirmPauseSubscription = () => this.setState(s => {
+    const next = s.activeSubscription.deliveries[0];
+    if (next && next.cutoffPassed) {
+      return {
+        activeSubscription: { ...s.activeSubscription, pendingAction: { type:'pause', effectiveDate: s.activeSubscription.deliveries[1] ? s.activeSubscription.deliveries[1].date : next.date } },
+        showPauseModal: false,
+      };
+    }
+    return {
+      activeSubscription: { ...s.activeSubscription, status: 'pausada', pausedSince: this.todayLabel(), pendingAction: null },
+      showPauseModal: false,
+    };
+  });
+  resumeSubscription = () => this.setState(s => {
+    const stepDays = this.stepDaysForFreq(s.activeSubscription.freq);
+    const targetDate = this.nextOccurrenceOfWeekday(new Date(), s.activeSubscription.day);
+    const basis = new Date(targetDate);
+    basis.setDate(basis.getDate() - stepDays);
+    const deliveries = this.buildDeliverySchedule(s.activeSubscription.freq, 3, s.activeSubscription.message, basis);
+    return { activeSubscription: { ...s.activeSubscription, status: 'ativa', pausedSince: null, deliveries, pendingAction: null } };
+  });
+  openCancelModal = () => this.setState({ showCancelModal: true });
+  closeCancelModal = () => this.setState({ showCancelModal: false });
+  confirmCancelSubscription = () => this.setState(s => {
+    const next = s.activeSubscription.deliveries[0];
+    if (next && next.cutoffPassed) {
+      return {
+        activeSubscription: { ...s.activeSubscription, pendingAction: { type:'cancel', effectiveDate: s.activeSubscription.deliveries[1] ? s.activeSubscription.deliveries[1].date : next.date } },
+        showCancelModal: false,
+      };
+    }
+    return { activeSubscription: null, subStep: 1, subEditingMode: false, showCancelModal: false };
+  });
+  simulatePaymentFailure = () => this.setState(s => s.activeSubscription ? ({ activeSubscription: { ...s.activeSubscription, paymentFailedCycle: true, deliveries: s.activeSubscription.deliveries.map((d,i)=> i===0 ? {...d, paymentStatus:'failed'} : d) } }) : {});
+  clearPaymentFailure = () => this.setState(s => s.activeSubscription ? ({ activeSubscription: { ...s.activeSubscription, paymentFailedCycle: false, deliveries: s.activeSubscription.deliveries.map((d,i)=> i===0 ? {...d, paymentStatus:'charged'} : d) } }) : {});
+
+  goHome = () => this.setState({ route: 'home' });
+  navigate = (route) => { this.setState({ route, mobileMenuOpen: false }); window.scrollTo(0,0); };
+  navClick = (e, route) => { e.preventDefault(); this.navigate(route); };
+  toggleMobileMenu = () => this.setState(s => ({ mobileMenuOpen: !s.mobileMenuOpen }));
+
+  goCatalog = (e) => this.navClick(e, 'catalog');
+  goSubscription = (e) => this.navClick(e, 'subscription');
+  editSubscriptionMessage = () => {
+    const sub = this.state.activeSubscription;
+    this.setState({
+      route: 'subscription', subStep: 2, subEditingMode: true, subMessageOnlyEdit: true,
+      subFreq: sub ? sub.freq : this.state.subFreq,
+      subSize: sub ? sub.size : this.state.subSize,
+      subDay: sub ? sub.day : this.state.subDay,
+      subMessage: sub ? sub.message : this.state.subMessage,
+    });
+    window.scrollTo(0,0);
+  };
+  goAccountPedidos = () => this.setState({ route: 'account', accountTab: 'pedidos' });
+  goAccountForSub = () => this.setState({ route: 'account', pendingRoute: 'subscription' });
+  goBuilder = (e) => this.navClick(e, 'builder');
+  openGalleryLightbox = (idx) => this.setState({ galleryLightboxIdx: idx });
+  closeGalleryLightbox = () => this.setState({ galleryLightboxIdx: null });
+  stopPropagation = (e) => e.stopPropagation();
+  goAvulsoInspiradoFromGallery = (e) => {
+    e.preventDefault();
+    const idx = this.state.galleryLightboxIdx;
+    this.setState({ route:'avulso', avulsoMode:'inspirado', galleryLightboxIdx:null, referenceGalleryIdx: idx });
+    window.scrollTo(0,0);
+  };
+  goBuilderFromGallery = (e) => { e.preventDefault(); this.setState({ route:'builder', galleryLightboxIdx:null }); window.scrollTo(0,0); };
+  goAccount = (e) => this.navClick(e, 'account');
+  goCheckoutPage = (e) => this.navClick(e, 'checkout');
+  goPrivacy = (e) => this.navClick(e, 'privacy');
+  goTerms = (e) => this.navClick(e, 'terms');
+  goAdminPage = (e) => this.navClick(e, 'admin');
+  setCatalogCategory = (c) => this.setState({ catalogCategory: c });
+  onAdminUserChange = (e) => this.setState({ adminUser: e.target.value });
+  onAdminPassChange = (e) => this.setState({ adminPass: e.target.value });
+  doAdminLogin = () => this.setState(s => (s.adminUser.trim() && s.adminPass.trim())
+    ? { adminLoggedIn: true, adminLoginError: false }
+    : { adminLoginError: true });
+
+  setAvulsoModeZero = () => this.setAvulsoMode('zero');
+  setAvulsoModeInspirado = () => this.setAvulsoMode('inspirado');
+  setAvulsoModePronto = () => this.setAvulsoMode('pronto');
+
+  goSubStep1 = () => this.setSubStep(1);
+  goSubStep2 = () => this.setSubStep(2);
+  goSubStep3 = () => this.setSubStep(3);
+  goSubStep4 = () => this.setSubStep(4);
+  nextDeliveryDateObj = (s) => {
+    const next = s.activeSubscription && s.activeSubscription.deliveries[0];
+    if (!next) return null;
+    const [dd,mm,yyyy] = next.date.split('/').map(Number);
+    return new Date(yyyy, mm-1, dd);
+  };
+  deliveryPaymentCooldownActive = (s) => {
+    if (!s.subEditingMode || !s.activeSubscription) return false;
+    const nextDate = this.nextDeliveryDateObj(s);
+    if (!nextDate) return false;
+    const cutoff = new Date(nextDate.getTime() - 3*24*60*60*1000);
+    return Date.now() >= cutoff.getTime();
+  };
+  deliveryPaymentCooldownUntilLabel = (s) => {
+    const next = s.activeSubscription && s.activeSubscription.deliveries[0];
+    return next ? next.date : '—';
+  };
+  onSubMessageChange = (e) => this.setSubField('subMessage', e.target.value.slice(0,180));
+  truncateMsg = (msg, max) => !msg ? '' : (msg.length > max ? msg.slice(0, max).trim() + '…' : msg);
+  onBuilderMessageChange = (e) => this.setBuilderMessage(e.target.value.slice(0,180));
+  onLoginEmailChange = (e) => this.setLoginEmail(e.target.value);
+
+  goCheckoutStep1 = () => this.setCheckoutStep(1);
+  goCheckoutStep2 = () => this.setCheckoutStep(2);
+  goCheckoutStep3 = () => this.setCheckoutStep(3);
+  goCheckoutStep3Guarded = () => {
+    const s = this.state;
+    if (!!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10 && s.addresses.some(a=>a.id===s.checkoutAddressId)) this.setCheckoutStep(3);
+  };
+  setPaymentCard = () => this.setCheckoutField('paymentMethod', 'card');
+  setPaymentPix = () => this.setCheckoutField('paymentMethod', 'pix');
+  toggleNewCardForm = () => this.setState(s => ({ showNewCardForm: !s.showNewCardForm }));
+  selectCheckoutCard = (id) => this.setCheckoutField('checkoutCardId', id);
+  onNewCardNumberChange = (e) => {
+    const digits = e.target.value.replace(/\D/g,'').slice(0,16);
+    const formatted = digits.replace(/(.{4})/g,'$1 ').trim();
+    this.setCheckoutField('newCardNumber', formatted);
+  };
+  onNewCardNameChange = (e) => {
+    const v = e.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g,'').slice(0,60);
+    this.setCheckoutField('newCardName', v);
+  };
+  onNewCardExpiryChange = (e) => {
+    const digits = e.target.value.replace(/\D/g,'').slice(0,4);
+    const formatted = digits.length>2 ? digits.slice(0,2)+'/'+digits.slice(2) : digits;
+    this.setCheckoutField('newCardExpiry', formatted);
+  };
+  onNewCardCvvChange = (e) => {
+    const digits = e.target.value.replace(/\D/g,'').slice(0,4);
+    this.setCheckoutField('newCardCvv', digits);
+  };
+  onNewCardCpfChange = (e) => {
+    const digits = e.target.value.replace(/\D/g,'').slice(0,11);
+    const p1=digits.slice(0,3), p2=digits.slice(3,6), p3=digits.slice(6,9), p4=digits.slice(9,11);
+    let formatted = p1;
+    if (p2) formatted += '.'+p2;
+    if (p3) formatted += '.'+p3;
+    if (p4) formatted += '-'+p4;
+    this.setCheckoutField('newCardCpf', formatted);
+  };
+  isNewCardValid = (s) => {
+    const digits = s.newCardNumber.replace(/\D/g,'');
+    const cpfDigits = s.newCardCpf.replace(/\D/g,'');
+    const expiryOk = /^\d{2}\/\d{2}$/.test(s.newCardExpiry) && Number(s.newCardExpiry.slice(0,2))>=1 && Number(s.newCardExpiry.slice(0,2))<=12;
+    return digits.length===16 && s.newCardName.trim().length>=3 && cpfDigits.length===11 && expiryOk && s.newCardCvv.length>=3;
+  };
+  toggleSaveCard = () => this.setState(s => ({ saveNewCardChecked: !s.saveNewCardChecked }));
+  saveNewCard = () => this.setState(s => {
+    if (!this.isNewCardValid(s)) return {};
+    const last4 = s.newCardNumber.replace(/\D/g,'').slice(-4) || '0000';
+    if (!s.saveNewCardChecked) {
+      return { checkoutCardId: 'temp-'+Date.now(), showNewCardForm: false, newCardNumber:'', newCardName:'', newCardExpiry:'', newCardCvv:'', newCardCpf:'', usingUnsavedCard: { brand:'Cartão', last4 } };
+    }
+    const id = 'c' + (s.savedCards.length + 1) + '-' + Date.now();
+    const card = { id, brand: 'Cartão', last4 };
+    return { savedCards: [...s.savedCards, card], checkoutCardId: id, showNewCardForm: false, newCardNumber:'', newCardName:'', newCardExpiry:'', newCardCvv:'', newCardCpf:'' };
+  });
+  onCheckoutAddressChange = (e) => this.setCheckoutField('checkoutAddress', e.target.value);
+  onCustomerNameChange = (e) => this.setCheckoutField('customerName', e.target.value);
+  onCustomerNicknameChange = (e) => this.setCheckoutField('customerNickname', e.target.value);
+  editCustomerInfo = () => this.setState({ accountTab: 'dados', route: 'account', customerInfoConfirmed: false });
+  confirmCustomerInfo = () => this.setState(s => {
+    if (!!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10) {
+      return s.pendingRoute ? { customerInfoConfirmed: true, route: s.pendingRoute, pendingRoute: null } : { customerInfoConfirmed: true };
+    }
+    return {};
+  });
+  onCustomerPhoneChange = (e) => {
+    const digits = e.target.value.replace(/\D/g,'').slice(0,11);
+    const p1 = digits.slice(0,2), p2 = digits.slice(2,7), p3 = digits.slice(7,11);
+    const formatted = digits.length ? `(${p1}${p1.length===2?') ':''}${p2}${p3?'-':''}${p3}` : '';
+    this.setCheckoutField('customerPhone', formatted);
+  };
+  onCheckoutDistanceChange = (e) => this.setCheckoutField('checkoutDistanceKm', Number(e.target.value));
+  setDeliveryPeriod = (p) => this.setCheckoutField('deliveryPeriod', p);
+  setDeliveryPeriodManha = () => this.setDeliveryPeriod('manha');
+  setDeliveryPeriodTarde = () => this.setDeliveryPeriod('tarde');
+  get deliveryDateLabel() {
+    const d = new Date();
+    d.setDate(d.getDate()+1);
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+  selectCheckoutAddress = (id) => this.setCheckoutField('checkoutAddressId', id);
+  toggleNewAddressForm = () => this.setState(s => ({ showNewAddressForm: !s.showNewAddressForm }));
+  onNewAddressLabelChange = (e) => this.setCheckoutField('newAddressLabel', e.target.value);
+  onNewAddressLineChange = (e) => this.setCheckoutField('newAddressLine', e.target.value);
+  onNewAddressCepChange = (e) => {
+    const cep = e.target.value.replace(/\D/g,'').slice(0,8);
+    const formatted = cep.length>5 ? cep.slice(0,5)+'-'+cep.slice(5) : cep;
+    this.setCheckoutField('newAddressCep', formatted);
+    if (cep.length===8) {
+      const streets = ['Rua das Flores','Rua Girassóis','Rua Jardim Botânico','Rua Primavera'];
+      const hoods = ['Centro','Jardins','Vila Nova','Bela Vista'];
+      const h = cep.split('').reduce((a,d)=>a+Number(d),0);
+      this.setCheckoutField('newAddressResolvedStreet', `${streets[h%4]}, ${hoods[h%4]}, São Paulo - SP`);
+    } else {
+      this.setCheckoutField('newAddressResolvedStreet', '');
+    }
+  };
+  onNewAddressNumberChange = (e) => this.setCheckoutField('newAddressNumber', e.target.value);
+  onNewAddressComplementChange = (e) => this.setCheckoutField('newAddressComplement', e.target.value);
+  saveNewAddress = () => this.setState(s => {
+    if (s.newAddressCep.replace(/\D/g,'').length!==8 || !s.newAddressNumber.trim() || !s.newAddressResolvedStreet) return {};
+    const id = 'a' + (s.addresses.length + 1) + '-' + Date.now();
+    const line = `${s.newAddressResolvedStreet}, nº ${s.newAddressNumber.trim()}${s.newAddressComplement.trim() ? ', '+s.newAddressComplement.trim() : ''} — CEP ${s.newAddressCep}`;
+    const label = s.newAddressResolvedStreet.split(',')[0] || 'Endereço';
+    const distanceKm = this.estimateDistanceFromCep(s.newAddressCep);
+    const addr = { id, label, line, distanceKm };
+    return { addresses: [...s.addresses, addr], checkoutAddressId: id, showNewAddressForm: false, newAddressCep: '', newAddressNumber: '', newAddressComplement: '', newAddressResolvedStreet: '' };
+  });
+  onShippingBaseChange = (e) => this.setShippingField('shippingBase', e.target.value);
+  onShippingFreeKmChange = (e) => this.setShippingField('shippingFreeKm', e.target.value);
+  onShippingPerKmChange = (e) => this.setShippingField('shippingPerKm', e.target.value);
+
+  categoryPreviews = [
+    { route: 'subscription', imgId: 'cat-sub', src: './assets/flore-arranjo-1.png', placeholder: 'Foto: caixa de assinatura Florê', title: 'Assinatura', desc: 'Flores novas na sua casa, em ciclos que você escolhe.', cta: 'Assinar' },
+    { route: 'avulso', imgId: 'cat-builder', src: './assets/flore-arranjo-5.png', placeholder: 'Foto: flores soltas sobre bancada', title: 'Buquê Avulso', desc: 'Monte do zero, peça inspirado ou escolha um pronto.', cta: 'Compor' },
+    { route: 'catalog', imgId: 'cat-ready', src: './assets/flore-arranjo-2.png', placeholder: 'Foto: arranjo pronto em vaso', title: 'Arranjos Prontos', desc: 'Composições autorais, prontas para encantar em até 24h.', cta: 'Ver catálogo' },
+  ];
+
+  howItWorks = [
+    { n: '01', title: 'Escolha seu jeito', desc: 'Assine, monte flor a flor, ou peça um arranjo pronto — você decide o quanto quer participar.' },
+    { n: '02', title: 'Componha com carinho', desc: 'Adicione uma mensagem, escolha o tamanho e a data. Nós cuidamos do resto com atenção de ateliê.' },
+    { n: '03', title: 'Receba o encanto', desc: 'Entregamos com cuidado, no dia certo, com o cartão que você escreveu — pronto para emocionar.' },
+  ];
+
+  testimonials = [
+    { quote: 'Fiquei profundamente emocionada com o cuidado e a sensibilidade de toda a composição. O buquê foi um dos pontos altos do meu casamento — todos os convidados fizeram questão de elogiar.', name: 'Isabelle, noiva' },
+    { quote: 'Um arranjo belíssimo, que superou minhas expectativas. A escolha das flores demonstrou muito bom gosto e atenção aos detalhes.', name: 'Cecília S.' },
+  ];
+
+  galleryPhotos = [
+    { src: './assets/flore-gallery-basket.jpg', caption: 'Cesta autoral, flores da estação', prices: {P:189,M:259,G:350} },
+    { src: './assets/flore-gallery-bench.jpg', caption: 'Composição em tons pastel', prices: {P:99,M:149,G:219} },
+    { src: './assets/flore-gallery-vase.jpg', caption: 'Arranjo de mesa, ateliê', prices: {P:109,M:159,G:229} },
+    { src: './assets/flore-gallery-wedding.jpg', caption: 'Buquê autoral em tons de magenta', prices: {P:129,M:179,G:249} },
+    { src: './assets/flore-gallery-tropical.jpg', caption: 'Composição tropical vibrante', prices: {P:119,M:169,G:239} },
+    { src: './assets/flore-gallery-lavender.jpg', caption: 'Buquê de lavandas e alecrim', prices: {P:99,M:145,G:209} },
+    { src: './assets/flore-gallery-sunflower.jpg', caption: 'Girassóis e rosas laranja', prices: {P:109,M:155,G:219} },
+    { src: './assets/flore-gallery-basket2.jpg', caption: 'Cesta colorida, mix de estação', prices: {P:149,M:209,G:289} },
+    { src: './assets/flore-gallery-box.jpg', caption: 'Caixa autoral Florê Ateliê', prices: {P:139,M:199,G:279} },
+    { src: './assets/flore-gallery-purple.jpg', caption: 'Composição em tons de roxo e rosa', prices: {P:119,M:169,G:239} },
+  ];
+
+  flowerTypes = (() => {
+    const raw = [
+      { id:'rusgos', name:'Rusgos', price:13, petals:9, petalColor:'#D98E6B', centerColor:'#8C5B45', petalW:11, petalH:22 },
+      { id:'eucalipto', name:'Eucalipto', price:9, petals:7, petalColor:'#8A9A72', centerColor:'#6B7C5C', petalW:10, petalH:30 },
+      { id:'alstromelia', name:'Alstromélia', price:12, petals:6, petalColor:'#E8965B', centerColor:'#8C5B45', petalW:8, petalH:24 },
+      { id:'gerbera', name:'Gérbera', price:14, petals:14, petalColor:'#E86B5C', centerColor:'#3A2E1E', petalW:8, petalH:24 },
+      { id:'rosa', name:'Rosa', price:17, petals:8, petalColor:'#C4836A', centerColor:'#8C5B45', petalW:16, petalH:20 },
+      { id:'lirio', name:'Lírio', price:19, petals:6, petalColor:'#FAF3E6', centerColor:'#D9A441', petalW:15, petalH:28 },
+      { id:'antulio', name:'Antúrio', price:18, petals:1, petalColor:'#B5453D', centerColor:'#D9A441', petalW:30, petalH:34 },
+      { id:'flordocampo', name:'Flor do Campo', price:11, petals:10, petalColor:'#E8C4B8', centerColor:'#D9A441', petalW:8, petalH:18 },
+      { id:'celosia', name:'Celósia', price:14, petals:12, petalColor:'#A93F5C', centerColor:'#6B2C3E', petalW:9, petalH:16 },
+      { id:'girasol', name:'Girassol', price:13, petals:14, petalColor:'#E8B23D', centerColor:'#5C4326', petalW:9, petalH:26 },
+      { id:'estaticia', name:'Estatícia', price:10, petals:16, petalColor:'#B7A9D9', centerColor:'#7C6C9E', petalW:6, petalH:14 },
+      { id:'rabodegato', name:'Rabo de Gato', price:11, petals:1, petalColor:'#8C5B45', centerColor:'#8C5B45', petalW:8, petalH:34 },
+      { id:'rosaspray', name:'Rosa Spray', price:14, petals:9, petalColor:'#E8C4B8', centerColor:'#C4836A', petalW:10, petalH:16 },
+      { id:'tulipa', name:'Tulipa', price:16, petals:6, petalColor:'#D96B7A', centerColor:'#8C5B45', petalW:14, petalH:26 },
+      { id:'folhagens', name:'Folhagens', price:9, petals:7, petalColor:'#6B7C5C', centerColor:'#4B5740', petalW:10, petalH:30 },
+      { id:'orquidea', name:'Orquídea', price:21, petals:5, petalColor:'#E8C4B8', centerColor:'#A93F5C', petalW:14, petalH:22 },
+    ];
+    const buildPetals = (count, pw, ph) => {
+      const cx=32, cy=32, orbit = 32-ph/2-1;
+      const petals=[];
+      for (let i=0;i<count;i++){
+        const angle = (360/count)*i;
+        const rad = angle*Math.PI/180;
+        const px = cx + Math.sin(rad)*orbit*0.55;
+        const py = cy - Math.cos(rad)*orbit*0.55;
+        petals.push({ cx:px, cy:py, rx:pw/2, ry:ph/2, transform:`rotate(${angle} ${px} ${py})` });
+      }
+      return petals;
+    };
+    return raw.map(t => ({ ...t, petalsSvg: buildPetals(t.petals, t.petalW, t.petalH), centerR: Math.max(6, t.petalH*0.22) }));
+  })();
+
+  flowerById = (id) => this.flowerTypes.find(f=>f.id===id);
+
+  addFlowerToBuilder = (id) => this.setState(s => ({ builderQty: {...s.builderQty, [id]: (s.builderQty[id]||0)+1}, builderSeed: (s.builderSeed||0)+1 }));
+  startDragFlower = (e, seed) => {
+    e.preventDefault(); e.stopPropagation();
+    const canvas = e.currentTarget.closest('[data-builder-canvas]');
+    if (!canvas) return;
+    this._dragSeed = seed;
+    this._dragCanvasRect = canvas.getBoundingClientRect();
+  };
+  onCanvasPointerMove = (e) => {
+    if (this._dragSeed == null || !this._dragCanvasRect) return;
+    const rect = this._dragCanvasRect;
+    const cx = rect.left + rect.width/2, cy = rect.top + rect.height - 110;
+    const x = e.clientX - cx, y = e.clientY - cy;
+    this.setState(s => ({ builderPosOverrides: { ...s.builderPosOverrides, [this._dragSeed]: { x, y } } }));
+  };
+  onCanvasPointerUp = () => { this._dragSeed = null; this._dragCanvasRect = null; };
+  decFlowerInBuilder = (id) => this.setState(s => { const q = Math.max(0,(s.builderQty[id]||0)-1); const bq = {...s.builderQty}; if(q===0) delete bq[id]; else bq[id]=q; return {builderQty:bq}; });
+  setBuilderMessage = (v) => this.setState({ builderMessage: v });
+  resetBuilder = () => this.setState({ builderQty:{}, builderStage:'build', builderMessage:'', builderPosOverrides:{} });
+  generateIllustration = () => {
+    this.setState({ builderStage:'generating' });
+    setTimeout(()=>this.setState({ builderStage:'result' }), 2000);
+  };
+  addBuilderToCart = () => {
+    const s = this.state;
+    const items = Object.entries(s.builderQty).map(([id,qty])=>`${qty}x ${this.flowerById(id).name}`).join(', ');
+    const total = Object.entries(s.builderQty).reduce((a,[id,qty])=>a+qty*this.flowerById(id).price,0);
+    this.addToCart({ key:'custom-'+Date.now(), label:'Buquê Montado ('+items+')', price:total, qty:1, kind:'Monte seu Buquê' });
+    this.setState(st => ({ cartMessage: st.builderMessage || st.cartMessage }));
+    this.resetBuilder();
+  };
+
+  readyBouquets = [
+    { id:'b1', name:'Bilhete de Manhã', desc:'Cesta rústica em tons vivos, com folhagens abundantes e flores da estação.', price:149, imgId:'cat-b1', src:'./assets/flore-arranjo-1.png', category:'Arranjos' },
+    { id:'b2', name:'Carta Terracota', desc:'Rosas e astromélias em tons quentes, para gestos marcantes.', price:139, imgId:'cat-b2', src:'./assets/flore-arranjo-2.png', category:'Buquês' },
+    { id:'b3', name:'Sussurro Rosa-pó', desc:'Ranúnculos e lisianthus em composição delicada.', price:119, imgId:'cat-b3', src:'./assets/flore-arranjo-3.png', category:'Buquês' },
+    { id:'b4', name:'Verso Silvestre', desc:'Mix de campo com folhagens abundantes.', price:99, imgId:'cat-b4', src:'./assets/flore-arranjo-4.png', category:'Sazonais' },
+    { id:'b5', name:'Ateliê Completo', desc:'Nossa composição autoral mais generosa, cheia de camadas.', price:189, imgId:'cat-b5', src:'./assets/flore-arranjo-5.png', category:'Arranjos' },
+    { id:'b6', name:'Pequena Alegria', desc:'Um mimo simples, perfeito para "sem motivo nenhum".', price:69, imgId:'cat-b6', src:'./assets/flore-gallery-box.jpg', category:'Sazonais' },
+  ];
+
+  readyOptions = [
+    { id:'r1', name:'Encanto Musgo', desc:'Verdes profundos com toques de terracota.', price:129, imgId:'ready-1', src:'./assets/flore-gallery-bench.jpg' },
+    { id:'r2', name:'Doce Pó de Rosa', desc:'Composição suave em tons pastel.', price:139, imgId:'ready-2', src:'./assets/flore-gallery-lavender.jpg' },
+    { id:'r3', name:'Carta de Amor', desc:'Rosas e margaridas, o clássico da Florê.', price:159, imgId:'ready-3', src:'./assets/flore-gallery-purple.jpg' },
+  ];
+
+  plans = {
+    Semanal: { P:99, M:129, G:159 },
+    Quinzenal: { P:119, M:149, G:179 },
+    Mensal: { P:139, M:169, G:199 },
+  };
+  planPrice = (s, freq, size) => (s.planOverrides[freq] && s.planOverrides[freq][size] != null) ? s.planOverrides[freq][size] : this.plans[freq][size];
+  setPlanPrice = (freq, size, v) => this.setState(s => ({ planOverrides: { ...s.planOverrides, [freq]: { ...(s.planOverrides[freq]||{}), [size]: Number(v) } } }));
+  setInspiradoBasePrice = (size, v) => this.setState(s => ({ inspiradoBasePrices: { ...s.inspiradoBasePrices, [size]: Number(v) } }));
+
+  onCartMessageChange = (e) => this.setState({ cartMessage: e.target.value.slice(0,180) });
+  incCatalogQty = (id) => this.setState(s => ({ catalogQty: { ...s.catalogQty, [id]: (s.catalogQty[id] || 1) + 1 } }));
+  decCatalogQty = (id) => this.setState(s => ({ catalogQty: { ...s.catalogQty, [id]: Math.max(1, (s.catalogQty[id] || 1) - 1) } }));
+  addToCart = (item) => {
+    this.setState(s => {
+      const idx = s.cart.findIndex(c => c.key === item.key);
+      if (idx >= 0) { const cart = [...s.cart]; cart[idx] = {...cart[idx], qty: cart[idx].qty + (item.qty||1)}; return {cart}; }
+      return { cart: [...s.cart, {...item, qty: item.qty||1}] };
+    });
+    this.setState({ toast: `${item.label} adicionado ao carrinho` });
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(()=>this.setState({toast:null}), 2400);
+  };
+  removeFromCart = (key) => this.setState(s => ({ cart: s.cart.filter(c=>c.key!==key) }));
+  updateCartQty = (key, qty) => this.setState(s => ({ cart: s.cart.map(c => c.key===key ? {...c, qty: Math.max(1,qty)} : c) }));
+
+  builderVals(s) {
+    const rand = (n) => { const x = Math.sin(n*999.7+13.1)*10000; return x-Math.floor(x); };
+    const chosenList = Object.entries(s.builderQty).filter(([,q])=>q>0).map(([id,qty])=>{
+      const type = this.flowerById(id);
+      return { id, type, qty, subtotal: qty*type.price, inc:()=>this.addFlowerToBuilder(id), dec:()=>this.decFlowerInBuilder(id) };
+    });
+    const builderTotal = chosenList.reduce((a,c)=>a+c.subtotal,0);
+    const placed = [];
+    let seed = 0;
+    chosenList.forEach(entry => { for (let k=0;k<entry.qty;k++){ placed.push({ type: entry.type, seed }); seed++; } });
+    const N = placed.length;
+    placed.forEach((p, idx) => {
+      const angle = -95 + (N<=1?0:(idx/(N-1))*190) + (rand(p.seed)-0.5)*16;
+      const radius = 58 + rand(p.seed+1)*66;
+      const rad = angle*Math.PI/180;
+      const override = s.builderPosOverrides[p.seed];
+      p.x = override ? override.x : Math.sin(rad)*radius;
+      p.y = override ? override.y : -Math.abs(Math.cos(rad))*radius*0.68;
+      p.rot = (rand(p.seed+2)-0.5)*36;
+      p.scale = 0.82 + rand(p.seed+3)*0.4;
+      p.zIndex = idx;
+      p.seedKey = p.seed;
+      p.onFlowerPointerDown = (e) => this.startDragFlower(e, p.seed);
+      p.styleStr = `position:absolute;left:0;top:0;transform:translate(${p.x}px,${p.y}px) rotate(${p.rot}deg) scale(${p.scale}) translate(-32px,-32px);z-index:${idx};animation:petalPop 0.35s ease both;cursor:grab;`;
+      p.resultStyleStr = `position:absolute;left:0;top:0;transform:translate(${p.x*1.35}px,${p.y*1.35}px) rotate(${p.rot}deg) scale(${p.scale*1.25}) translate(-40px,-40px);z-index:${idx+1000};`;
+      const stemLen = Math.min(60, 30 + Math.abs(p.y*1.35)*0.35);
+      const stemAngle = Math.atan2(p.x*1.35, -p.y*1.35)*180/Math.PI;
+      p.stemStyleStr = `position:absolute;left:0;bottom:0;width:3px;height:${stemLen}px;background:linear-gradient(180deg,#7C8F68,#5C6E4E);transform-origin:bottom center;transform:rotate(${stemAngle}deg);z-index:${idx};border-radius:2px;`;
+    });
+    const flowerCards = this.flowerTypes.map(t => ({ ...t, onAdd: ()=>this.addFlowerToBuilder(t.id), onDragStart: (e)=>e.dataTransfer.setData('text/flower', t.id) }));
+    return {
+      flowerCards,
+      chosenList,
+      builderTotal,
+      placedFlowers: placed,
+      hasFlowers: placed.length>0,
+      builderDisabled: placed.length===0,
+      builderBtnOpacity: placed.length===0 ? 0.5 : 1,
+      builderMessage: s.builderMessage,
+      builderMessageCharCount: s.builderMessage.length,
+      setBuilderMessage: this.setBuilderMessage,
+      isBuild: s.builderStage==='build', isGenerating: s.builderStage==='generating', isResult: s.builderStage==='result',
+      generateIllustration: this.generateIllustration,
+      resetBuilder: this.resetBuilder,
+      addBuilderToCart: this.addBuilderToCart,
+      aiEnabled: s.aiEnabled,
+      onCanvasDrop: (e)=>{ e.preventDefault(); const id=e.dataTransfer.getData('text/flower'); if(id) this.addFlowerToBuilder(id); },
+      onCanvasDragOver: (e)=>e.preventDefault(),
+      onCanvasPointerMove: this.onCanvasPointerMove,
+      onCanvasPointerUp: this.onCanvasPointerUp,
+    };
+  }
+
+  estimateDistanceFromCep = (cep) => {
+    const digits = cep.replace(/\D/g,'');
+    if (digits.length !== 8) return 3;
+    const hash = digits.split('').reduce((a,d,i)=>a + Number(d)*(i+1), 0);
+    return Math.round((1.5 + (hash % 140)/10) * 10) / 10;
+  };
+  shippingFee(s) {
+    const addr = s.addresses.find(a=>a.id===s.checkoutAddressId);
+    const km = addr && addr.distanceKm != null ? addr.distanceKm : 3;
+    return km <= s.shippingFreeKm ? s.shippingBase : s.shippingBase + (km - s.shippingFreeKm)*s.shippingPerKm;
+  }
+
+  accountCheckoutVals(s) {
+    const fee = this.shippingFee(s);
+    const total = s.cart.reduce((a,c)=>a+c.qty*c.price,0);
+    return {
+      loggedIn: s.loggedIn,
+      loginEmail: s.loginEmail,
+      loginPassword: s.loginPassword,
+      onLoginPasswordChange: this.onLoginPasswordChange,
+      loginBtnOpacity: (s.loginEmail.trim() && s.loginPassword.trim()) ? 1 : 0.6,
+      setLoginEmail: this.setLoginEmail,
+      doLogin: this.doLogin,
+      logout: this.logout,
+      accountTab: s.accountTab,
+      setAccountTab: this.setAccountTab,
+      isTabPedidos: s.accountTab==='pedidos', isTabAssinatura: s.accountTab==='assinatura', isTabEnderecos: s.accountTab==='enderecos', isTabCartoes: s.accountTab==='cartoes', isTabDados: s.accountTab==='dados',
+      tabBg: (t)=> s.accountTab===t ? '#4B5740' : 'transparent',
+      customerName: s.customerName, onCustomerNameChange: this.onCustomerNameChange,
+      customerNickname: s.customerNickname, onCustomerNicknameChange: this.onCustomerNicknameChange,
+      customerPhone: s.customerPhone, onCustomerPhoneChange: this.onCustomerPhoneChange,
+      accountTabs: ['dados','pedidos','assinatura','enderecos','cartoes'].map(t=>({ id:t, label:{dados:'Dados Pessoais',pedidos:'Pedidos',assinatura:'Assinatura',enderecos:'Endereços',cartoes:'Cartões'}[t], active:t===s.accountTab, bg: t===s.accountTab?'#4B5740':'transparent', color: t===s.accountTab?'#FAF7F2':'#4B5740', onClick:()=>this.setAccountTab(t) })),
+      orderHistory: this.orderHistory.map(o => ({ ...o, statusColor: o.status==='Entregue' ? '#6B7C5C' : '#B5793D', statusBg: o.status==='Entregue' ? '#EDF0E4' : '#F6E9D3' })),
+      goTabAssinatura: this.goTabAssinatura, goTabCartoes: this.goTabCartoes,
+      nextDeliveryDate: s.activeSubscription && s.activeSubscription.deliveries[0] ? s.activeSubscription.deliveries[0].date : '—',
+      nextCutoffDate: s.activeSubscription && s.activeSubscription.deliveries[0] ? s.activeSubscription.deliveries[0].cutoffDate : '—',
+      nextCycleCutoffPassed: !!(s.activeSubscription && s.activeSubscription.deliveries[0] && s.activeSubscription.deliveries[0].cutoffPassed),
+      nextEffectiveDate: s.activeSubscription ? (s.activeSubscription.deliveries[1] ? s.activeSubscription.deliveries[1].date : (s.activeSubscription.deliveries[0] ? s.activeSubscription.deliveries[0].date : '—')) : '—',
+      subHasPendingAction: !!(s.activeSubscription && s.activeSubscription.pendingAction),
+      pendingActionLabel: s.activeSubscription && s.activeSubscription.pendingAction ? (s.activeSubscription.pendingAction.type==='pause' ? `Pausa agendada para ${s.activeSubscription.pendingAction.effectiveDate}.` : `Cancelamento agendado para ${s.activeSubscription.pendingAction.effectiveDate}.`) : '',
+      subPaymentFailed: !!(s.activeSubscription && s.activeSubscription.paymentFailedCycle),
+      simulatePaymentFailure: this.simulatePaymentFailure, clearPaymentFailure: this.clearPaymentFailure,
+      showDeclinedModal: s.showDeclinedModal, closeDeclinedModal: this.closeDeclinedModal,
+      declinedUseOtherCard: this.declinedUseOtherCard, declinedSwitchToPix: this.declinedSwitchToPix,
+      simulateDeclinedPayment: s.simulateDeclinedPayment, toggleSimulateDecline: this.toggleSimulateDecline,
+      declineToggleLabel: s.simulateDeclinedPayment ? 'Desativar simulação de recusa' : 'Simular pagamento recusado (demo)',
+      adminUpcomingCharges: (() => {
+        const rows = [];
+        if (s.activeSubscription) {
+          s.activeSubscription.deliveries.filter(d=>d.cutoffPassed).forEach(d => rows.push({
+            customer: s.customerName || 'Cliente',
+            plan: `${s.activeSubscription.freq} · ${s.activeSubscription.size}`,
+            date: d.date, cutoffDate: d.cutoffDate,
+            statusLabel: d.paymentStatus==='failed' ? 'Pagamento falhou' : 'Cobrança confirmada',
+            statusColor: d.paymentStatus==='failed' ? '#C4836A' : '#6B7C5C',
+          }));
+        }
+        return rows;
+      })(),
+      adminNoUpcomingCharges: !(s.activeSubscription && s.activeSubscription.deliveries.some(d=>d.cutoffPassed)),
+      adminPlanRows: ['Semanal','Quinzenal','Mensal'].map(freq => ({
+        freq,
+        sizes: ['P','M','G'].map(sz => ({ label: sz, price: this.planPrice(s, freq, sz), onChange: (e)=>this.setPlanPrice(freq, sz, e.target.value) })),
+      })),
+      adminInspiradoSizes: ['P','M','G'].map(sz => ({ label: sz, price: s.inspiradoBasePrices[sz], onChange: (e)=>this.setInspiradoBasePrice(sz, e.target.value) })),
+      addresses: s.addresses,
+      activeDeliveries: s.activeSubscription ? s.activeSubscription.deliveries.map(d => ({ ...d, message: this.truncateMsg(d.message, 60), cutoffDate: d.cutoffDate, cutoffPassed: d.cutoffPassed })) : [],
+      activeSubHasRecipient: !!(s.activeSubscription && s.activeSubscription.recipientName),
+      activeSubRecipientName: (s.activeSubscription && s.activeSubscription.recipientName) || '',
+      activeSubMessageTruncated: s.activeSubscription ? this.truncateMsg(s.activeSubscription.message, 50) : '',
+      savedCards: s.savedCards,
+      hasActiveSub: !!s.activeSubscription,
+      notLoggedIn: !s.loggedIn,
+      isAuthLogin: s.authView==='login', isAuthSignup: s.authView==='signup', isAuthForgot: s.authView==='forgot',
+      goSignupView: this.goSignupView, goLoginView: this.goLoginView, goForgotView: this.goForgotView,
+      signupName: s.signupName, onSignupNameChange: this.onSignupNameChange,
+      signupEmail: s.signupEmail, onSignupEmailChange: this.onSignupEmailChange,
+      signupPhone: s.signupPhone, onSignupPhoneChange: this.onSignupPhoneChange,
+      signupPassword: s.signupPassword, onSignupPasswordChange: this.onSignupPasswordChange,
+      signupHasExistsError: s.signupError==='exists', doSignup: this.doSignup,
+      forgotEmail: s.forgotEmail, onForgotEmailChange: this.onForgotEmailChange,
+      forgotSent: s.forgotSent, forgotNotSent: !s.forgotSent, doForgotPassword: this.doForgotPassword,
+      notHasActiveSub: !s.activeSubscription,
+      subToggleLabel: s.activeSubscription && s.activeSubscription.status==='ativa' ? 'Pausar' : 'Retomar assinatura',
+      subIsPaused: !!s.activeSubscription && s.activeSubscription.status==='pausada',
+      subNotPaused: !(!!s.activeSubscription && s.activeSubscription.status==='pausada'),
+      showPauseModal: s.showPauseModal,
+      openPauseModal: this.openPauseModal, closePauseModal: this.closePauseModal,
+      pauseOrResumeClick: this.pauseOrResumeClick, confirmPauseSubscription: this.confirmPauseSubscription,
+      showCancelModal: s.showCancelModal, openCancelModal: this.openCancelModal,
+      closeCancelModal: this.closeCancelModal, confirmCancelSubscription: this.confirmCancelSubscription,
+
+      cartItems: s.cart.map(c => ({...c, remove:()=>this.removeFromCart(c.key), incQ:()=>this.updateCartQty(c.key, c.qty+1), decQ:()=>this.updateCartQty(c.key, c.qty-1)})),
+      cartEmpty: s.cart.length===0,
+      notCartEmpty: s.cart.length>0,
+      pixSquares: Array.from({length:64},(_,i)=> (((i*7+ (i>>3)*3)%5===0) || i%13===0) ? '#3A3F32' : '#FFFFFF'),
+      checkoutStep: s.checkoutStep,
+      checkoutStepIs1: s.checkoutStep===1, checkoutStepIs2: s.checkoutStep===2, checkoutStepIs3: s.checkoutStep===3, checkoutStepIs4: s.checkoutStep===4,
+      checkoutSubtotal: total,
+      checkoutFee: Math.round(fee*100)/100,
+      checkoutDistanceKm: (s.addresses.find(a=>a.id===s.checkoutAddressId) || {}).distanceKm ?? 3,
+      cartMessage: s.cartMessage, onCartMessageChange: this.onCartMessageChange,
+      cartMessageCharCount: s.cartMessage.length,
+      deliveryPeriod: s.deliveryPeriod,
+      setDeliveryPeriodManha: this.setDeliveryPeriodManha,
+      setDeliveryPeriodTarde: this.setDeliveryPeriodTarde,
+      deliveryDateLabel: this.deliveryDateLabel,
+      periodManhaBg: s.deliveryPeriod==='manha' ? '#4B5740' : '#FFFFFF',
+      periodManhaColor: s.deliveryPeriod==='manha' ? '#FAF7F2' : '#4B5740',
+      periodTardeBg: s.deliveryPeriod==='tarde' ? '#4B5740' : '#FFFFFF',
+      periodTardeColor: s.deliveryPeriod==='tarde' ? '#FAF7F2' : '#4B5740',
+      checkoutTotal: s.checkoutStep===4 ? s.lastPaidTotal : Math.round((total+fee)*100)/100,
+      checkoutAddress: s.checkoutAddress,
+      customerName: s.customerName, onCustomerNameChange: this.onCustomerNameChange,
+      customerPhone: s.customerPhone, onCustomerPhoneChange: this.onCustomerPhoneChange,
+      step2Valid: !!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10 && s.addresses.some(a=>a.id===s.checkoutAddressId),
+      confirmCustomerInfo: this.confirmCustomerInfo,
+      hasCustomerInfo: !!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10 && s.customerInfoConfirmed,
+      notHasCustomerInfo: !(!!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10 && s.customerInfoConfirmed),
+      editCustomerInfo: this.editCustomerInfo,
+      step2ContinueOpacity: (!!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10 && s.addresses.some(a=>a.id===s.checkoutAddressId)) ? 1 : 0.5,
+      setCheckoutAddress: (v)=>this.setCheckoutField('checkoutAddress', v),
+      checkoutAddressList: s.addresses.map(a => ({ ...a, selected: a.id===s.checkoutAddressId, onClick: ()=>this.selectCheckoutAddress(a.id), borderColor: a.id===s.checkoutAddressId?'#4B5740':'#D8CFC0', bg: a.id===s.checkoutAddressId?'#F3EDE3':'#FFFFFF' })),
+      showNewAddressForm: s.showNewAddressForm,
+      toggleNewAddressForm: this.toggleNewAddressForm,
+      newAddressLabel: s.newAddressLabel,
+      onNewAddressLabelChange: this.onNewAddressLabelChange,
+      newAddressLine: s.newAddressLine,
+      onNewAddressLineChange: this.onNewAddressLineChange,
+      saveNewAddress: this.saveNewAddress,
+      newAddressCep: s.newAddressCep, onNewAddressCepChange: this.onNewAddressCepChange,
+      newAddressNumber: s.newAddressNumber, onNewAddressNumberChange: this.onNewAddressNumberChange,
+      newAddressComplement: s.newAddressComplement, onNewAddressComplementChange: this.onNewAddressComplementChange,
+      newAddressResolvedStreet: s.newAddressResolvedStreet,
+      newAddressFieldsDisabled: !s.newAddressResolvedStreet,
+      newAddressToggleLabel: s.showNewAddressForm ? 'Cancelar' : '+ Adicionar novo endereço',
+      setCheckoutStep: this.setCheckoutStep,
+      paymentMethod: s.paymentMethod,
+      isCard: s.paymentMethod==='card', isPix: s.paymentMethod==='pix',
+      installments: s.installments,
+      onInstallmentsChange: (e)=>this.setCheckoutField('installments', Number(e.target.value)),
+      hasInstallmentOptions: Math.max(1, Math.floor((total+fee)/100)) > 1,
+      installmentOptions: (() => {
+        const max = Math.min(10, Math.max(1, Math.floor((total+fee)/100)));
+        const opts = [];
+        const monthlyRate = 0.025;
+        for (let n=1; n<=max; n++) {
+          const interestFree = n <= 3;
+          const totalWithInterest = interestFree ? (total+fee) : (total+fee) * Math.pow(1+monthlyRate, n);
+          const perInstallment = Math.round((totalWithInterest/n)*100)/100;
+          const label = n===1
+            ? `1x de R$ ${Math.round((total+fee)*100)/100} (à vista)`
+            : interestFree
+              ? `${n}x de R$ ${perInstallment} sem juros`
+              : `${n}x de R$ ${perInstallment} com juros (total R$ ${Math.round(totalWithInterest*100)/100})`;
+          opts.push({ n, label });
+        }
+        return opts;
+      })(),
+      installmentInterestNote: 'Parcelamentos em até 3x são sem juros; a partir de 4x incide juros de 2,5% ao mês (composto), sob responsabilidade do titular do cartão.',
+      pixCountdown: this.pixCountdownLabel(s),
+      setPaymentMethod: (m)=>this.setCheckoutField('paymentMethod', m),
+      cardBg: s.paymentMethod==='card'?'#4B5740':'#FFFFFF', cardColor: s.paymentMethod==='card'?'#FAF7F2':'#4B5740',
+      pixBg: s.paymentMethod==='pix'?'#4B5740':'#FFFFFF', pixColor: s.paymentMethod==='pix'?'#FAF7F2':'#4B5740',
+      savedCards: s.savedCards.map(c => ({ ...c, selected: c.id===s.checkoutCardId, onClick: ()=>this.selectCheckoutCard(c.id), borderColor: c.id===s.checkoutCardId?'#4B5740':'#D8CFC0', bg: c.id===s.checkoutCardId?'#F3EDE3':'#FFFFFF' })),
+      showNewCardForm: s.showNewCardForm,
+      toggleNewCardForm: this.toggleNewCardForm,
+      newCardNumber: s.newCardNumber, onNewCardNumberChange: this.onNewCardNumberChange,
+      newCardName: s.newCardName, onNewCardNameChange: this.onNewCardNameChange,
+      newCardExpiry: s.newCardExpiry, onNewCardExpiryChange: this.onNewCardExpiryChange,
+      newCardCvv: s.newCardCvv, onNewCardCvvChange: this.onNewCardCvvChange,
+      newCardCpf: s.newCardCpf, onNewCardCpfChange: this.onNewCardCpfChange,
+      saveNewCard: this.saveNewCard,
+      newCardSaveOpacity: this.isNewCardValid(s) ? 1 : 0.5,
+      saveNewCardChecked: s.saveNewCardChecked, toggleSaveCard: this.toggleSaveCard,
+      newCardToggleLabel: s.showNewCardForm ? 'Cancelar' : '+ Adicionar novo cartão',
+      confirmOrder: this.confirmOrder,
+      startNewCheckout: this.startNewCheckout,
+      aiEnabled: s.aiEnabled,
+      toggleAi: this.toggleAi,
+      aiToggleLabel: s.aiEnabled ? 'Ativada' : 'Desativada',
+      aiToggleBg: s.aiEnabled ? '#4B5740' : '#D8CFC0',
+      shippingBase: s.shippingBase, shippingFreeKm: s.shippingFreeKm, shippingPerKm: s.shippingPerKm,
+      setShippingBase: (v)=>this.setShippingField('shippingBase', v),
+      setShippingFreeKm: (v)=>this.setShippingField('shippingFreeKm', v),
+      setShippingPerKm: (v)=>this.setShippingField('shippingPerKm', v),
+      adminFlowers: this.flowerTypes.map(f => {
+        const ov = s.flowerOverrides[f.id] || {};
+        const active = ov.active !== false;
+        return { id:f.id, name:f.name, price: ov.price ?? f.price, active, activeLabel: active?'Ativo':'Inativo', activeBg: active?'#4B5740':'#D8CFC0',
+          onPriceChange: (e)=>this.setFlowerPrice(f.id, e.target.value), onToggle: ()=>this.toggleFlowerActive(f.id) };
+      }),
+      adminBouquets: this.readyBouquets.map(b => {
+        const active = s.bouquetActive[b.id] !== false;
+        return { id:b.id, name:b.name, active, activeLabel: active?'Ativo':'Fora de época', activeBg: active?'#4B5740':'#D8CFC0', onToggle:()=>this.toggleBouquetActive(b.id) };
+      }),
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const routeFlags = { home:false, catalog:false, subscription:false, builder:false, avulso:false, account:false, checkout:false, admin:false, privacy:false };
+    routeFlags[s.route] = true;
+    const navColor = {
+      catalog: s.route==='catalog' ? '#C4836A' : '#4B5740',
+      subscription: s.route==='subscription' ? '#C4836A' : '#4B5740',
+      builder: s.route==='builder' ? '#C4836A' : '#4B5740',
+      account: s.route==='account' ? '#C4836A' : '#4B5740',
+    };
+    const cartCount = s.cart.reduce((a,c)=>a+c.qty,0);
+    const cartSubtotal = s.cart.reduce((a,c)=>a+c.qty*c.price,0);
+    const readyOptionsWithAdd = this.readyOptions.map(r => { const qty = s.catalogQty[r.id]||1; return {...r, qty, incQty:()=>this.incCatalogQty(r.id), decQty:()=>this.decCatalogQty(r.id), add: ()=>this.addToCart({key:'ready-'+r.id, label:r.name, price:r.price, qty, kind:'Buquê Avulso · Pronto'})}; });
+    const readyBouquetsWithAdd = this.readyBouquets.map(r => { const qty = s.catalogQty[r.id]||1; return {...r, qty, incQty:()=>this.incCatalogQty(r.id), decQty:()=>this.decCatalogQty(r.id), add: ()=>this.addToCart({key:'catalog-'+r.id, label:r.name, price:r.price, qty, kind:'Catálogo'})}; });
+    return {
+      route: routeFlags,
+      navColor,
+      cartCount,
+      cartSubtotal,
+      toast: s.toast,
+      mobileMenuOpen: s.mobileMenuOpen,
+      goHome: this.goHome,
+      navigate: this.navigate,
+      navClick: this.navClick,
+      toggleMobileMenu: this.toggleMobileMenu,
+      categoryPreviews: this.categoryPreviews.map(c => ({ ...c, onCardClick: () => this.navigate(c.route) })),
+      goCatalog: this.goCatalog, goSubscription: this.goSubscription, goBuilder: this.goBuilder, goAccount: this.goAccount, editSubscriptionMessage: this.editSubscriptionMessage,
+      goCheckoutPage: this.goCheckoutPage, goPrivacy: this.goPrivacy, goTerms: this.goTerms, goAdminPage: this.goAdminPage,
+      adminLoggedIn: s.adminLoggedIn, adminNotLoggedIn: !s.adminLoggedIn,
+      adminUser: s.adminUser, onAdminUserChange: this.onAdminUserChange,
+      adminPass: s.adminPass, onAdminPassChange: this.onAdminPassChange,
+      doAdminLogin: this.doAdminLogin, adminLoginError: s.adminLoginError,
+      setAvulsoModeZero: this.setAvulsoModeZero, setAvulsoModeInspirado: this.setAvulsoModeInspirado, setAvulsoModePronto: this.setAvulsoModePronto,
+      goSubStep1: this.goSubStep1, goSubStep2: this.goSubStep2, goSubStep3: this.goSubStep3, goSubStep4: this.goSubStep4,
+      onSubMessageChange: this.onSubMessageChange, onBuilderMessageChange: this.onBuilderMessageChange, onLoginEmailChange: this.onLoginEmailChange,
+      goCheckoutStep1: this.goCheckoutStep1, goCheckoutStep2: this.goCheckoutStep2, goCheckoutStep3: this.goCheckoutStep3, goCheckoutStep3Guarded: this.goCheckoutStep3Guarded,
+      setPaymentCard: this.setPaymentCard, setPaymentPix: this.setPaymentPix,
+      onCheckoutAddressChange: this.onCheckoutAddressChange, onCheckoutDistanceChange: this.onCheckoutDistanceChange,
+      onCustomerNameChange: this.onCustomerNameChange, onCustomerPhoneChange: this.onCustomerPhoneChange,
+      selectCheckoutAddress: this.selectCheckoutAddress, toggleNewAddressForm: this.toggleNewAddressForm,
+      onNewAddressLabelChange: this.onNewAddressLabelChange, onNewAddressLineChange: this.onNewAddressLineChange, saveNewAddress: this.saveNewAddress,
+      onNewAddressCepChange: this.onNewAddressCepChange, onNewAddressNumberChange: this.onNewAddressNumberChange, onNewAddressComplementChange: this.onNewAddressComplementChange,
+      onShippingBaseChange: this.onShippingBaseChange, onShippingFreeKmChange: this.onShippingFreeKmChange, onShippingPerKmChange: this.onShippingPerKmChange,
+      howItWorks: this.howItWorks,
+      testimonials: this.testimonials,
+      galleryPhotos: this.galleryPhotos.map((g,idx) => ({ ...g, onOpen: ()=>this.openGalleryLightbox(idx) })),
+      galleryLightboxOpen: s.galleryLightboxIdx !== null,
+      galleryLightboxPhoto: s.galleryLightboxIdx !== null ? { ...this.galleryPhotos[s.galleryLightboxIdx], idx: s.galleryLightboxIdx } : { src:'', caption:'', idx:0 },
+      openGalleryLightbox: this.openGalleryLightbox,
+      closeGalleryLightbox: this.closeGalleryLightbox,
+      stopPropagation: this.stopPropagation,
+      goAvulsoInspiradoFromGallery: this.goAvulsoInspiradoFromGallery,
+      goBuilderFromGallery: this.goBuilderFromGallery,
+      readyBouquets: readyBouquetsWithAdd,
+      catalogCategories: ['Todos','Buquês','Arranjos','Sazonais'].map(c => ({ label:c, onClick:()=>this.setCatalogCategory(c), bg: s.catalogCategory===c?'#4B5740':'#FFFFFF', color: s.catalogCategory===c?'#FAF7F2':'#4B5740' })),
+      readyBouquetsFiltered: s.catalogCategory==='Todos' ? readyBouquetsWithAdd : readyBouquetsWithAdd.filter(b=>b.category===s.catalogCategory),
+      readyOptions: readyOptionsWithAdd,
+      avulsoMode: s.avulsoMode,
+      avulsoSize: s.avulsoSize,
+      setAvulsoMode: this.setAvulsoMode,
+      setAvulsoSize: this.setAvulsoSize,
+      isZero: s.avulsoMode==='zero', isInspirado: s.avulsoMode==='inspirado', isPronto: s.avulsoMode==='pronto',
+      hasReference: s.referenceGalleryIdx!=null,
+      referencePhotoSrc: s.referenceGalleryIdx!=null ? this.galleryPhotos[s.referenceGalleryIdx].src : './assets/flore-arranjo-4.png',
+      referencePhotoCaption: s.referenceGalleryIdx!=null ? this.galleryPhotos[s.referenceGalleryIdx].caption : '',
+      inspiradoPrice: (s.referenceGalleryIdx!=null ? this.galleryPhotos[s.referenceGalleryIdx].prices : s.inspiradoBasePrices)[s.avulsoSize],
+      addInspirado: ()=>this.addToCart({key:'inspirado-'+s.avulsoSize, label:'Buquê Inspirado da Florê ('+s.avulsoSize+')', price:(s.referenceGalleryIdx!=null ? this.galleryPhotos[s.referenceGalleryIdx].prices : s.inspiradoBasePrices)[s.avulsoSize], qty:1, kind:'Buquê Avulso · Inspirado'}),
+      zeroBg: s.avulsoMode==='zero' ? '#4B5740' : '#FAF7F2', zeroColor: s.avulsoMode==='zero' ? '#FAF7F2' : '#4B5740',
+      inspiradoBg: s.avulsoMode==='inspirado' ? '#4B5740' : '#FAF7F2', inspiradoColor: s.avulsoMode==='inspirado' ? '#FAF7F2' : '#4B5740',
+      prontoBg: s.avulsoMode==='pronto' ? '#4B5740' : '#FAF7F2', prontoColor: s.avulsoMode==='pronto' ? '#FAF7F2' : '#4B5740',
+      sizesList: ['P','M','G'].map(sz => ({ label: sz, bg: s.avulsoSize===sz ? '#4B5740':'#FAF7F2', color: s.avulsoSize===sz ? '#FAF7F2':'#4B5740', onClick: ()=>this.setAvulsoSize(sz) })),
+      subStep: s.subStep,
+      subStepDots: [1,2,3,4].map(n => ({ n, bg: n<=s.subStep?'#4B5740':'transparent', color: n<=s.subStep?'#FAF7F2':'#4B5740' })),
+      subFreqOptions: ['Semanal','Quinzenal','Mensal'].map(f => ({ label:f, active: f===s.subFreq, bg: f===s.subFreq?'#4B5740':'#FFFFFF', color: f===s.subFreq?'#FAF7F2':'#4B5740', onClick: ()=>this.setSubField('subFreq', f) })),
+      subSizeOptions: ['P','M','G'].map(sz => ({ label:sz, price:this.plans[s.subFreq][sz], active: sz===s.subSize, bg: sz===s.subSize?'#4B5740':'#FFFFFF', color: sz===s.subSize?'#FAF7F2':'#4B5740', onClick: ()=>this.setSubField('subSize', sz) })),
+      subFreq: s.subFreq, subSize: s.subSize,
+      subMessageOnlyEdit: s.subMessageOnlyEdit,
+      messageEditLockNotice: !!(s.subEditingMode && s.activeSubscription && s.activeSubscription.deliveries[0] && s.activeSubscription.deliveries[0].cutoffPassed),
+      messageEditEffectiveDate: (s.subEditingMode && s.activeSubscription) ? (s.activeSubscription.deliveries[1] ? s.activeSubscription.deliveries[1].date : (s.activeSubscription.deliveries[0] ? s.activeSubscription.deliveries[0].date : '')) : '',
+      saveMessageOnlyEdit: this.saveMessageOnlyEdit,
+      goSubStep1OrCancel: this.goSubStep1OrCancel,
+      step2BtnLabel: s.subMessageOnlyEdit ? 'Salvar mensagem' : 'Revisar →',
+      step2BtnAction: s.subMessageOnlyEdit ? this.saveMessageOnlyEdit : this.goSubStep3,
+      deliveryPaymentCooldownActive: this.deliveryPaymentCooldownActive(s),
+      deliveryPaymentCooldownUntil: this.deliveryPaymentCooldownUntilLabel(s),
+      step3ContinueAction: this.deliveryPaymentCooldownActive(s) ? (()=>{}) : this.goSubStep4,
+      step3ContinueOpacity: this.deliveryPaymentCooldownActive(s) ? 0.5 : 1,
+      subSelectedAddressLine: (s.addresses.find(a=>a.id===s.checkoutAddressId) || {}).line || '',
+      subRecipientName: s.subRecipientName, onSubRecipientNameChange: (e)=>this.setSubField('subRecipientName', e.target.value),
+      subHasRecipient: !!s.subRecipientName,
+      subPrice: this.planPrice(s, s.subFreq, s.subSize),
+      subMessage: s.subMessage,
+      subMessageCharCount: s.subMessage.length,
+      subMessageOrPlaceholder: s.subMessage ? this.truncateMsg(s.subMessage, 70) : 'Ainda sem palavras — escreva a sua',
+      setSubMessage: (v)=>this.setSubField('subMessage', v),
+      subDayOptions: this.weekdays.map(d => ({ label:d, active: d===s.subDay, bg: d===s.subDay?'#4B5740':'#FFFFFF', color: d===s.subDay?'#FAF7F2':'#4B5740', onClick: ()=>this.setSubField('subDay', d) })),
+      subDayLabel: this.freqDayLabel(s.subFreq, s.subDay),
+      setSubStep: this.setSubStep,
+      confirmSubscription: this.confirmSubscription,
+      subStepIs1: s.subStep===1, subStepIs2: s.subStep===2, subStepIs3: s.subStep===3, subStepIs4: s.subStep===4, subStepIs5: s.subStep===5,
+      subscriptionGateOk: s.loggedIn && !!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10,
+      subscriptionGateNotOk: !(s.loggedIn && !!s.customerName.trim() && s.customerPhone.replace(/\D/g,'').length>=10),
+      showSubManageCard: !!s.activeSubscription && !s.subEditingMode,
+      showSubWizard: !s.activeSubscription || s.subEditingMode,
+      startSubEdit: this.startSubEdit,
+      goAccountForSub: this.goAccountForSub,
+      goAccountPedidos: this.goAccountPedidos,
+      confirmedTitle: s.subEditingMode ? 'Assinatura atualizada' : 'Assinatura confirmada',
+      subHasPlanChangePending: !!(s.activeSubscription && s.activeSubscription.pendingPlanChange),
+      subPlanChangeEffectiveDate: (s.activeSubscription && s.activeSubscription.pendingPlanChange) ? s.activeSubscription.pendingPlanChange.effectiveDate : '',
+      activeSubscription: s.activeSubscription,
+      cancelSubscription: this.cancelSubscription,
+      ...this.builderVals(s),
+      ...this.accountCheckoutVals(s),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
