@@ -38,20 +38,25 @@ export async function addAddress(formData: FormData) {
   const { count } = await supabase.from('addresses').select('id', { count: 'exact', head: true }).eq('customer_id', user.id);
   const isFirst = !count;
 
-  const { error } = await supabase.from('addresses').insert({
-    customer_id: user.id,
-    cep: resolved.cep,
-    street: resolved.street,
-    neighborhood: resolved.neighborhood,
-    city: resolved.city,
-    state: resolved.state,
-    number,
-    complement,
-    label: resolved.street || 'Endereço',
-    preferred: isFirst,
-    distance_km: resolved.distanceKm,
-  });
+  const { data: address, error } = await supabase
+    .from('addresses')
+    .insert({
+      customer_id: user.id,
+      cep: resolved.cep,
+      street: resolved.street,
+      neighborhood: resolved.neighborhood,
+      city: resolved.city,
+      state: resolved.state,
+      number,
+      complement,
+      label: resolved.street || 'Endereço',
+      preferred: isFirst,
+      distance_km: resolved.distanceKm,
+    })
+    .select()
+    .single();
 
   revalidatePath('/minha-conta');
-  return { error: error?.message };
+  revalidatePath('/assinatura');
+  return { error: error?.message, address };
 }

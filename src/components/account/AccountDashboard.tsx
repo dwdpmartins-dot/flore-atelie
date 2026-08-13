@@ -13,6 +13,7 @@ import type { Database } from '@/lib/supabase/types';
 type Customer = Database['public']['Tables']['customers']['Row'];
 type Order = Database['public']['Tables']['orders']['Row'];
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+type Delivery = Database['public']['Tables']['subscription_deliveries']['Row'];
 type Address = Database['public']['Tables']['addresses']['Row'];
 type SavedCard = Database['public']['Tables']['saved_cards']['Row'];
 
@@ -31,6 +32,9 @@ export default function AccountDashboard({
   email,
   orders,
   activeSubscription,
+  deliveries,
+  plans,
+  paymentFailed,
   addresses,
   cards,
 }: {
@@ -38,6 +42,9 @@ export default function AccountDashboard({
   email: string | null;
   orders: Order[];
   activeSubscription: Subscription | null;
+  deliveries: Delivery[];
+  plans: Record<string, number>;
+  paymentFailed: boolean;
   addresses: Address[];
   cards: SavedCard[];
 }) {
@@ -76,7 +83,7 @@ export default function AccountDashboard({
 
       {tab === 'dados' && <DadosTab customer={customer} email={email} />}
       {tab === 'pedidos' && <PedidosTab orders={orders} activeSubscription={activeSubscription} />}
-      {tab === 'assinatura' && <AssinaturaTab subscription={activeSubscription} />}
+      {tab === 'assinatura' && <AssinaturaTab subscription={activeSubscription} deliveries={deliveries} plans={plans} paymentFailed={paymentFailed} />}
       {tab === 'enderecos' && <EnderecosTab addresses={addresses} />}
       {tab === 'cartoes' && <CartoesTab cards={cards} />}
     </>

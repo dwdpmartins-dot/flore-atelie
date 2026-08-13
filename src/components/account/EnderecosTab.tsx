@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { addAddress } from '@/app/minha-conta/actions';
 import type { Database } from '@/lib/supabase/types';
 
 type Address = Database['public']['Tables']['addresses']['Row'];
 
 export default function EnderecosTab({ addresses }: { addresses: Address[] }) {
+  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [cep, setCep] = useState('');
   const [resolvedStreet, setResolvedStreet] = useState('');
@@ -49,6 +51,7 @@ export default function EnderecosTab({ addresses }: { addresses: Address[] }) {
     setShowForm(false);
     setCep('');
     setResolvedStreet('');
+    router.refresh();
   }
 
   return (

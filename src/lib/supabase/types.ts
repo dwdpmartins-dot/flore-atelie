@@ -29,6 +29,7 @@ export interface Database {
           nickname: string | null;
           phone: string | null;
           email: string | null;
+          mp_customer_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -297,14 +298,16 @@ export interface Database {
       next_weekday_on_or_after: { Args: { d: string; weekday_name: string }; Returns: string };
       freq_step_days: { Args: { freq: Freq }; Returns: number };
       is_cutoff_passed: { Args: { p_cutoff_date: string }; Returns: boolean };
+      next_delivery_after: { Args: { prev_date: string; freq: Freq; weekday_name: string }; Returns: string };
       build_delivery_schedule: {
         Args: {
           p_subscription_id: string;
           p_freq: Freq;
+          p_weekday: Weekday;
           p_count: number;
           p_message: string;
           p_recipient_name?: string | null;
-          p_start_date?: string;
+          p_first_delivery_date?: string | null;
         };
         Returns: Database['public']['Tables']['subscription_deliveries']['Row'][];
       };

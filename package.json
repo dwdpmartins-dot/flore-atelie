@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@mercadopago/sdk-js": "^0.0.3",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.45.4",
     "date-fns": "^3.6.0",
