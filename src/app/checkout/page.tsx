@@ -1,15 +1,11 @@
-import { redirect } from 'next/navigation';
-import { getCurrentCustomer } from '@/lib/auth/session';
+import { requireCustomer } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 import CheckoutFlow from '@/components/checkout/CheckoutFlow';
 
 export const metadata = { title: 'Finalizar pedido — Florê Ateliê' };
 
 export default async function CheckoutPage() {
-  const session = await getCurrentCustomer();
-  if (!session) {
-    redirect('/minha-conta?redirect=' + encodeURIComponent('/checkout'));
-  }
+  const session = await requireCustomer('/checkout');
 
   const supabase = await createClient();
   const [{ data: addresses }, { data: cards }] = await Promise.all([

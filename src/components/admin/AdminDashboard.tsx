@@ -125,7 +125,7 @@ export default function AdminDashboard({
 
       <div style={card}>
         <h3 style={h3}>Fórmula de frete</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 16 }}>
           <div>
             <label style={{ fontSize: 11.5, color: '#8A8D7C' }}>Taxa base (R$)</label>
             <input

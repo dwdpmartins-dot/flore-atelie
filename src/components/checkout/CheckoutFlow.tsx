@@ -132,6 +132,10 @@ export default function CheckoutFlow({
       return;
     }
     if ('error' in result && result.error) {
+      if (result.error === 'Sessão expirada.') {
+        router.push('/minha-conta?redirect=' + encodeURIComponent('/checkout'));
+        return;
+      }
       setError(result.error);
       return;
     }

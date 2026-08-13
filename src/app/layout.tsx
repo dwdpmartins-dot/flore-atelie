@@ -17,6 +17,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        {/*
+          This is the App Router root layout, not a Pages Router page, so it
+          already applies to every route (the no-page-custom-font rule's
+          "only loads for a single page" concern doesn't apply here). Not
+          migrating to next/font/google because dozens of components already
+          reference these font-family strings inline by name; swapping
+          loaders would mean touching every one of them for a cosmetic-only
+          change.
+        */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:wght@300;400;500;600&display=swap"
           rel="stylesheet"

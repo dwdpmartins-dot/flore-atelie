@@ -63,6 +63,10 @@ export default function SubscriptionWizard({
       return;
     }
     if (result.error) {
+      if (result.error === 'Sessão expirada.') {
+        router.push('/minha-conta?redirect=' + encodeURIComponent('/assinatura'));
+        return;
+      }
       setFormError(result.error);
       return;
     }
