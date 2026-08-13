@@ -28,12 +28,24 @@ export default function CardPaymentBrick({
   amount,
   maxInstallments = 1,
   payerEmail,
+  notice,
   onResult,
   onError,
 }: {
   amount: number;
   maxInstallments?: number;
   payerEmail?: string;
+  /**
+   * Optional line shown above the Brick's own submit button. Mercado Pago
+   * renders that button itself (via a script loaded at runtime, not shipped
+   * in this npm package), so its label can't be reliably overridden from
+   * here — use `notice` wherever clicking it does something other than an
+   * immediate charge (e.g. the subscription wizard's "save a card" step,
+   * where the real charge only happens on a later, separate screen), so
+   * the button's default "Pagar" label can't be mistaken for a second
+   * payment.
+   */
+  notice?: string;
   onResult: (result: CardBrickResult) => void | Promise<void>;
   onError?: (message: string) => void;
 }) {
@@ -66,6 +78,11 @@ export default function CardPaymentBrick({
 
   return (
     <div style={{ background: '#F3EDE3', padding: 16, borderRadius: 2 }}>
+      {notice && (
+        <p style={{ fontSize: 12, color: '#4B5740', background: '#FFFFFF', border: '1px solid #D8CFC0', borderRadius: 2, padding: '10px 12px', margin: '0 0 12px' }}>
+          {notice}
+        </p>
+      )}
       <CardPaymentMP
         initialization={{ amount, payer: payerEmail ? { email: payerEmail } : undefined }}
         customization={{ paymentMethods: { maxInstallments } }}
