@@ -53,6 +53,7 @@ export default function AuthGate() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [signupPasswordConfirm, setSignupPasswordConfirm] = useState('');
   const [signupExistsError, setSignupExistsError] = useState(false);
 
   const [forgotEmail, setForgotEmail] = useState('');
@@ -83,6 +84,12 @@ export default function AuthGate() {
   async function doSignup() {
     setError('');
     setSignupExistsError(false);
+
+    if (signupPassword !== signupPasswordConfirm) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
     setLoading(true);
     const supabase = createClient();
     const { data, error } = await supabase.auth.signUp({
@@ -142,6 +149,13 @@ export default function AuthGate() {
           onChange={(e) => setSignupPassword(e.target.value)}
           type="password"
           placeholder="Senha"
+        />
+        <input
+          style={inputStyle}
+          value={signupPasswordConfirm}
+          onChange={(e) => setSignupPasswordConfirm(e.target.value)}
+          type="password"
+          placeholder="Confirmar senha"
         />
         {signupExistsError && (
           <p style={{ fontSize: 12.5, color: '#C4836A', margin: 0, textAlign: 'left' }}>
