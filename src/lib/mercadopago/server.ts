@@ -109,4 +109,47 @@ export async function chargeCardToken(opts: {
   });
 }
 
+/**
+ * Creates a PIX payment. Mercado Pago returns a QR code (image + the
+ * "copia e cola" string) immediately; the payment itself only settles once
+ * the customer actually pays, which we find out either via the webhook
+ * (see /api/webhooks/mercadopago) or by polling getPaymentStatus.
+ */
+export async function createPixPayment(opts: {
+  amount: number;
+  description: string;
+  externalReference: string;
+  payerEmail: string;
+  payerFirstName?: string;
+  payerCpf?: string;
+}) {
+  const payment = new Payment(mpConfig());
+  const result = await payment.create({
+    body: {
+      transaction_amount: opts.amount,
+      description: opts.description,
+      payment_method_id: 'pix',
+      external_reference: opts.externalReference,
+      payer: {
+        email: opts.payerEmail,
+        first_name: opts.payerFirstName,
+        identification: opts.payerCpf ? { type: 'CPF', number: opts.payerCpf } : undefined,
+      },
+    },
+  });
+  return {
+    id: result.id,
+    status: result.status,
+    qrCodeBase64: result.point_of_interaction?.transaction_data?.qr_code_base64,
+    qrCode: result.point_of_interaction?.transaction_data?.qr_code,
+    expiresAt: result.date_of_expiration,
+  };
+}
+
+export async function getPaymentStatus(paymentId: string | number) {
+  const payment = new Payment(mpConfig());
+  const result = await payment.get({ id: paymentId });
+  return result.status;
+}
+
 export { CardToken };
