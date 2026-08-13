@@ -60,6 +60,8 @@ export default function Header() {
           </a>
           <a
             href="https://wa.me/5511942364723?text=Ol%C3%A1!%20Vim%20pelo%20site%20da%20Flor%C3%AA%20Ateli%C3%AA%20e%20gostaria%20de%20saber%20mais."
+            target="_blank"
+            rel="noreferrer"
             aria-label="WhatsApp"
             style={{ display: 'flex' }}
           >
