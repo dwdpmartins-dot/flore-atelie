@@ -17,6 +17,11 @@ const MODES = [
   { key: 'pronto', label: 'Prontos' },
 ] as const;
 
+// Shown when the customer opens "Inspirado da Florê" directly (no gallery
+// reference chosen via ?ref=) — matches the prototype's own fallback
+// (referencePhotoSrc), so the photo box is never left empty.
+const DEFAULT_INSPIRADO_IMAGE = '/assets/flore-arranjo-4.png';
+
 export default function AvulsoModes({
   readyOptions,
   galleryPhotos,
@@ -88,7 +93,12 @@ export default function AvulsoModes({
       {mode === 'inspirado' && (
         <div className="inspirado-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, alignItems: 'center' }}>
           <div style={{ position: 'relative', width: '100%', height: 320, borderRadius: 2, overflow: 'hidden', background: '#EFE6D8' }}>
-            {reference && <Image src={reference.image_path} alt={reference.caption} fill style={{ objectFit: 'cover' }} />}
+            <Image
+              src={reference ? reference.image_path : DEFAULT_INSPIRADO_IMAGE}
+              alt={reference ? reference.caption : 'Buquê Inspirado da Florê'}
+              fill
+              style={{ objectFit: 'cover' }}
+            />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
             {reference && (
