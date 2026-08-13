@@ -22,6 +22,12 @@
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Responsive rules ported 1:1 from the prototype's <style> block. */
 @media (max-width: 860px) {
   .desktop-nav,
