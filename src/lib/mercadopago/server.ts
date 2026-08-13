@@ -67,6 +67,25 @@ export async function attachCardToCustomer(mpCustomerId: string, cardToken: stri
 }
 
 /**
+ * Detaches (deletes) a card from a Mercado Pago Customer. Written as a plain
+ * fetch instead of mpFetch because this endpoint's success response isn't
+ * guaranteed to be JSON — mpFetch's unconditional res.json() would throw on
+ * an empty body, and the caller only ever needs to know pass/fail here.
+ */
+export async function detachCardFromCustomer(mpCustomerId: string, mpCardId: string) {
+  const res = await fetch(`${MP_API_BASE}/v1/customers/${mpCustomerId}/cards/${mpCardId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${process.env.MERCADOPAGO_ACCESS_TOKEN}` },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const err = new Error(body?.message || 'Erro ao remover cartão na Mercado Pago');
+    (err as Error & { mpBody?: unknown }).mpBody = body;
+    throw err;
+  }
+}
+
+/**
  * Mints a fresh, single-use card token from a card already vaulted on a
  * Customer (via attachCardToCustomer). This is the step chargeSavedCard was
  * missing: Mercado Pago's Payments resource does not accept a bare
