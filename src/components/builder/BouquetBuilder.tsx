@@ -12,17 +12,59 @@ type Flower = Database['public']['Tables']['flowers']['Row'];
 interface PlacedFlower {
   seed: number;
   flowerId: string;
+}
+
+interface LayoutFlower extends PlacedFlower {
   x: number;
   y: number;
+  rot: number;
+  scale: number;
+  zIndex: number;
 }
 
 let seedCounter = 0;
+
+/**
+ * Deterministic pseudo-random value in [0,1) from a seed — a sine-based
+ * hash, ported verbatim from the prototype's builderVals() so replayed
+ * seeds always land on the same "random" values.
+ */
+function seededRand(n: number): number {
+  const x = Math.sin(n * 999.7 + 13.1) * 10000;
+  return x - Math.floor(x);
+}
+
+/**
+ * Fan/arc layout, ported verbatim from the prototype (project/Flore
+ * Atelie.dc.html, builderVals()): every placed flower's angle is spread
+ * evenly across a ~190° arc (-95° to +95°) by its index among the *current*
+ * total N, so the whole bouquet reflows and re-spreads every time a flower
+ * is added or removed — never just stacking the newest one in the middle.
+ * Radius/rotation/scale add per-flower jitter (seeded, so stable across
+ * re-renders) for a layered, hand-arranged look instead of a flat comb.
+ * A manual drag (positionOverrides) pins a flower in place regardless.
+ */
+function computeLayout(placed: PlacedFlower[], overrides: Record<number, { x: number; y: number }>): LayoutFlower[] {
+  const N = placed.length;
+  return placed.map((p, idx) => {
+    const angle = -95 + (N <= 1 ? 0 : (idx / (N - 1)) * 190) + (seededRand(p.seed) - 0.5) * 16;
+    const radius = 58 + seededRand(p.seed + 1) * 66;
+    const rad = (angle * Math.PI) / 180;
+    const override = overrides[p.seed];
+    const x = override ? override.x : Math.sin(rad) * radius;
+    const y = override ? override.y : -Math.abs(Math.cos(rad)) * radius * 0.68;
+    const rot = (seededRand(p.seed + 2) - 0.5) * 36;
+    const scale = 0.82 + seededRand(p.seed + 3) * 0.4;
+    return { ...p, x, y, rot, scale, zIndex: idx };
+  });
+}
 
 export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower[]; aiEnabled: boolean }) {
   const { addToCart } = useCart();
   const router = useRouter();
 
   const [placed, setPlaced] = useState<PlacedFlower[]>([]);
+  const [positionOverrides, setPositionOverrides] = useState<Record<number, { x: number; y: number }>>({});
   const [message, setMessage] = useState('');
   const [stage, setStage] = useState<'build' | 'generating' | 'result'>('build');
   const [illustrationUrl, setIllustrationUrl] = useState<string | null>(null);
@@ -32,14 +74,10 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
   const dragState = useRef<{ seed: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
 
   const flowerById = (id: string) => flowers.find((f) => f.id === id);
+  const layout = computeLayout(placed, positionOverrides);
 
   function placeNewFlower(flowerId: string) {
-    const idx = placed.length;
-    const angle = (idx * 137.508 * Math.PI) / 180; // golden-angle spiral — pleasant, deterministic scatter
-    const radius = 9 * Math.sqrt(idx + 1);
-    const x = Math.cos(angle) * radius;
-    const y = -20 - Math.abs(Math.sin(angle) * radius) * 1.4;
-    setPlaced((prev) => [...prev, { seed: seedCounter++, flowerId, x, y }]);
+    setPlaced((prev) => [...prev, { seed: seedCounter++, flowerId }]);
   }
 
   function addFlower(flowerId: string) {
@@ -61,7 +99,7 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
     if (flowerId) placeNewFlower(flowerId);
   }
 
-  function startDrag(e: React.PointerEvent, p: PlacedFlower) {
+  function startDrag(e: React.PointerEvent, p: LayoutFlower) {
     e.stopPropagation();
     dragState.current = { seed: p.seed, startX: e.clientX, startY: e.clientY, originX: p.x, originY: p.y };
   }
@@ -71,7 +109,7 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
     if (!drag) return;
     const dx = e.clientX - drag.startX;
     const dy = e.clientY - drag.startY;
-    setPlaced((prev) => prev.map((p) => (p.seed === drag.seed ? { ...p, x: drag.originX + dx, y: drag.originY + dy } : p)));
+    setPositionOverrides((prev) => ({ ...prev, [drag.seed]: { x: drag.originX + dx, y: drag.originY + dy } }));
   }
 
   function endDrag() {
@@ -90,6 +128,7 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
 
   function resetBuilder() {
     setPlaced([]);
+    setPositionOverrides({});
     setMessage('');
     setStage('build');
     setIllustrationUrl(null);
@@ -216,11 +255,18 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
         style={{ position: 'relative', background: '#EFE6D8', borderRadius: 4, height: 460, overflow: 'hidden', touchAction: 'none' }}
       >
         <div style={{ position: 'absolute', left: '50%', bottom: 110, width: 2, height: 2 }}>
-          {placed.map((p) => (
+          {layout.map((p) => (
             <div
               key={p.seed}
               onPointerDown={(e) => startDrag(e, p)}
-              style={{ position: 'absolute', left: p.x, top: p.y, transform: 'translate(-50%,-50%)', cursor: 'grab', zIndex: Math.round(100 - p.y) }}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                transform: `translate(${p.x}px, ${p.y}px) rotate(${p.rot}deg) scale(${p.scale}) translate(-32px, -32px)`,
+                zIndex: p.zIndex,
+                cursor: 'grab',
+              }}
             >
               <FlowerSvg visual={getFlowerVisual(p.flowerId)} size={70} />
             </div>
