@@ -1,52 +1,63 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import PasswordInput from './PasswordInput';
 
+/**
+ * Reads token_hash/type from the URL (see the "Reset Password" email
+ * template change in supabase/README.md — the link points here instead of
+ * straight at Supabase's own /auth/v1/verify endpoint) but deliberately
+ * does NOT call verifyOtp on page load. That single-use token is only ever
+ * presented to Supabase inside submit(), in direct response to the
+ * "Salvar nova senha" click.
+ *
+ * This matters because email providers routinely prefetch/scan links in
+ * the background before a person ever clicks them. A GET straight to
+ * Supabase's verify endpoint (the old {{ .ConfirmationURL }} link) burns
+ * the token the instant that scan happens, so the real click always found
+ * it already used (otp_expired) — confirmed via the redirect landing with
+ * error=access_denied&error_code=otp_expired and no visible network call
+ * at click time. Landing on our own page first, where nothing consumes the
+ * token until an explicit click, is Supabase's documented mitigation for
+ * this.
+ */
 export default function ResetPasswordForm() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
-  const [linkInvalid, setLinkInvalid] = useState(false);
+  const searchParams = useSearchParams();
+  const tokenHash = searchParams.get('token_hash');
+  const linkAlreadyInvalid = !tokenHash || Boolean(searchParams.get('error'));
+
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-    (async () => {
-      // The Supabase browser client is created with detectSessionInUrl on
-      // by default, so it ALREADY exchanges this link's ?code= for a
-      // session on its own, the moment it's constructed above. We used to
-      // also call exchangeCodeForSession(code) ourselves right here, which
-      // raced the SDK's own exchange for the exact same single-use code —
-      // one of the two always lost and failed, which is why this screen
-      // reliably failed on every attempt (not an expired-link fluke).
-      // getSession() waits for that automatic exchange to finish before
-      // resolving, so checking it is enough — no manual exchange needed.
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setReady(true);
-      } else {
-        setLinkInvalid(true);
-      }
-    })();
-  }, []);
-
   async function submit() {
+    if (!tokenHash) return;
     setError('');
+    setLoading(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) {
-      setError('Não foi possível redefinir a senha. Solicite um novo link.');
+
+    const { error: verifyError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' });
+    if (verifyError) {
+      setLoading(false);
+      setError('Este link não é mais válido. Volte a "Esqueci minha senha" em Minha Conta e solicite um novo.');
+      return;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    setLoading(false);
+    if (updateError) {
+      setError('Não foi possível redefinir a senha. Tente novamente.');
       return;
     }
     setDone(true);
     setTimeout(() => router.replace('/minha-conta'), 1500);
   }
 
-  if (linkInvalid) {
+  if (linkAlreadyInvalid) {
     return (
       <p style={{ fontSize: 13.5, color: '#7C7F6D', textAlign: 'center' }}>
         Este link de redefinição não é mais válido. Volte a &quot;Esqueci minha senha&quot; em Minha Conta e
@@ -54,8 +65,6 @@ export default function ResetPasswordForm() {
       </p>
     );
   }
-
-  if (!ready) return null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'center' }}>
@@ -75,9 +84,19 @@ export default function ResetPasswordForm() {
           {error && <p style={{ fontSize: 12.5, color: '#C4836A', margin: 0 }}>{error}</p>}
           <button
             onClick={submit}
-            style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: 14, borderRadius: 2, fontSize: 14, cursor: 'pointer' }}
+            disabled={loading}
+            style={{
+              background: '#4B5740',
+              color: '#FAF7F2',
+              border: 'none',
+              padding: 14,
+              borderRadius: 2,
+              fontSize: 14,
+              cursor: loading ? 'default' : 'pointer',
+              opacity: loading ? 0.6 : 1,
+            }}
           >
-            Salvar nova senha
+            {loading ? 'Salvando…' : 'Salvar nova senha'}
           </button>
         </>
       )}

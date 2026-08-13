@@ -55,6 +55,21 @@ No painel do projeto, em **Authentication**:
    "Redirect URLs", adicione `<site>/auth/callback` e
    `<site>/redefinir-senha` (e os equivalentes `http://localhost:3000/...`
    para desenvolvimento).
+4. **Email Templates → Reset Password**: troque o link do botão de
+   `{{ .ConfirmationURL }}` para:
+   ```
+   {{ .SiteURL }}/redefinir-senha?token_hash={{ .TokenHash }}&type=recovery
+   ```
+   `{{ .ConfirmationURL }}` aponta direto para o endpoint do próprio
+   Supabase que consome o token (`/auth/v1/verify`) — qualquer scanner de
+   segurança do provedor de e-mail que abra esse link (prefetch automático,
+   comum no Gmail/Outlook) já consome o token antes da pessoa clicar,
+   fazendo a redefinição falhar sempre com `otp_expired`, mesmo em um link
+   recém-recebido. Apontar o link para nossa própria página em vez do
+   endpoint do Supabase resolve isso: `ResetPasswordForm.tsx` só chama
+   `verifyOtp` (que de fato consome o token) dentro do clique explícito em
+   "Salvar nova senha" — nada acontece automaticamente ao carregar a
+   página, então um scanner que só faz o GET inicial não consome nada.
 
 ## Variáveis de ambiente necessárias
 
