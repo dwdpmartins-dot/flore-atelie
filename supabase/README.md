@@ -42,6 +42,20 @@ insert into public.admin_users (id)
 select id from auth.users where email = 'admin@floreatelie.com.br';
 ```
 
+## Configuração do Supabase Auth
+
+No painel do projeto, em **Authentication**:
+
+1. **Providers → Email**: desative "Confirm email" — a regra de negócio é
+   cadastro sem verificação por e-mail (login/uso liberado na hora).
+2. **Providers → Google**: habilite e informe o Client ID/Secret de um
+   OAuth Client (Google Cloud Console). Authorized redirect URI:
+   `https://<seu-projeto>.supabase.co/auth/v1/callback`.
+3. **URL Configuration**: Site URL = URL de produção (Vercel). Em
+   "Redirect URLs", adicione `<site>/auth/callback` e
+   `<site>/redefinir-senha` (e os equivalentes `http://localhost:3000/...`
+   para desenvolvimento).
+
 ## Variáveis de ambiente necessárias
 
 Veja `.env.example` na raiz do repositório — chaves do Supabase, Mercado
