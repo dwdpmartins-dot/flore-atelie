@@ -15,6 +15,12 @@ function mpConfig() {
   return new MercadoPagoConfig({ accessToken });
 }
 
+/** Logs the real Mercado Pago error detail before a caller's try/catch
+ * flattens it into a generic "declined" outcome for the customer. */
+function logMpError(context: string, err: unknown) {
+  console.error(context, err instanceof Error ? { message: err.message, mpBody: (err as Error & { mpBody?: unknown }).mpBody } : err);
+}
+
 const MP_API_BASE = 'https://api.mercadopago.com';
 
 async function mpFetch(path: string, init: RequestInit) {
@@ -60,6 +66,21 @@ export async function attachCardToCustomer(mpCustomerId: string, cardToken: stri
   };
 }
 
+/**
+ * Mints a fresh, single-use card token from a card already vaulted on a
+ * Customer (via attachCardToCustomer). This is the step chargeSavedCard was
+ * missing: Mercado Pago's Payments resource does not accept a bare
+ * `card_id` — a stored card can only be charged through a token minted
+ * specifically for that charge, via this separate endpoint.
+ */
+async function mintTokenFromSavedCard(mpCustomerId: string, mpCardId: string): Promise<string> {
+  const result = await mpFetch('/v1/card_tokens', {
+    method: 'POST',
+    body: JSON.stringify({ card_id: mpCardId, customer_id: mpCustomerId }),
+  });
+  return result.id as string;
+}
+
 /** Charges a saved card (customer_id + card_id) for a subscription cycle or an avulso order. */
 export async function chargeSavedCard(opts: {
   mpCustomerId: string;
@@ -70,23 +91,27 @@ export async function chargeSavedCard(opts: {
   externalReference: string;
   payerEmail: string;
 }) {
-  const payment = new Payment(mpConfig());
-  const result = await payment.create({
-    body: {
-      transaction_amount: opts.amount,
-      description: opts.description,
-      installments: opts.installments ?? 1,
-      payment_method_id: undefined,
-      token: undefined,
-      external_reference: opts.externalReference,
-      payer: { email: opts.payerEmail, type: 'customer', id: opts.mpCustomerId },
-      // Charging a previously-saved card by id, per Mercado Pago's
-      // "cobrar cartão salvo" flow.
-      // @ts-expect-error -- card_id isn't in the SDK's TS payload type yet, but is accepted by the API.
-      card_id: opts.mpCardId,
-    },
-  });
-  return result;
+  try {
+    const token = await mintTokenFromSavedCard(opts.mpCustomerId, opts.mpCardId);
+    const payment = new Payment(mpConfig());
+    return await payment.create({
+      body: {
+        transaction_amount: opts.amount,
+        token,
+        description: opts.description,
+        installments: opts.installments ?? 1,
+        external_reference: opts.externalReference,
+        payer: { email: opts.payerEmail, type: 'customer', id: opts.mpCustomerId },
+      },
+    });
+  } catch (err) {
+    // Surfaced so a broken request (bad token, malformed body, MP outage)
+    // is distinguishable in the logs from a genuine card decline — the
+    // caller still treats both as "declined" for the customer-facing
+    // message, but only one of those should ever actually happen.
+    logMpError('chargeSavedCard failed', err);
+    throw err;
+  }
 }
 
 /**
@@ -107,18 +132,23 @@ export async function chargeCardToken(opts: {
   payerEmail: string;
 }) {
   const payment = new Payment(mpConfig());
-  return payment.create({
-    body: {
-      transaction_amount: opts.amount,
-      token: opts.token,
-      description: opts.description,
-      installments: opts.installments ?? 1,
-      payment_method_id: opts.paymentMethodId,
-      issuer_id: opts.issuerId ? Number(opts.issuerId) : undefined,
-      external_reference: opts.externalReference,
-      payer: { email: opts.payerEmail },
-    },
-  });
+  try {
+    return await payment.create({
+      body: {
+        transaction_amount: opts.amount,
+        token: opts.token,
+        description: opts.description,
+        installments: opts.installments ?? 1,
+        payment_method_id: opts.paymentMethodId,
+        issuer_id: opts.issuerId ? Number(opts.issuerId) : undefined,
+        external_reference: opts.externalReference,
+        payer: { email: opts.payerEmail },
+      },
+    });
+  } catch (err) {
+    logMpError('chargeCardToken failed', err);
+    throw err;
+  }
 }
 
 /**
@@ -136,19 +166,25 @@ export async function createPixPayment(opts: {
   payerCpf?: string;
 }) {
   const payment = new Payment(mpConfig());
-  const result = await payment.create({
-    body: {
-      transaction_amount: opts.amount,
-      description: opts.description,
-      payment_method_id: 'pix',
-      external_reference: opts.externalReference,
-      payer: {
-        email: opts.payerEmail,
-        first_name: opts.payerFirstName,
-        identification: opts.payerCpf ? { type: 'CPF', number: opts.payerCpf } : undefined,
+  let result;
+  try {
+    result = await payment.create({
+      body: {
+        transaction_amount: opts.amount,
+        description: opts.description,
+        payment_method_id: 'pix',
+        external_reference: opts.externalReference,
+        payer: {
+          email: opts.payerEmail,
+          first_name: opts.payerFirstName,
+          identification: opts.payerCpf ? { type: 'CPF', number: opts.payerCpf } : undefined,
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    logMpError('createPixPayment failed', err);
+    throw err;
+  }
   return {
     id: result.id,
     status: result.status,
