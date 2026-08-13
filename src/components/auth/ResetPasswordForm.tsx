@@ -1,28 +1,38 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import PasswordInput from './PasswordInput';
 
 export default function ResetPasswordForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
+  const [linkInvalid, setLinkInvalid] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    const code = searchParams.get('code');
     (async () => {
-      if (code) {
-        await supabase.auth.exchangeCodeForSession(code);
+      // The Supabase browser client is created with detectSessionInUrl on
+      // by default, so it ALREADY exchanges this link's ?code= for a
+      // session on its own, the moment it's constructed above. We used to
+      // also call exchangeCodeForSession(code) ourselves right here, which
+      // raced the SDK's own exchange for the exact same single-use code —
+      // one of the two always lost and failed, which is why this screen
+      // reliably failed on every attempt (not an expired-link fluke).
+      // getSession() waits for that automatic exchange to finish before
+      // resolving, so checking it is enough — no manual exchange needed.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setReady(true);
+      } else {
+        setLinkInvalid(true);
       }
-      setReady(true);
     })();
-  }, [searchParams]);
+  }, []);
 
   async function submit() {
     setError('');
@@ -34,6 +44,15 @@ export default function ResetPasswordForm() {
     }
     setDone(true);
     setTimeout(() => router.replace('/minha-conta'), 1500);
+  }
+
+  if (linkInvalid) {
+    return (
+      <p style={{ fontSize: 13.5, color: '#7C7F6D', textAlign: 'center' }}>
+        Este link de redefinição não é mais válido. Volte a &quot;Esqueci minha senha&quot; em Minha Conta e
+        solicite um novo.
+      </p>
+    );
   }
 
   if (!ready) return null;
