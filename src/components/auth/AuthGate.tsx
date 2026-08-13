@@ -42,8 +42,9 @@ export default function AuthGate() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/minha-conta';
+  const initialView = searchParams.get('view') === 'signup' ? 'signup' : 'login';
 
-  const [view, setView] = useState<View>('login');
+  const [view, setView] = useState<View>(initialView);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

@@ -1,23 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { useCart } from '@/lib/cart/CartContext';
+import { useSignOut } from '@/lib/auth/useSignOut';
 
 export default function SignOutButton() {
-  const router = useRouter();
-  const { clearCart } = useCart();
-
-  async function signOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    // The cart lives in localStorage, unscoped to any account — on a
-    // shared/public computer, the next person to log in would otherwise
-    // see whatever the previous person left in their cart.
-    clearCart();
-    router.replace('/minha-conta');
-    router.refresh();
-  }
+  const signOut = useSignOut();
 
   return (
     <button

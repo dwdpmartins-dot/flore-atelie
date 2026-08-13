@@ -37,6 +37,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <CartProvider>
           <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            {/* Header fetches its own auth state client-side (see
+                Header.tsx) instead of the root layout calling cookies()
+                server-side — that would force every route in the app,
+                including static marketing pages, into dynamic rendering. */}
             <Header />
             <main style={{ flex: 1 }}>{children}</main>
             <Footer />

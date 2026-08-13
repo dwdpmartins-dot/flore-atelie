@@ -1,22 +1,90 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartContext';
+import { useSignOut } from '@/lib/auth/useSignOut';
+import { createClient } from '@/lib/supabase/client';
 
 const NAV_LINKS = [
   { href: '/catalogo', label: 'Catálogo' },
   { href: '/assinatura', label: 'Assinatura' },
   { href: '/monte-seu-buque', label: 'Monte seu Buquê' },
-  { href: '/minha-conta', label: 'Minha Conta' },
 ];
+
+function getInitial(name: string | null, email: string | null): string {
+  const source = name?.trim() || email?.trim() || '?';
+  return source.charAt(0).toUpperCase();
+}
+
+interface AuthState {
+  loaded: boolean;
+  isLoggedIn: boolean;
+  customerName: string | null;
+  email: string | null;
+}
 
 export default function Header() {
   const pathname = usePathname();
   const { cartCount } = useCart();
+  const signOut = useSignOut();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
+
+  // Fetched client-side (rather than passed down from the root layout via
+  // cookies()) so pages with no other reason to be dynamic — the privacy
+  // policy, terms, 404 — stay statically rendered. The trade-off is a brief
+  // moment with nothing shown in the auth slot on first paint (see `loaded`
+  // below) instead of a server-rendered value; the auth state itself is
+  // never wrong, since the section stays blank until this actually resolves.
+  const [auth, setAuth] = useState<AuthState>({ loaded: false, isLoggedIn: false, customerName: null, email: null });
+
+  useEffect(() => {
+    const supabase = createClient();
+    let active = true;
+
+    async function loadAuth() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!active) return;
+      if (!user) {
+        setAuth({ loaded: true, isLoggedIn: false, customerName: null, email: null });
+        return;
+      }
+      const { data: customer } = await supabase.from('customers').select('name').eq('id', user.id).maybeSingle();
+      if (!active) return;
+      setAuth({ loaded: true, isLoggedIn: true, customerName: customer?.name ?? null, email: user.email ?? null });
+    }
+
+    loadAuth();
+
+    // Login/logout/token-refresh anywhere in the app updates the header
+    // immediately, without relying on every call site remembering to
+    // trigger a refetch.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => loadAuth());
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [accountMenuOpen]);
 
   return (
     <header
@@ -76,6 +144,85 @@ export default function Header() {
           </a>
         </div>
 
+        {/* Auth indicator: always visible on desktop so the customer never
+            has to click into Minha Conta just to check whether they're
+            signed in. Collapses into the mobile hamburger menu below
+            860px, alongside the rest of the nav. */}
+        <div className="header-auth" style={{ display: 'flex', alignItems: 'center', gap: 12, minHeight: 34 }}>
+          {!auth.loaded ? null : auth.isLoggedIn ? (
+            <div ref={accountMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setAccountMenuOpen((v) => !v)}
+                aria-label="Minha conta"
+                aria-expanded={accountMenuOpen}
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  background: '#C4836A',
+                  color: '#FAF7F2',
+                  border: 'none',
+                  fontFamily: "'Playfair Display',serif",
+                  fontSize: 14,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {getInitial(auth.customerName, auth.email)}
+              </button>
+              {accountMenuOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 10px)',
+                    right: 0,
+                    background: '#FAF7F2',
+                    border: '1px solid #D8CFC0',
+                    borderRadius: 2,
+                    boxShadow: '0 4px 16px rgba(75,87,64,0.14)',
+                    minWidth: 170,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: 6,
+                    zIndex: 50,
+                  }}
+                >
+                  <Link
+                    href="/minha-conta"
+                    onClick={() => setAccountMenuOpen(false)}
+                    style={{ padding: '10px 12px', fontSize: 13.5, color: '#4B5740', borderRadius: 2 }}
+                  >
+                    Minha Conta
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      signOut();
+                    }}
+                    style={{ padding: '10px 12px', fontSize: 13.5, color: '#C4836A', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', borderRadius: 2 }}
+                  >
+                    Sair
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link href="/minha-conta" style={{ fontSize: 13.5, color: '#4B5740' }}>
+                Entrar
+              </Link>
+              <Link
+                href="/minha-conta?view=signup"
+                style={{ background: '#C4836A', color: '#FAF7F2', padding: '9px 16px', borderRadius: 2, fontSize: 13.5 }}
+              >
+                Cadastrar
+              </Link>
+            </>
+          )}
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           <Link href="/checkout" style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex' }} aria-label="Carrinho">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4B5740" strokeWidth="1.6">
@@ -125,6 +272,53 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 10, borderTop: '1px solid rgba(107,124,92,0.1)', minHeight: 26 }}>
+            {!auth.loaded ? null : auth.isLoggedIn ? (
+              <>
+                <div
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: '50%',
+                    background: '#C4836A',
+                    color: '#FAF7F2',
+                    fontFamily: "'Playfair Display',serif",
+                    fontSize: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {getInitial(auth.customerName, auth.email)}
+                </div>
+                <Link href="/minha-conta" onClick={() => setMenuOpen(false)} style={{ fontSize: 14, color: '#4B5740' }}>
+                  Minha Conta
+                </Link>
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    signOut();
+                  }}
+                  style={{ fontSize: 14, color: '#C4836A', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto' }}
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/minha-conta" onClick={() => setMenuOpen(false)} style={{ fontSize: 14, color: '#4B5740' }}>
+                  Entrar
+                </Link>
+                <Link
+                  href="/minha-conta?view=signup"
+                  onClick={() => setMenuOpen(false)}
+                  style={{ background: '#C4836A', color: '#FAF7F2', padding: '8px 16px', borderRadius: 2, fontSize: 13, marginLeft: 'auto' }}
+                >
+                  Cadastrar
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
       )}
     </header>

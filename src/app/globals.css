@@ -31,7 +31,8 @@
 /* Responsive rules ported 1:1 from the prototype's <style> block. */
 @media (max-width: 860px) {
   .desktop-nav,
-  .header-social {
+  .header-social,
+  .header-auth {
     display: none !important;
   }
   .mobile-menu-btn {
