@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream text-[#33362C] font-sans;
+    margin: 0;
+  }
+  a {
+    color: theme('colors.moss');
+    text-decoration: none;
+  }
+  a:hover {
+    color: theme('colors.terracotta');
+  }
+  * {
+    box-sizing: border-box;
+  }
+  ::selection {
+    background: theme('colors.blush');
+  }
+}
