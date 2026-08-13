@@ -1,4 +1,5 @@
 import { adminLogin } from './actions';
+import PasswordInput from '@/components/auth/PasswordInput';
 
 export default async function AdminLoginPage({
   searchParams,
@@ -23,9 +24,8 @@ export default async function AdminLoginPage({
           placeholder="seu@email.com"
           style={{ padding: 14, border: '1px solid #D8CFC0', borderRadius: 2, fontSize: 14 }}
         />
-        <input
+        <PasswordInput
           name="password"
-          type="password"
           required
           placeholder="Senha"
           style={{ padding: 14, border: '1px solid #D8CFC0', borderRadius: 2, fontSize: 14 }}

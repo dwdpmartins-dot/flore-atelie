@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import PasswordInput from './PasswordInput';
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -46,9 +47,8 @@ export default function ResetPasswordForm() {
         <p style={{ fontSize: 13.5, color: '#5C5F51' }}>Senha atualizada. Redirecionando…</p>
       ) : (
         <>
-          <input
+          <PasswordInput
             style={{ padding: 14, border: '1px solid #D8CFC0', borderRadius: 2, fontSize: 14 }}
-            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Nova senha"

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import PasswordInput from './PasswordInput';
 
 type View = 'login' | 'signup' | 'forgot';
 
@@ -143,18 +144,16 @@ export default function AuthGate() {
           maxLength={15}
           placeholder="WhatsApp / celular"
         />
-        <input
+        <PasswordInput
           style={inputStyle}
           value={signupPassword}
           onChange={(e) => setSignupPassword(e.target.value)}
-          type="password"
           placeholder="Senha"
         />
-        <input
+        <PasswordInput
           style={inputStyle}
           value={signupPasswordConfirm}
           onChange={(e) => setSignupPasswordConfirm(e.target.value)}
-          type="password"
           placeholder="Confirmar senha"
         />
         {signupExistsError && (
@@ -213,11 +212,10 @@ export default function AuthGate() {
           Entrar na sua conta
         </h1>
         <input style={inputStyle} value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="seu@email.com" />
-        <input
+        <PasswordInput
           style={inputStyle}
           value={loginPassword}
           onChange={(e) => setLoginPassword(e.target.value)}
-          type="password"
           placeholder="Senha"
         />
         {error && <p style={{ fontSize: 12.5, color: '#C4836A', margin: 0 }}>{error}</p>}
