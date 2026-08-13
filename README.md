@@ -10,8 +10,9 @@ discutidos em `chats/`.
 
 - **Next.js 14** (App Router) + TypeScript + Tailwind
 - **Supabase** — Postgres, Auth (e-mail/senha + Google), Storage, RLS
-- **Mercado Pago** — checkout transparente (cartão tokenizado + PIX),
-  cobrança recorrente de assinatura
+- **Mercado Pago** — cartão via Payment Brick oficial (campos seguros do
+  próprio Mercado Pago, parcelamento com juros reais do emissor), PIX via
+  API direta, cobrança recorrente de assinatura
 - **OpenAI** (`gpt-image-1`) — ilustração paga do buquê montado, atrás de
   um toggle do admin
 - **ViaCEP + Nominatim/OpenStreetMap** — resolução de endereço e cálculo

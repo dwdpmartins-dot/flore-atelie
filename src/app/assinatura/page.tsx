@@ -76,7 +76,7 @@ export default async function AssinaturaPage() {
           <SubscriptionManageCard subscription={activeSubscription} nextDeliveryDate={nextDeliveryDate} plans={planMap} />
         </div>
       ) : (
-        <SubscriptionWizard plans={planMap} addresses={addresses ?? []} cards={cards ?? []} />
+        <SubscriptionWizard plans={planMap} addresses={addresses ?? []} cards={cards ?? []} email={session.email} />
       )}
     </section>
   );

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import CardForm from '@/components/payment/CardForm';
+import CardPaymentBrick from '@/components/payment/CardPaymentBrick';
 import InlineAddressForm from '@/components/address/InlineAddressForm';
 import { createSubscription } from '@/app/assinatura/actions';
 import type { Database, Freq, Size, Weekday } from '@/lib/supabase/types';
@@ -23,10 +23,12 @@ export default function SubscriptionWizard({
   plans,
   addresses: initialAddresses,
   cards: initialCards,
+  email,
 }: {
   plans: Record<string, number>;
   addresses: Address[];
   cards: SavedCard[];
+  email: string | null;
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -278,16 +280,29 @@ export default function SubscriptionWizard({
             </button>
             {showNewCard && (
               <div style={{ marginTop: 10 }}>
-                <CardForm
-                  onTokenized={async (token) => {
-                    const res = await fetch('/api/cards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+                {/* Saving a card for recurring billing, not charging it right
+                    now — maxInstallments=1 hides the installment picker,
+                    since a subscription cycle is never split into parcelas. */}
+                <CardPaymentBrick
+                  amount={price}
+                  maxInstallments={1}
+                  payerEmail={email ?? undefined}
+                  onResult={async (result) => {
+                    const res = await fetch('/api/cards', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ token: result.token }),
+                    });
                     const data = await res.json();
                     if (data.card) {
                       setCards((prev) => [...prev, data.card]);
                       setCardId(data.card.id);
                       setShowNewCard(false);
+                    } else {
+                      setFormError('Não foi possível salvar o cartão agora.');
                     }
                   }}
+                  onError={setFormError}
                 />
               </div>
             )}

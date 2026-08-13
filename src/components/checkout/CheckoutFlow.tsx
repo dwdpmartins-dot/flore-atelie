@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cart/CartContext';
-import CardForm from '@/components/payment/CardForm';
+import CardPaymentBrick, { type CardBrickResult } from '@/components/payment/CardPaymentBrick';
 import InlineAddressForm from '@/components/address/InlineAddressForm';
 import { updateProfile } from '@/app/minha-conta/actions';
 import { payAvulsoOrder, checkPixStatus } from '@/app/checkout/actions';
@@ -13,15 +13,6 @@ import type { Database } from '@/lib/supabase/types';
 type Customer = Database['public']['Tables']['customers']['Row'];
 type Address = Database['public']['Tables']['addresses']['Row'];
 type SavedCard = Database['public']['Tables']['saved_cards']['Row'];
-
-function installmentOptions(total: number) {
-  const opts = [];
-  for (let n = 1; n <= 6; n++) {
-    const perInstallment = n <= 3 ? total / n : (total * (1 + 0.0199 * (n - 3))) / n; // 4x+ carries issuer interest
-    opts.push({ n, label: `${n}x de R$ ${perInstallment.toFixed(2)}${n <= 3 ? ' sem juros' : ' com juros'}` });
-  }
-  return opts;
-}
 
 export default function CheckoutFlow({
   customer,
@@ -54,8 +45,6 @@ export default function CheckoutFlow({
   const [cards, setCards] = useState(initialCards);
   const [cardId, setCardId] = useState(initialCards[0]?.id ?? '');
   const [showNewCard, setShowNewCard] = useState(initialCards.length === 0);
-  const [newCardToken, setNewCardToken] = useState<string | null>(null);
-  const [installments, setInstallments] = useState(1);
 
   const [submitting, setSubmitting] = useState(false);
   const [declined, setDeclined] = useState(false);
@@ -105,11 +94,16 @@ export default function CheckoutFlow({
     setEditingContact(false);
   }
 
-  async function handleConfirm() {
+  /**
+   * Handles both submit paths: the bottom "Confirmar pagamento" button
+   * (saved card or PIX) and the Card Payment Brick's own submit button
+   * (brand-new card — newCard carries the token + real installments/
+   * payment_method_id/issuer_id straight out of Mercado Pago).
+   */
+  async function submitOrder(newCard?: CardBrickResult) {
     setError('');
-    let tokenToUse = newCardToken;
 
-    if (paymentMethod === 'card' && !cardId && showNewCard && !tokenToUse) {
+    if (paymentMethod === 'card' && !cardId && !newCard) {
       setError('Preencha os dados do cartão.');
       return;
     }
@@ -121,9 +115,11 @@ export default function CheckoutFlow({
       addressId,
       deliveryPeriod: period,
       paymentMethod,
-      cardId: paymentMethod === 'card' && !showNewCard ? cardId : undefined,
-      newCardToken: paymentMethod === 'card' && showNewCard ? (tokenToUse ?? undefined) : undefined,
-      installments,
+      cardId: paymentMethod === 'card' && !newCard ? cardId : undefined,
+      newCardToken: newCard?.token,
+      installments: newCard?.installments,
+      paymentMethodId: newCard?.paymentMethodId,
+      issuerId: newCard?.issuerId,
     });
     setSubmitting(false);
 
@@ -435,29 +431,14 @@ export default function CheckoutFlow({
             {showNewCard ? 'Cancelar' : '+ Adicionar cartão'}
           </button>
           {showNewCard && (
-            <CardForm
-              onTokenized={async (token) => {
-                setNewCardToken(token);
-              }}
-              submitLabel="Usar este cartão"
+            <CardPaymentBrick
+              amount={total}
+              maxInstallments={6}
+              payerEmail={email ?? undefined}
+              onResult={(result) => submitOrder(result)}
+              onError={setError}
             />
           )}
-          <p style={{ fontSize: 11, color: '#A7AB97', marginTop: 6 }}>Dados protegidos com criptografia e tokenização — nunca armazenados em texto puro.</p>
-          <div style={{ marginTop: 10 }}>
-            <label style={{ fontSize: 12.5, color: '#7C7F6D', display: 'block', marginBottom: 8 }}>Parcelamento</label>
-            <select
-              value={installments}
-              onChange={(e) => setInstallments(Number(e.target.value))}
-              style={{ width: '100%', padding: 12, border: '1px solid #D8CFC0', borderRadius: 2, fontSize: 13.5, background: '#FFFFFF', color: '#4B5740' }}
-            >
-              {installmentOptions(total).map((opt) => (
-                <option key={opt.n} value={opt.n}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <p style={{ fontSize: 11, color: '#A7AB97', margin: '8px 0 0' }}>Parcelamento sem juros até 3x. A partir de 4x, juros do emissor do cartão.</p>
-          </div>
         </div>
       )}
 
@@ -490,9 +471,14 @@ export default function CheckoutFlow({
         <button onClick={() => setStep(2)} style={{ background: 'none', border: 'none', color: '#7C7F6D', fontSize: 14, cursor: 'pointer' }}>
           ← Voltar
         </button>
-        <button onClick={handleConfirm} disabled={submitting} style={{ background: '#C4836A', color: '#FAF7F2', border: 'none', padding: '15px 30px', borderRadius: 2, fontSize: 14, cursor: 'pointer' }}>
-          {submitting ? 'Confirmando…' : 'Confirmar pagamento'}
-        </button>
+        {/* When adding a brand-new card, the Card Payment Brick above has
+            its own "Pagar" button (its onSubmit is what calls submitOrder) —
+            showing this one too would mean two submit buttons for one step. */}
+        {!(paymentMethod === 'card' && showNewCard) && (
+          <button onClick={() => submitOrder()} disabled={submitting} style={{ background: '#C4836A', color: '#FAF7F2', border: 'none', padding: '15px 30px', borderRadius: 2, fontSize: 14, cursor: 'pointer' }}>
+            {submitting ? 'Confirmando…' : 'Confirmar pagamento'}
+          </button>
+        )}
       </div>
 
       {declined && (

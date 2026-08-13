@@ -4,8 +4,10 @@ import { MercadoPagoConfig, CardToken, Payment } from 'mercadopago';
 /**
  * Server-side Mercado Pago SDK client. Uses MERCADOPAGO_ACCESS_TOKEN — never
  * expose this token to the browser. The browser only ever talks to Mercado
- * Pago with the public key (see src/components/payment/CardForm.tsx), which
- * can only mint single-use card tokens, nothing account-level.
+ * Pago with the public key (see src/components/payment/CardPaymentBrick.tsx),
+ * via the official Card Payment Brick — card number/CVV are entered into
+ * Mercado Pago's own secure iframed fields and never touch our DOM or our
+ * server, only the resulting single-use token does.
  */
 function mpConfig() {
   const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
@@ -87,12 +89,20 @@ export async function chargeSavedCard(opts: {
   return result;
 }
 
-/** Charges a brand-new client-side card token (avulso checkout, first subscription cycle). */
+/**
+ * Charges a brand-new client-side card token (avulso checkout). token,
+ * installments, paymentMethodId and issuerId all come straight out of the
+ * Card Payment Brick's onSubmit callback — installments in particular
+ * reflects the real rate the issuer quoted for that specific card (via
+ * Mercado Pago's own bin lookup), not a guessed formula.
+ */
 export async function chargeCardToken(opts: {
   token: string;
   amount: number;
   description: string;
   installments?: number;
+  paymentMethodId?: string;
+  issuerId?: string;
   externalReference: string;
   payerEmail: string;
 }) {
@@ -103,6 +113,8 @@ export async function chargeCardToken(opts: {
       token: opts.token,
       description: opts.description,
       installments: opts.installments ?? 1,
+      payment_method_id: opts.paymentMethodId,
+      issuer_id: opts.issuerId ? Number(opts.issuerId) : undefined,
       external_reference: opts.externalReference,
       payer: { email: opts.payerEmail },
     },

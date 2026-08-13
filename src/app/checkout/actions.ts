@@ -24,6 +24,9 @@ export interface PayAvulsoInput {
   cardId?: string;
   newCardToken?: string;
   installments?: number;
+  /** Only set for a brand-new card, straight from the Card Payment Brick. */
+  paymentMethodId?: string;
+  issuerId?: string;
 }
 
 const itemTypeFor = (kind: string): Database['public']['Tables']['order_items']['Row']['item_type'] => {
@@ -131,6 +134,8 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
         amount: total,
         description: 'Florê Ateliê — Pedido avulso',
         installments: input.installments,
+        paymentMethodId: input.paymentMethodId,
+        issuerId: input.issuerId,
         externalReference,
         payerEmail,
       });

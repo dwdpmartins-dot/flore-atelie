@@ -5,8 +5,8 @@ import { ensureMpCustomer, attachCardToCustomer } from '@/lib/mercadopago/server
 export const runtime = 'nodejs';
 
 // POST /api/cards — attaches a Mercado Pago card token (minted client-side
-// by CardForm) to the signed-in customer's MP Customer, and stores the
-// resulting card reference (never the PAN) in saved_cards.
+// by the Card Payment Brick) to the signed-in customer's MP Customer, and
+// stores the resulting card reference (never the PAN) in saved_cards.
 export async function POST(request: Request) {
   const supabase = await createClient();
   const {
