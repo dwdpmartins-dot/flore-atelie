@@ -1,5 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { CartProvider } from '@/lib/cart/CartContext';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import WhatsAppFloat from '@/components/layout/WhatsAppFloat';
+import Toast from '@/components/layout/Toast';
 
 export const metadata: Metadata = {
   title: 'Florê Ateliê — Boutique Floral Artesanal',
@@ -19,7 +24,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* META PIXEL: inserir código aqui */}
         {/* GOOGLE TAG MANAGER: inserir código aqui */}
       </head>
-      <body>{children}</body>
+      <body>
+        <CartProvider>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <Header />
+            <main style={{ flex: 1 }}>{children}</main>
+            <Footer />
+          </div>
+          <WhatsAppFloat />
+          <Toast />
+        </CartProvider>
+      </body>
     </html>
   );
 }

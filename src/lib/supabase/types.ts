@@ -34,11 +34,13 @@ export interface Database {
         };
         Insert: Partial<Database['public']['Tables']['customers']['Row']> & { id: string };
         Update: Partial<Database['public']['Tables']['customers']['Row']>;
+        Relationships: [];
       };
       admin_users: {
         Row: { id: string; created_at: string };
         Insert: { id: string; created_at?: string };
         Update: Partial<{ id: string; created_at: string }>;
+        Relationships: [];
       };
       addresses: {
         Row: {
@@ -66,6 +68,7 @@ export interface Database {
           label: string;
         };
         Update: Partial<Database['public']['Tables']['addresses']['Row']>;
+        Relationships: [];
       };
       saved_cards: {
         Row: {
@@ -84,11 +87,13 @@ export interface Database {
           mp_card_id: string;
         };
         Update: Partial<Database['public']['Tables']['saved_cards']['Row']>;
+        Relationships: [];
       };
       flowers: {
         Row: { id: string; name: string; price: number; active: boolean; sort_order: number };
         Insert: Partial<Database['public']['Tables']['flowers']['Row']> & { id: string; name: string; price: number };
         Update: Partial<Database['public']['Tables']['flowers']['Row']>;
+        Relationships: [];
       };
       bouquets: {
         Row: {
@@ -110,6 +115,7 @@ export interface Database {
           image_path: string;
         };
         Update: Partial<Database['public']['Tables']['bouquets']['Row']>;
+        Relationships: [];
       };
       gallery_photos: {
         Row: {
@@ -129,16 +135,19 @@ export interface Database {
           price_g: number;
         };
         Update: Partial<Database['public']['Tables']['gallery_photos']['Row']>;
+        Relationships: [];
       };
       testimonials: {
         Row: { id: string; quote: string; author_name: string; sort_order: number; active: boolean };
         Insert: Partial<Database['public']['Tables']['testimonials']['Row']> & { quote: string; author_name: string };
         Update: Partial<Database['public']['Tables']['testimonials']['Row']>;
+        Relationships: [];
       };
       subscription_plans: {
         Row: { freq: Freq; size: Size; price: number };
         Insert: { freq: Freq; size: Size; price: number };
         Update: Partial<{ freq: Freq; size: Size; price: number }>;
+        Relationships: [];
       };
       subscriptions: {
         Row: {
@@ -167,6 +176,7 @@ export interface Database {
           price: number;
         };
         Update: Partial<Database['public']['Tables']['subscriptions']['Row']>;
+        Relationships: [];
       };
       subscription_deliveries: {
         Row: {
@@ -189,6 +199,7 @@ export interface Database {
           cutoff_date: string;
         };
         Update: Partial<Database['public']['Tables']['subscription_deliveries']['Row']>;
+        Relationships: [];
       };
       orders: {
         Row: {
@@ -214,6 +225,7 @@ export interface Database {
         };
         Insert: Partial<Database['public']['Tables']['orders']['Row']> & { customer_id: string; kind: OrderKind };
         Update: Partial<Database['public']['Tables']['orders']['Row']>;
+        Relationships: [];
       };
       order_items: {
         Row: {
@@ -234,16 +246,19 @@ export interface Database {
           subtotal: number;
         };
         Update: Partial<Database['public']['Tables']['order_items']['Row']>;
+        Relationships: [];
       };
       order_item_flowers: {
         Row: { order_item_id: string; flower_id: string; qty: number };
         Insert: { order_item_id: string; flower_id: string; qty: number };
         Update: Partial<{ order_item_id: string; flower_id: string; qty: number }>;
+        Relationships: [];
       };
       settings: {
         Row: { key: string; value: unknown; updated_at: string };
         Insert: { key: string; value: unknown; updated_at?: string };
         Update: Partial<{ key: string; value: unknown; updated_at: string }>;
+        Relationships: [];
       };
       cep_cache: {
         Row: {
@@ -259,6 +274,7 @@ export interface Database {
         };
         Insert: Partial<Database['public']['Tables']['cep_cache']['Row']> & { cep: string };
         Update: Partial<Database['public']['Tables']['cep_cache']['Row']>;
+        Relationships: [];
       };
       webhook_events: {
         Row: {
@@ -272,6 +288,7 @@ export interface Database {
         };
         Insert: Partial<Database['public']['Tables']['webhook_events']['Row']> & { payload: unknown };
         Update: Partial<Database['public']['Tables']['webhook_events']['Row']>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
