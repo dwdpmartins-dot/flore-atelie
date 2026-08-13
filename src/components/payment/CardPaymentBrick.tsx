@@ -45,7 +45,7 @@ export default function CardPaymentBrick({
    * the button's default "Pagar" label can't be mistaken for a second
    * payment.
    */
-  notice?: string;
+  notice?: React.ReactNode;
   onResult: (result: CardBrickResult) => void | Promise<void>;
   onError?: (message: string) => void;
 }) {
@@ -79,7 +79,19 @@ export default function CardPaymentBrick({
   return (
     <div style={{ background: '#F3EDE3', padding: 16, borderRadius: 2 }}>
       {notice && (
-        <p style={{ fontSize: 12, color: '#4B5740', background: '#FFFFFF', border: '1px solid #D8CFC0', borderRadius: 2, padding: '10px 12px', margin: '0 0 12px' }}>
+        <p
+          style={{
+            fontSize: 12.5,
+            fontWeight: 500,
+            lineHeight: 1.6,
+            color: '#8C3B2C',
+            background: '#F6E9D3',
+            border: '1px solid #D9A441',
+            borderRadius: 2,
+            padding: '12px 14px',
+            margin: '0 0 14px',
+          }}
+        >
           {notice}
         </p>
       )}

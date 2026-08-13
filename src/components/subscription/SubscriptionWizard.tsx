@@ -287,7 +287,12 @@ export default function SubscriptionWizard({
                   amount={price}
                   maxInstallments={1}
                   payerEmail={email ?? undefined}
-                  notice="Este passo apenas salva o cartão. A cobrança da assinatura só acontece depois, quando você confirmar na última tela."
+                  notice={
+                    <>
+                      <strong>Este passo ainda não cobra nada</strong> — ele apenas salva o cartão. A cobrança da
+                      assinatura só acontece depois, quando você confirmar na última tela.
+                    </>
+                  }
                   onResult={async (result) => {
                     const res = await fetch('/api/cards', {
                       method: 'POST',
