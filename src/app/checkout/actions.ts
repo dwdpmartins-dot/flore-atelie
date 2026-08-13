@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { resolveAddress } from '@/lib/geocoding/resolveAddress';
 import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus } from '@/lib/mercadopago/server';
+import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import type { Database } from '@/lib/supabase/types';
 
 export interface CheckoutItem {
@@ -102,6 +103,11 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
       await supabase.from('orders').update({ status: 'cancelado' }).eq('id', order.id);
       return { error: 'Não foi possível gerar o PIX agora.' as const };
     }
+  }
+
+  if (await isSimulatingDecline(supabase)) {
+    await supabase.from('orders').update({ status: 'pagamento_recusado', mp_status: 'simulated_decline' }).eq('id', order.id);
+    return { declined: true as const };
   }
 
   // Card payment: either a saved card or a freshly tokenized one.

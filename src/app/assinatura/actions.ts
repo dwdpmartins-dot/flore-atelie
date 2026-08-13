@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { hasCompleteProfile } from '@/lib/auth/session';
 import { chargeSavedCard } from '@/lib/mercadopago/server';
+import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { computeFirstDeliveryDate, getNextPendingDelivery, isCutoffPassed, clearPendingDeliveries, getPlanPrice } from '@/lib/subscriptions/schedule';
 import type { Freq, Size, Weekday } from '@/lib/supabase/types';
 
@@ -38,6 +39,10 @@ export async function createSubscription(input: CreateSubscriptionInput) {
   if (!card) return { error: 'Cartão inválido.' };
 
   const firstDeliveryDate = await computeFirstDeliveryDate(supabase, input.freq, input.weekday);
+
+  if (await isSimulatingDecline(supabase)) {
+    return { declined: true };
+  }
 
   // Charge the first cycle before anything is created — an active
   // subscription must never exist without a successful payment behind it.
