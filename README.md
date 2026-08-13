@@ -1,25 +1,108 @@
-# CODING AGENTS: READ THIS FIRST
+# Florê Ateliê
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+Boutique floral artesanal — catálogo, buquê avulso, "Monte seu Buquê" com
+ilustração por IA, e assinatura recorrente com cobrança automática.
+Implementação real (Next.js + Supabase + Mercado Pago) do protótipo em
+`project/Flore Atelie.dc.html`, construído a partir dos requisitos
+discutidos em `chats/`.
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+## Stack
 
-## What you should do — IMPORTANT
+- **Next.js 14** (App Router) + TypeScript + Tailwind
+- **Supabase** — Postgres, Auth (e-mail/senha + Google), Storage, RLS
+- **Mercado Pago** — checkout transparente (cartão tokenizado + PIX),
+  cobrança recorrente de assinatura
+- **OpenAI** (`gpt-image-1`) — ilustração paga do buquê montado, atrás de
+  um toggle do admin
+- **ViaCEP + Nominatim/OpenStreetMap** — resolução de endereço e cálculo
+  de frete por distância
+- Deploy: **Vercel**, incluindo o cron diário de cobrança de assinaturas
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+## Setup local
 
-**Read `project/Flore Atelie.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+```bash
+npm install
+cp .env.example .env.local   # preencha com as chaves do seu projeto Supabase/MP/OpenAI
+npm run dev
+```
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+### Banco de dados
 
-## About the design files
+Veja [`supabase/README.md`](./supabase/README.md) — como aplicar as
+migrations, o que cada uma faz, e como promover o primeiro usuário admin.
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+### Variáveis de ambiente
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+Veja [`.env.example`](./.env.example) na raiz — todas as chaves
+necessárias (Supabase, Mercado Pago, OpenAI, geocoding, cron), com
+comentários explicando cada uma.
 
-## Bundle contents
+## Deploy (Vercel)
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Florê Ateliê: Protótipo completo` project files (HTML prototypes, assets, components)
+1. Importe o repositório na Vercel.
+2. Configure todas as variáveis de `.env.example` nas Environment
+   Variables do projeto (Production + Preview).
+3. `CRON_SECRET`: gere um valor aleatório e configure-o também como env
+   var — a Vercel usa esse mesmo valor automaticamente como Bearer token
+   ao chamar o cron (`vercel.json` já declara o schedule diário em
+   `/api/cron/subscription-billing`).
+4. No painel do Supabase, configure Auth conforme
+   [`supabase/README.md`](./supabase/README.md) (confirmação de e-mail
+   desativada, provider do Google, redirect URLs apontando para o
+   domínio de produção).
+5. No painel do Mercado Pago, configure a URL de webhook
+   (`https://<seu-domínio>/api/webhooks/mercadopago`) e gere
+   `MERCADOPAGO_WEBHOOK_SECRET`.
+6. Deploy.
+
+## Scripts
+
+- `npm run dev` — servidor de desenvolvimento
+- `npm run build` — build de produção (inclui type-check + lint)
+- `npm run lint` — ESLint isolado
+- `npm run typecheck` — TypeScript isolado
+
+## Estrutura
+
+```
+src/
+  app/            rotas (App Router) — páginas + API routes + server actions
+  components/     componentes React, organizados por área
+  lib/            clientes Supabase/Mercado Pago, geocoding, regras de
+                  negócio de assinatura (agendamento, cobrança)
+supabase/
+  migrations/     schema, funções de data/cutoff, RLS, seed
+  README.md       como aplicar e configurar
+project/          protótipo original (Claude Design) — referência visual
+chats/            transcrição da conversa que definiu os requisitos
+```
+
+## O que ainda precisa de verificação com credenciais reais
+
+Este projeto foi construído e testado tanto quanto possível sem acesso a
+serviços externos reais (ambiente sem credenciais de Supabase/Mercado
+Pago/OpenAI e com acesso de rede restrito). O que foi validado:
+
+- Todas as migrations SQL, testadas contra um Postgres 16 local
+  (schema, funções de dias úteis/agendamento, RLS, triggers).
+- `npm run build` e `next lint` limpos em todo o código.
+
+O que precisa de um passe com credenciais reais antes de produção:
+
+- Chamadas à API do Mercado Pago (tokenização de cartão, cobrança,
+  PIX, webhook) — implementadas conforme a documentação oficial, não
+  exercitadas end-to-end.
+- Chamadas ao ViaCEP e Nominatim (ambos hosts fora da allowlist de rede
+  do ambiente de desenvolvimento usado).
+- Geração de ilustração via OpenAI (`OPENAI_API_KEY` não configurada
+  no ambiente de build).
+- Um passe visual em viewport mobile real (375/414px) — a revisão de
+  responsividade foi feita por leitura de código, já que as páginas
+  dependem de dados do Supabase em tempo de request.
+
+`npm audit` acusa vulnerabilidades conhecidas no Next.js 14.2.x (mais
+recente da linha 14) e no `mercadopago` v2 — ambas exigem upgrade de
+major version (Next 15/16, mercadopago v3) para corrigir. Não fiz esse
+upgrade agora por ser uma mudança grande o suficiente para merecer um
+ciclo de teste dedicado, não algo para encaixar no fim de uma sessão de
+implementação. Vale planejar essa atualização logo após o lançamento.
