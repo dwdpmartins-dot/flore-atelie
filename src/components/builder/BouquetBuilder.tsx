@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartContext';
 import { getFlowerVisual } from '@/lib/builder/flowerVisuals';
+import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
 import FlowerSvg from './FlowerSvg';
 import type { Database } from '@/lib/supabase/types';
 
@@ -125,6 +126,8 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
   );
   const total = chosen.reduce((sum, c) => sum + c.qty * (flowerById(c.flowerId)?.price ?? 0), 0);
   const hasFlowers = chosen.length > 0;
+  const belowMinimum = hasFlowers && total < BUILDER_MIN_TOTAL;
+  const canAddToCart = hasFlowers && !belowMinimum;
 
   function resetBuilder() {
     setPlaced([]);
@@ -141,6 +144,7 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
   }
 
   function handleAddToCart() {
+    if (belowMinimum) return;
     addToCart({
       key: 'custom-' + Date.now(),
       label: cartLabel(),
@@ -207,11 +211,20 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
             </p>
           </div>
         </div>
+        {belowMinimum && (
+          <p style={{ fontSize: 12.5, color: '#C4836A', margin: 0, textAlign: 'center' }}>
+            O valor mínimo do buquê é R$ {BUILDER_MIN_TOTAL} — faltam R$ {(BUILDER_MIN_TOTAL - total).toFixed(2)} em flores.
+          </p>
+        )}
         <div style={{ display: 'flex', gap: 14 }}>
           <button onClick={resetBuilder} style={{ background: 'none', border: '1px solid #4B5740', color: '#4B5740', padding: '13px 24px', borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
             Recomeçar
           </button>
-          <button onClick={handleAddToCart} style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '13px 24px', borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
+          <button
+            onClick={handleAddToCart}
+            disabled={!canAddToCart}
+            style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '13px 24px', borderRadius: 2, fontSize: 13, cursor: canAddToCart ? 'pointer' : 'default', opacity: canAddToCart ? 1 : 0.5 }}
+          >
             Adicionar ao carrinho — R$ {total}
           </button>
         </div>
@@ -329,6 +342,11 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
           <span style={{ fontSize: 13, color: '#7C7F6D' }}>Total</span>
           <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 19, color: '#4B5740' }}>R$ {total}</span>
         </div>
+        {belowMinimum && (
+          <p style={{ fontSize: 12, color: '#C4836A', margin: 0 }}>
+            Valor mínimo do buquê: R$ {BUILDER_MIN_TOTAL} — faltam R$ {(BUILDER_MIN_TOTAL - total).toFixed(2)} em flores.
+          </p>
+        )}
         {aiEnabled && (
           <button
             onClick={handleGenerateIllustration}
@@ -340,8 +358,8 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
         )}
         <button
           onClick={handleAddToCart}
-          disabled={!hasFlowers}
-          style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: 13, borderRadius: 2, fontSize: 13, cursor: 'pointer', opacity: hasFlowers ? 1 : 0.5 }}
+          disabled={!canAddToCart}
+          style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: 13, borderRadius: 2, fontSize: 13, cursor: canAddToCart ? 'pointer' : 'default', opacity: canAddToCart ? 1 : 0.5 }}
         >
           Adicionar ao carrinho
         </button>

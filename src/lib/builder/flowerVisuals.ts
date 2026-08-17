@@ -41,6 +41,15 @@ const RAW_VISUALS: Record<string, FlowerVisual> = {
   tulipa: { petals: 6, petalColor: '#D96B7A', centerColor: '#8C5B45', petalW: 14, petalH: 26 },
   folhagens: { petals: 7, petalColor: '#6B7C5C', centerColor: '#4B5740', petalW: 10, petalH: 30 },
   orquidea: { petals: 5, petalColor: '#E8C4B8', centerColor: '#A93F5C', petalW: 14, petalH: 22 },
+  // The curated 9-flower list (see supabase/migrations/0008_curated_flowers.sql)
+  // replaced the single "rosa" with 3 color variants — each needs its own
+  // visual, otherwise they'd all fall back to the same generic rose shape
+  // below and look identical in the vase preview despite being different
+  // colors.
+  rosa_vermelha: { petals: 8, petalColor: '#A93F35', centerColor: '#5C2A1E', petalW: 16, petalH: 20 },
+  rosa_branca: { petals: 8, petalColor: '#FAF3E6', centerColor: '#D9A441', petalW: 16, petalH: 20 },
+  rosa_cor_rosa: { petals: 8, petalColor: '#E8A5B8', centerColor: '#8C5B45', petalW: 16, petalH: 20 },
+  boca_de_leao: { petals: 6, petalColor: '#D9667A', centerColor: '#6B2C3E', petalW: 12, petalH: 28 },
 };
 
 function buildPetals(count: number, pw: number, ph: number): Petal[] {

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { resolveAddress } from '@/lib/geocoding/resolveAddress';
 import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
+import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
 import type { Database } from '@/lib/supabase/types';
 
 export interface CheckoutItem {
@@ -44,6 +45,15 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
   if (!user) return { error: 'Sessão expirada.' as const };
 
   if (input.items.length === 0) return { error: 'Carrinho vazio.' as const };
+
+  // The cart is client-managed state (localStorage), so the builder's own
+  // "Adicionar ao carrinho" gating (BouquetBuilder.tsx) isn't enough on its
+  // own — re-check the minimum here against whatever price the client
+  // actually submitted for each "Monte seu Buquê" item.
+  const underMinimumItem = input.items.find((i) => i.kind === 'Monte seu Buquê' && i.price < BUILDER_MIN_TOTAL);
+  if (underMinimumItem) {
+    return { error: `O valor mínimo do buquê é R$ ${BUILDER_MIN_TOTAL}.` };
+  }
 
   const { data: customer } = await supabase.from('customers').select('*').eq('id', user.id).maybeSingle();
   const { data: address } = await supabase.from('addresses').select('*').eq('id', input.addressId).eq('customer_id', user.id).maybeSingle();
