@@ -100,10 +100,7 @@ export default function Header() {
       <div style={{ maxWidth: 1240, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 28px' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
           <Image src="/assets/logo-flore.png" alt="Florê Ateliê" width={44} height={44} style={{ objectFit: 'contain' }} />
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-            <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, letterSpacing: 0.5, color: '#4B5740' }}>Florê Ateliê</span>
-            <span style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: '#C4836A' }}>Boutique Floral</span>
-          </div>
+          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, letterSpacing: 0.5, color: '#4B5740' }}>Florê Ateliê</span>
         </Link>
 
         <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 30 }}>

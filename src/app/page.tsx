@@ -63,7 +63,7 @@ export default async function HomePage() {
       </div>
 
       {/* Gallery */}
-      <div style={{ padding: '90px 28px 40px', maxWidth: 1320, margin: '0 auto' }}>
+      <div style={{ padding: '90px 28px 40px', maxWidth: 1520, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 50 }}>
           <span style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#C4836A' }}>Galeria</span>
           <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 'clamp(26px,3vw,36px)', fontStyle: 'italic', color: '#4B5740', margin: '10px 0 12px' }}>
