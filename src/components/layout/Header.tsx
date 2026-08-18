@@ -207,11 +207,11 @@ export default function Header() {
             </div>
           ) : (
             <>
-              <Link href="/minha-conta" style={{ fontSize: 13.5, color: '#4B5740' }}>
+              <Link href={`/minha-conta?redirect=${encodeURIComponent(pathname)}`} style={{ fontSize: 13.5, color: '#4B5740' }}>
                 Entrar
               </Link>
               <Link
-                href="/minha-conta?view=signup"
+                href={`/minha-conta?view=signup&redirect=${encodeURIComponent(pathname)}`}
                 style={{ background: '#C4836A', color: '#FAF7F2', padding: '9px 16px', borderRadius: 2, fontSize: 13.5 }}
               >
                 Cadastrar
@@ -303,11 +303,11 @@ export default function Header() {
               </>
             ) : (
               <>
-                <Link href="/minha-conta" onClick={() => setMenuOpen(false)} style={{ fontSize: 14, color: '#4B5740' }}>
+                <Link href={`/minha-conta?redirect=${encodeURIComponent(pathname)}`} onClick={() => setMenuOpen(false)} style={{ fontSize: 14, color: '#4B5740' }}>
                   Entrar
                 </Link>
                 <Link
-                  href="/minha-conta?view=signup"
+                  href={`/minha-conta?view=signup&redirect=${encodeURIComponent(pathname)}`}
                   onClick={() => setMenuOpen(false)}
                   style={{ background: '#C4836A', color: '#FAF7F2', padding: '8px 16px', borderRadius: 2, fontSize: 13, marginLeft: 'auto' }}
                 >
