@@ -52,15 +52,38 @@ async function mpFetch(path: string, init: RequestInit) {
   return body;
 }
 
-/** Finds (or creates) the one Mercado Pago Customer for a Florê customer. */
+/**
+ * Finds (or creates) the one Mercado Pago Customer for a Florê customer.
+ *
+ * Mercado Pago's Customers API enforces one customer per email per
+ * application — creating a second one for an email that already has a
+ * Customer fails with cause[].code === '101' ("the customer already
+ * exist") instead of just handing back the existing id. That happens
+ * whenever our own stored mp_customer_id is missing or was reset (a
+ * previous attempt half-succeeded, we cleared it while chasing a stale
+ * reference, etc.) but Mercado Pago itself still has a real Customer for
+ * that email — so on that specific error, look the existing one up by
+ * email and reuse it instead of failing forever for that email.
+ */
 export async function ensureMpCustomer(opts: { existingMpCustomerId: string | null; email: string; name?: string | null }) {
   if (opts.existingMpCustomerId) return opts.existingMpCustomerId;
 
-  const created = await mpFetch('/v1/customers', {
-    method: 'POST',
-    body: JSON.stringify({ email: opts.email, first_name: opts.name || undefined }),
-  });
-  return created.id as string;
+  try {
+    const created = await mpFetch('/v1/customers', {
+      method: 'POST',
+      body: JSON.stringify({ email: opts.email, first_name: opts.name || undefined }),
+    });
+    return created.id as string;
+  } catch (err) {
+    const mpBody = (err as Error & { mpBody?: { cause?: { code?: string }[] } }).mpBody;
+    const alreadyExists = mpBody?.cause?.some((c) => c.code === '101');
+    if (!alreadyExists) throw err;
+
+    const found = await mpFetch(`/v1/customers/search?email=${encodeURIComponent(opts.email)}`, { method: 'GET' });
+    const existingId = found?.results?.[0]?.id as string | undefined;
+    if (!existingId) throw err;
+    return existingId;
+  }
 }
 
 /** Attaches a single-use card token (minted client-side) to a Mercado Pago Customer. */
