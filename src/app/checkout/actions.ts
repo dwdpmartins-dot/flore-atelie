@@ -6,6 +6,7 @@ import { resolveAddress } from '@/lib/geocoding/resolveAddress';
 import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
+import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
 import type { Database } from '@/lib/supabase/types';
 
 export interface CheckoutItem {
@@ -20,6 +21,7 @@ export interface PayAvulsoInput {
   items: CheckoutItem[];
   message: string;
   addressId: string;
+  deliveryDate: string;
   deliveryPeriod: 'manha' | 'tarde';
   paymentMethod: 'card' | 'pix';
   cardId?: string;
@@ -55,6 +57,14 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
     return { error: `O valor mínimo do buquê é R$ ${BUILDER_MIN_TOTAL}.` };
   }
 
+  // Same reasoning as the shipping fee: the date picker's options
+  // (CheckoutFlow.tsx) are computed client-side for display, but the
+  // actual allowed window -- tomorrow at the earliest, up to 7 days out,
+  // no Sundays/holidays -- is recomputed and enforced here.
+  if (!upcomingDeliverableDates(todayISO(), 1, 7).includes(input.deliveryDate)) {
+    return { error: 'Data de entrega inválida. Escolha uma data disponível.' as const };
+  }
+
   const { data: customer } = await supabase.from('customers').select('*').eq('id', user.id).maybeSingle();
   const { data: address } = await supabase.from('addresses').select('*').eq('id', input.addressId).eq('customer_id', user.id).maybeSingle();
   if (!address) return { error: 'Endereço inválido.' as const };
@@ -79,6 +89,7 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
       shipping_fee: shippingFee,
       total,
       address_id: input.addressId,
+      delivery_date: input.deliveryDate,
       delivery_period: input.deliveryPeriod,
       payment_method: input.paymentMethod,
       installments: input.installments ?? 1,

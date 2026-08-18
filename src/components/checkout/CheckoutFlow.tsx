@@ -8,7 +8,14 @@ import CardPaymentBrick, { type CardBrickResult } from '@/components/payment/Car
 import InlineAddressForm from '@/components/address/InlineAddressForm';
 import { updateProfile } from '@/app/minha-conta/actions';
 import { payAvulsoOrder, checkPixStatus } from '@/app/checkout/actions';
+import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
 import type { Database } from '@/lib/supabase/types';
+
+function formatDeliveryDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const label = new Date(y, m - 1, d).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 type Customer = Database['public']['Tables']['customers']['Row'];
 type Address = Database['public']['Tables']['addresses']['Row'];
@@ -40,6 +47,13 @@ export default function CheckoutFlow({
   const [shippingFee, setShippingFee] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [period, setPeriod] = useState<'manha' | 'tarde'>('manha');
+  // Delivery date: tomorrow at the earliest, within the next 7 days, no
+  // Sundays/holidays (see lib/delivery/holidays.ts). Computed client-side
+  // for the picker's options, but payAvulsoOrder recomputes and validates
+  // this same window server-side before charging anything — never trust a
+  // client-submitted date, same reasoning as the shipping fee.
+  const deliveryDateOptions = upcomingDeliverableDates(todayISO(), 1, 7);
+  const [deliveryDate, setDeliveryDate] = useState(deliveryDateOptions[0] ?? '');
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [cards, setCards] = useState(initialCards);
@@ -103,6 +117,11 @@ export default function CheckoutFlow({
   async function submitOrder(newCard?: CardBrickResult) {
     setError('');
 
+    if (!deliveryDate) {
+      setError('Escolha uma data de entrega.');
+      return;
+    }
+
     if (paymentMethod === 'card' && !cardId && !newCard) {
       setError('Preencha os dados do cartão.');
       return;
@@ -113,6 +132,7 @@ export default function CheckoutFlow({
       items: cart,
       message,
       addressId,
+      deliveryDate,
       deliveryPeriod: period,
       paymentMethod,
       cardId: paymentMethod === 'card' && !newCard ? cardId : undefined,
@@ -339,6 +359,24 @@ export default function CheckoutFlow({
             Distância estimada até você: {distanceKm} km <span style={{ color: '#A7AB97' }}>(calculada pelo CEP do endereço selecionado)</span>
           </label>
         )}
+
+        <div>
+          <label style={{ fontSize: 12.5, color: '#7C7F6D', display: 'block', marginBottom: 10 }}>Data de entrega</label>
+          <select
+            value={deliveryDate}
+            onChange={(e) => setDeliveryDate(e.target.value)}
+            style={{ width: '100%', padding: 12, border: '1px solid #D8CFC0', borderRadius: 2, fontSize: 13.5, background: '#FFFFFF', color: '#4B5740' }}
+          >
+            {deliveryDateOptions.map((d) => (
+              <option key={d} value={d}>
+                {formatDeliveryDate(d)}
+              </option>
+            ))}
+          </select>
+          <p style={{ fontSize: 11.5, color: '#A7AB97', margin: '6px 0 0' }}>
+            Entregamos de segunda a sábado. Escolha a data com pelo menos 1 dia de antecedência.
+          </p>
+        </div>
 
         <div>
           <label style={{ fontSize: 12.5, color: '#7C7F6D', display: 'block', marginBottom: 10 }}>Período de entrega (horário comercial)</label>
