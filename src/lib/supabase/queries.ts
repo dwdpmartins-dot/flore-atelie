@@ -34,6 +34,20 @@ export async function getBouquets(context: 'catalogo' | 'avulso_pronto') {
   return data;
 }
 
+/**
+ * The Catálogo page shows the 6 "catalogo" bouquets together with the 3
+ * "avulso_pronto" ones (the same options offered in Buquê Avulso >
+ * Prontos) — 9 total. Buquê Avulso's own Prontos tab keeps calling
+ * getBouquets('avulso_pronto') on its own, unaffected. Fetched as two
+ * queries and concatenated (catalogo first) rather than one .in(context)
+ * query, so the order stays deliberate instead of interleaving wherever
+ * the two sets happen to tie on sort_order.
+ */
+export async function getCatalogBouquets() {
+  const [catalogo, avulsoProntos] = await Promise.all([getBouquets('catalogo'), getBouquets('avulso_pronto')]);
+  return [...catalogo, ...avulsoProntos];
+}
+
 export async function getFlowers() {
   const supabase = await createClient();
   const { data, error } = await supabase.from('flowers').select('*').eq('active', true).order('sort_order');

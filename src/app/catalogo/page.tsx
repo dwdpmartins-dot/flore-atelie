@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { getBouquets } from '@/lib/supabase/queries';
+import { getCatalogBouquets } from '@/lib/supabase/queries';
 import CatalogGrid from '@/components/catalog/CatalogGrid';
 
 export const metadata = { title: 'Catálogo — Florê Ateliê' };
 
 export default async function CatalogoPage() {
-  const bouquets = await getBouquets('catalogo');
+  const bouquets = await getCatalogBouquets();
 
   return (
     <section style={{ maxWidth: 1240, margin: '0 auto', padding: '64px 28px 100px' }}>
