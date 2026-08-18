@@ -145,7 +145,19 @@ export async function chargeSavedCard(opts: {
   payerEmail: string;
 }) {
   try {
+    const mintedAt = Date.now();
     const token = await mintTokenFromSavedCard(opts.mpCustomerId, opts.mpCardId);
+    // Diagnostic only (not an error) -- token itself is masked (first 8
+    // chars) since it's a live single-use credential. Logged so that if
+    // this still 404s as "Card Token not found", we can see whether the
+    // token minted looks sane and how much time passed before it was
+    // used, instead of guessing.
+    console.log('chargeSavedCard: token minted', {
+      tokenPrefix: token?.slice(0, 8),
+      mpCustomerId: opts.mpCustomerId,
+      mpCardId: opts.mpCardId,
+      mintToChargeMs: Date.now() - mintedAt,
+    });
     const payment = new Payment(mpConfig());
     return await payment.create({
       body: {
@@ -154,7 +166,14 @@ export async function chargeSavedCard(opts: {
         description: opts.description,
         installments: opts.installments ?? 1,
         external_reference: opts.externalReference,
-        payer: { email: opts.payerEmail, type: 'customer', id: opts.mpCustomerId },
+        // Deliberately just {email} here, matching chargeCardToken's
+        // payload -- previously also sent payer.type: 'customer' and
+        // payer.id: mpCustomerId, which isn't what Mercado Pago's own
+        // examples for charging a token show, and is a plausible reason
+        // a token that mints successfully still gets rejected as "not
+        // found" when charged (untested hypothesis, flagged here so it's
+        // easy to revert if the next failure looks the same).
+        payer: { email: opts.payerEmail },
       },
     });
   } catch (err) {
