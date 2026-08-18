@@ -315,13 +315,9 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
                 <div key={c.flowerId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, fontSize: 12.5, color: '#4B5740' }}>
                   <span style={{ flex: 1 }}>{f.name}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <button onClick={() => removeFlower(c.flowerId)} style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid #C9CBB8', background: 'none', cursor: 'pointer', fontSize: 12 }}>
-                      −
-                    </button>
+                    <StepperButton onClick={() => removeFlower(c.flowerId)} label={`Remover uma unidade de ${f.name}`} kind="minus" />
                     <span>{c.qty}</span>
-                    <button onClick={() => addFlower(c.flowerId)} style={{ width: 20, height: 20, borderRadius: '50%', border: '1px solid #C9CBB8', background: 'none', cursor: 'pointer', fontSize: 12 }}>
-                      +
-                    </button>
+                    <StepperButton onClick={() => addFlower(c.flowerId)} label={`Adicionar uma unidade de ${f.name}`} kind="plus" />
                   </div>
                   <span style={{ width: 48, textAlign: 'right' }}>R$ {c.qty * f.price}</span>
                 </div>
@@ -365,5 +361,41 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * Quantity +/- control drawn as SVG lines instead of the "−"/"+"
+ * characters previously used as plain text. The minus sign in particular
+ * (U+2212, a proper typographic minus, not a hyphen) was reported as not
+ * rendering at all in production — plausibly a font/glyph-coverage gap in
+ * whatever font actually got applied there. An SVG has no font
+ * dependency, so it can't have that problem regardless of browser/OS/font
+ * fallback.
+ */
+function StepperButton({ onClick, label, kind }: { onClick: () => void; label: string; kind: 'plus' | 'minus' }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: '50%',
+        border: '1px solid #9CA08C',
+        background: '#FFFFFF',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 0,
+        flexShrink: 0,
+      }}
+    >
+      <svg width="10" height="10" viewBox="0 0 10 10">
+        <line x1="1" y1="5" x2="9" y2="5" stroke="#4B5740" strokeWidth="1.6" strokeLinecap="round" />
+        {kind === 'plus' && <line x1="5" y1="1" x2="5" y2="9" stroke="#4B5740" strokeWidth="1.6" strokeLinecap="round" />}
+      </svg>
+    </button>
   );
 }

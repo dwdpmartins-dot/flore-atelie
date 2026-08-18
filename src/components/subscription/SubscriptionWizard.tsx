@@ -19,6 +19,45 @@ function optBtn(active: boolean): React.CSSProperties {
   return { ...btnBase, background: active ? '#4B5740' : 'transparent', color: active ? '#FAF7F2' : '#4B5740' };
 }
 
+/**
+ * Fixed to the bottom of the viewport instead of flowing at the end of
+ * each step's content — on shorter screens the old inline button row
+ * could end up below the fold, indistinguishable from "nothing else
+ * here" next to the floating WhatsApp bubble (also bottom-right, also a
+ * round button) until you scrolled. This is always visible, always in
+ * the same place, and its own shape/label makes it unmistakable from the
+ * WhatsApp bubble regardless of content length. zIndex kept below the
+ * WhatsApp button's (50) so that button still renders on top if the two
+ * ever overlap on a narrow screen.
+ */
+function WizardFooter({ onBack, backLabel = '← Voltar', children }: { onBack?: () => void; backLabel?: string; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 40,
+        background: '#FAF7F2',
+        borderTop: '1px solid rgba(75,87,64,0.15)',
+        boxShadow: '0 -4px 16px rgba(75,87,64,0.08)',
+      }}
+    >
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '16px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        {onBack ? (
+          <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#7C7F6D', fontSize: 14, cursor: 'pointer' }}>
+            {backLabel}
+          </button>
+        ) : (
+          <span />
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export default function SubscriptionWizard({
   plans,
   addresses: initialAddresses,
@@ -100,7 +139,7 @@ export default function SubscriptionWizard({
   }
 
   return (
-    <div>
+    <div style={{ paddingBottom: 96 }}>
       <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 48 }}>
         {[1, 2, 3, 4].map((n) => (
           <div
@@ -146,11 +185,11 @@ export default function SubscriptionWizard({
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <WizardFooter>
             <button onClick={() => setStep(2)} style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '15px 30px', borderRadius: 2, fontSize: 14, cursor: 'pointer' }}>
               Continuar →
             </button>
-          </div>
+          </WizardFooter>
         </div>
       )}
 
@@ -178,14 +217,11 @@ export default function SubscriptionWizard({
             />
             <p style={{ fontSize: 11.5, color: '#A7AB97', margin: '6px 0 0', textAlign: 'right' }}>{message.length}/180</p>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#7C7F6D', fontSize: 14, cursor: 'pointer' }}>
-              ← Voltar
-            </button>
+          <WizardFooter onBack={() => setStep(1)}>
             <button onClick={() => setStep(3)} style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '15px 30px', borderRadius: 2, fontSize: 14, cursor: 'pointer' }}>
               Continuar →
             </button>
-          </div>
+          </WizardFooter>
         </div>
       )}
 
@@ -319,10 +355,7 @@ export default function SubscriptionWizard({
 
           {formError && <p style={{ fontSize: 12.5, color: '#C4836A', margin: 0 }}>{formError}</p>}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button onClick={() => setStep(2)} style={{ background: 'none', border: 'none', color: '#7C7F6D', fontSize: 14, cursor: 'pointer' }}>
-              ← Voltar
-            </button>
+          <WizardFooter onBack={() => setStep(2)}>
             <button
               onClick={() => setStep(4)}
               disabled={!addressId || !cardId}
@@ -330,7 +363,7 @@ export default function SubscriptionWizard({
             >
               Continuar →
             </button>
-          </div>
+          </WizardFooter>
         </div>
       )}
 
@@ -351,14 +384,11 @@ export default function SubscriptionWizard({
           <p style={{ fontSize: 12.5, color: '#8A8D7C', lineHeight: 1.7 }}>
             Você pode ajustar, pausar ou cancelar sua assinatura a qualquer momento em Minha Conta.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button onClick={() => setStep(3)} style={{ background: 'none', border: 'none', color: '#7C7F6D', fontSize: 14, cursor: 'pointer' }}>
-              ← Voltar
-            </button>
+          <WizardFooter onBack={() => setStep(3)}>
             <button onClick={handleConfirm} disabled={confirming} style={{ background: '#C4836A', color: '#FAF7F2', border: 'none', padding: '15px 30px', borderRadius: 2, fontSize: 14, cursor: 'pointer' }}>
               {confirming ? 'Confirmando…' : 'Confirmar assinatura'}
             </button>
-          </div>
+          </WizardFooter>
 
           {declined && (
             <div onClick={() => setDeclined(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(43,49,36,0.55)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
