@@ -15,10 +15,21 @@ function mpConfig() {
   return new MercadoPagoConfig({ accessToken });
 }
 
-/** Logs the real Mercado Pago error detail before a caller's try/catch
- * flattens it into a generic "declined" outcome for the customer. */
-function logMpError(context: string, err: unknown) {
-  console.error(context, err instanceof Error ? { message: err.message, mpBody: (err as Error & { mpBody?: unknown }).mpBody } : err);
+/**
+ * Logs the real Mercado Pago error detail before a caller's try/catch
+ * flattens it into a generic "declined" outcome for the customer.
+ *
+ * Uses JSON.stringify instead of handing the object straight to
+ * console.error: Node's default object inspection (and Vercel's log
+ * viewer on top of it) truncates nested objects past a shallow depth,
+ * which repeatedly hid the one field that actually mattered — Mercado
+ * Pago puts the specific rejection/validation reason inside
+ * mpBody.cause[], and that's exactly what was printing as a bare
+ * "[Object]" with no way to expand it. Plain JSON has no depth limit.
+ */
+export function logMpError(context: string, err: unknown) {
+  const detail = err instanceof Error ? { message: err.message, mpBody: (err as Error & { mpBody?: unknown }).mpBody } : err;
+  console.error(context, JSON.stringify(detail, null, 2));
 }
 
 const MP_API_BASE = 'https://api.mercadopago.com';

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { ensureMpCustomer, attachCardToCustomer, detachCardFromCustomer } from '@/lib/mercadopago/server';
+import { ensureMpCustomer, attachCardToCustomer, detachCardFromCustomer, logMpError } from '@/lib/mercadopago/server';
 
 export const runtime = 'nodejs';
 
@@ -50,7 +50,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ card: saved });
   } catch (err) {
-    console.error('add card failed', err);
+    logMpError('add card failed', err);
     return NextResponse.json({ error: 'Não foi possível salvar o cartão.' }, { status: 502 });
   }
 }
@@ -82,7 +82,7 @@ export async function DELETE(request: Request) {
     // saved_cards table is the source of truth for what shows up in "Minha
     // Conta" — nothing in this app can charge a card once it's gone from
     // this table, regardless of what Mercado Pago still has on file.
-    console.error('detachCardFromCustomer failed (removing local record anyway)', err);
+    logMpError('detachCardFromCustomer failed (removing local record anyway)', err);
   }
 
   const { error } = await supabase.from('saved_cards').delete().eq('id', card.id);
