@@ -154,6 +154,16 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
     }
 
     if (payment.status !== 'approved') {
+      // Not an exception -- Mercado Pago responded fine, just with a
+      // non-approved status. status_detail is where the actual reason
+      // lives and was never logged here before, only stored as mp_status
+      // (the bare status, no detail) and swallowed into a generic
+      // "declined" for the customer.
+      console.log('payAvulsoOrder: payment not approved', {
+        paymentId: payment.id,
+        status: payment.status,
+        statusDetail: payment.status_detail,
+      });
       await supabase.from('orders').update({ status: 'pagamento_recusado', mp_status: payment.status }).eq('id', order.id);
       return { declined: true as const };
     }

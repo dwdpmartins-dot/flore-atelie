@@ -57,6 +57,16 @@ export async function createSubscription(input: CreateSubscriptionInput) {
       payerEmail: customer?.email || user.email || '',
     });
     if (payment.status !== 'approved') {
+      // Not an exception -- Mercado Pago responded fine, just with a
+      // non-approved status. status_detail is where the actual reason
+      // lives (e.g. cc_rejected_other_reason, cc_rejected_call_for_authorize),
+      // and it was never logged here before, only swallowed into a generic
+      // "declined" for the customer.
+      console.log('createSubscription: payment not approved', {
+        paymentId: payment.id,
+        status: payment.status,
+        statusDetail: payment.status_detail,
+      });
       return { declined: true };
     }
     paymentId = String(payment.id);
