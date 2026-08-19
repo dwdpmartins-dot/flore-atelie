@@ -39,10 +39,9 @@ export default async function AssinaturaPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: plans }, { data: addresses }, { data: cards }, { data: subs }] = await Promise.all([
+  const [{ data: plans }, { data: addresses }, { data: subs }] = await Promise.all([
     supabase.from('subscription_plans').select('*'),
     supabase.from('addresses').select('*').order('preferred', { ascending: false }),
-    supabase.from('saved_cards').select('*'),
     supabase.from('subscriptions').select('*').in('status', ['ativa', 'pausada']).order('created_at', { ascending: false }).limit(1),
   ]);
 
@@ -76,7 +75,7 @@ export default async function AssinaturaPage() {
           <SubscriptionManageCard subscription={activeSubscription} nextDeliveryDate={nextDeliveryDate} plans={planMap} />
         </div>
       ) : (
-        <SubscriptionWizard plans={planMap} addresses={addresses ?? []} cards={cards ?? []} email={session.email} />
+        <SubscriptionWizard plans={planMap} addresses={addresses ?? []} email={session.email} />
       )}
     </section>
   );

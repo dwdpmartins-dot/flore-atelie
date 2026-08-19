@@ -3,9 +3,17 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { hasCompleteProfile } from '@/lib/auth/session';
-import { chargeSavedCard } from '@/lib/mercadopago/server';
+import { createPreapproval, updatePreapprovalStatus } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
-import { computeFirstDeliveryDate, getNextPendingDelivery, isCutoffPassed, clearPendingDeliveries, getPlanPrice } from '@/lib/subscriptions/schedule';
+import {
+  computeFirstDeliveryDate,
+  getNextPendingDelivery,
+  isCutoffPassed,
+  clearPendingDeliveries,
+  getPlanPrice,
+  firstChargeDateFor,
+  freqStepDays,
+} from '@/lib/subscriptions/schedule';
 import type { Freq, Size, Weekday } from '@/lib/supabase/types';
 
 const FUTURE_CYCLES_GENERATED = 6;
@@ -16,8 +24,11 @@ export interface CreateSubscriptionInput {
   weekday: Weekday;
   message: string;
   addressId: string;
-  cardId: string;
   recipientName?: string;
+  /** Fresh, single-use token minted directly from the card just entered
+   * (the Card Payment Brick's own token) — never a saved card re-
+   * tokenized through /v1/card_tokens. See createPreapproval. */
+  cardToken: string;
 }
 
 export async function createSubscription(input: CreateSubscriptionInput) {
@@ -35,41 +46,36 @@ export async function createSubscription(input: CreateSubscriptionInput) {
   const price = await getPlanPrice(supabase, input.freq, input.size);
   if (price == null) return { error: 'Plano indisponível no momento.' };
 
-  const { data: card } = await supabase.from('saved_cards').select('*').eq('id', input.cardId).eq('customer_id', user.id).maybeSingle();
-  if (!card) return { error: 'Cartão inválido.' };
+  const { data: address } = await supabase.from('addresses').select('id').eq('id', input.addressId).eq('customer_id', user.id).maybeSingle();
+  if (!address) return { error: 'Endereço inválido.' };
 
   const firstDeliveryDate = await computeFirstDeliveryDate(supabase, input.freq, input.weekday);
+  const payerEmail = customer?.email || user.email || '';
 
   if (await isSimulatingDecline(supabase)) {
     return { declined: true };
   }
 
-  // Charge the first cycle before anything is created — an active
-  // subscription must never exist without a successful payment behind it.
-  let paymentId: string | undefined;
+  // Mercado Pago's Preapproval owns the recurring schedule from here —
+  // charges the card automatically every `frequencyDays` days, starting
+  // at `startDate`. The first cycle's startDate is "today" whenever the
+  // first delivery is close (so the customer gets an answer right away,
+  // same as before); later cycles inherit the CHARGE_LEAD_DAYS buffer
+  // naturally once this is running (see firstChargeDateFor).
+  const [frequencyDays, startDate] = await Promise.all([freqStepDays(supabase, input.freq), Promise.resolve(firstChargeDateFor(firstDeliveryDate))]);
+
+  let preapprovalId: string;
   try {
-    const payment = await chargeSavedCard({
-      mpCustomerId: card.mp_customer_id,
-      mpCardId: card.mp_card_id,
+    const preapproval = await createPreapproval({
+      payerEmail,
+      cardTokenId: input.cardToken,
       amount: price,
-      description: `Florê Ateliê — Assinatura ${input.freq} ${input.size}`,
-      externalReference: `sub-first-${user.id}-${Date.now()}`,
-      payerEmail: customer?.email || user.email || '',
+      frequencyDays,
+      reason: `Florê Ateliê — Assinatura ${input.freq} ${input.size}`,
+      externalReference: `sub-${user.id}-${Date.now()}`,
+      startDate,
     });
-    if (payment.status !== 'approved') {
-      // Not an exception -- Mercado Pago responded fine, just with a
-      // non-approved status. status_detail is where the actual reason
-      // lives (e.g. cc_rejected_other_reason, cc_rejected_call_for_authorize),
-      // and it was never logged here before, only swallowed into a generic
-      // "declined" for the customer.
-      console.log('createSubscription: payment not approved', {
-        paymentId: payment.id,
-        status: payment.status,
-        statusDetail: payment.status_detail,
-      });
-      return { declined: true };
-    }
-    paymentId = String(payment.id);
+    preapprovalId = preapproval.id as string;
   } catch {
     return { declined: true };
   }
@@ -85,7 +91,7 @@ export async function createSubscription(input: CreateSubscriptionInput) {
       message: input.message,
       recipient_name: input.recipientName || null,
       address_id: input.addressId,
-      card_id: input.cardId,
+      mp_preapproval_id: preapprovalId,
       price,
     })
     .select()
@@ -93,43 +99,58 @@ export async function createSubscription(input: CreateSubscriptionInput) {
 
   if (subError || !subscription) return { error: 'Não foi possível criar a assinatura.' };
 
+  // Only the first delivery is created here — unlike the old model, future
+  // cycles aren't pre-generated up front. Each one is created reactively
+  // by the webhook once Mercado Pago actually confirms that cycle's
+  // charge, since we no longer control (or know in advance) exactly when
+  // each Preapproval charge will land. This row starts "pending"; the
+  // webhook flips it to paid/failed once Mercado Pago reports the outcome
+  // of this first charge (which, per Preapproval's own semantics, isn't
+  // guaranteed to be reflected synchronously in the createPreapproval
+  // response above — see checkFirstChargeStatus, which the wizard polls).
   await supabase.rpc('build_delivery_schedule', {
     p_subscription_id: subscription.id,
     p_freq: input.freq,
     p_weekday: input.weekday,
-    p_count: FUTURE_CYCLES_GENERATED,
+    p_count: 1,
     p_message: input.message,
     p_recipient_name: input.recipientName || null,
     p_first_delivery_date: firstDeliveryDate,
   });
 
   const firstDelivery = await getNextPendingDelivery(supabase, subscription.id);
-  if (firstDelivery) {
-    await supabase
-      .from('subscription_deliveries')
-      .update({ payment_status: 'paid', charged_at: new Date().toISOString(), mp_payment_id: paymentId })
-      .eq('id', firstDelivery.id);
-
-    await supabase.from('orders').insert({
-      customer_id: user.id,
-      kind: 'assinatura',
-      subscription_delivery_id: firstDelivery.id,
-      status: 'em_andamento',
-      subtotal: price,
-      total: price,
-      address_id: input.addressId,
-      delivery_date: firstDelivery.delivery_date,
-      payment_method: 'card',
-      mp_payment_id: paymentId,
-      mp_status: 'approved',
-      message: input.message,
-      recipient_name: input.recipientName || null,
-    });
-  }
 
   revalidatePath('/minha-conta');
   revalidatePath('/assinatura');
-  return { success: true, subscriptionId: subscription.id };
+  return { success: true, subscriptionId: subscription.id, firstDeliveryId: firstDelivery?.id ?? null };
+}
+
+/**
+ * Polled by the wizard right after createSubscription returns, since a
+ * Preapproval's own creation response doesn't reliably confirm whether
+ * its first charge was actually approved — that arrives separately (via
+ * webhook, which flips subscription_deliveries.payment_status). Mirrors
+ * checkPixStatus's polling shape in checkout/actions.ts.
+ */
+export async function checkFirstChargeStatus(deliveryId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { status: 'pending' as const };
+
+  const { data: delivery } = await supabase
+    .from('subscription_deliveries')
+    .select('payment_status, subscriptions!inner(customer_id)')
+    .eq('id', deliveryId)
+    .maybeSingle();
+
+  const owner = (delivery as unknown as { subscriptions: { customer_id: string } } | null)?.subscriptions?.customer_id;
+  if (!delivery || owner !== user.id) return { status: 'pending' as const };
+
+  if (delivery.payment_status === 'paid') return { status: 'paid' as const };
+  if (delivery.payment_status === 'failed' || delivery.payment_status === 'skipped') return { status: 'failed' as const };
+  return { status: 'pending' as const };
 }
 
 async function loadOwnedSubscription(subscriptionId: string) {
@@ -154,6 +175,18 @@ export async function pauseSubscription(subscriptionId: string) {
   const cutoffPassed = nextDelivery ? await isCutoffPassed(supabase, nextDelivery.cutoff_date) : false;
 
   if (!nextDelivery || !cutoffPassed) {
+    // Pausing takes effect immediately — also tell Mercado Pago to stop
+    // charging this Preapproval right away. Not fatal if this call fails
+    // (network hiccup, etc.): our own status still flips, and the
+    // customer-facing UI already reflects "pausada" either way; logged so
+    // it isn't silently lost if MP genuinely keeps charging.
+    if (subscription.mp_preapproval_id) {
+      try {
+        await updatePreapprovalStatus(subscription.mp_preapproval_id, 'paused');
+      } catch (err) {
+        console.error('pauseSubscription: failed to pause Preapproval on Mercado Pago', err);
+      }
+    }
     await clearPendingDeliveries(supabase, subscriptionId);
     await supabase
       .from('subscriptions')
@@ -164,9 +197,10 @@ export async function pauseSubscription(subscriptionId: string) {
     return { success: true, immediate: true };
   }
 
-  // This cycle is already locked in — pause takes effect starting the
-  // following one, which the billing cron applies once it processes
-  // pending_action after charging the locked cycle.
+  // This cycle is already locked in (its charge is scheduled to fire
+  // inside the CHARGE_LEAD_DAYS window) — pause takes effect once that
+  // charge resolves, applied by the webhook (see applyPendingTransition
+  // equivalent there), not by a cron checking dates anymore.
   await clearPendingDeliveries(supabase, subscriptionId, nextDelivery.id);
   const { data: effectiveDateRaw } = await supabase.rpc('next_delivery_after', {
     prev_date: nextDelivery.delivery_date,
@@ -192,13 +226,26 @@ export async function resumeSubscription(subscriptionId: string) {
 
   const firstDeliveryDate = await computeFirstDeliveryDate(supabase, subscription.freq, subscription.weekday);
 
+  if (subscription.mp_preapproval_id) {
+    try {
+      await updatePreapprovalStatus(subscription.mp_preapproval_id, 'authorized');
+    } catch {
+      return { error: 'Não foi possível retomar a cobrança no Mercado Pago. Tente novamente.' };
+    }
+  }
+
   await supabase.from('subscriptions').update({ status: 'ativa', paused_since: null, pending_action: null }).eq('id', subscriptionId);
 
+  // Reactive model: only re-seed the next single delivery — the ones after
+  // that get created as Mercado Pago confirms each cycle, same as
+  // createSubscription. FUTURE_CYCLES_GENERATED only still applies to
+  // subscriptions predating the Preapproval migration (no
+  // mp_preapproval_id), so their old topped-up schedule keeps working.
   await supabase.rpc('build_delivery_schedule', {
     p_subscription_id: subscriptionId,
     p_freq: subscription.freq,
     p_weekday: subscription.weekday,
-    p_count: FUTURE_CYCLES_GENERATED,
+    p_count: subscription.mp_preapproval_id ? 1 : FUTURE_CYCLES_GENERATED,
     p_message: subscription.message,
     p_recipient_name: subscription.recipient_name,
     p_first_delivery_date: firstDeliveryDate,
@@ -218,6 +265,16 @@ export async function cancelSubscription(subscriptionId: string) {
   const cutoffPassed = nextDelivery ? await isCutoffPassed(supabase, nextDelivery.cutoff_date) : false;
 
   if (!nextDelivery || !cutoffPassed) {
+    // Cancelling a Preapproval on Mercado Pago is permanent (unlike pause,
+    // it can't be reactivated) — matches "cancelada" being a terminal
+    // status here too, so this is safe to fire immediately.
+    if (subscription.mp_preapproval_id) {
+      try {
+        await updatePreapprovalStatus(subscription.mp_preapproval_id, 'cancelled');
+      } catch (err) {
+        console.error('cancelSubscription: failed to cancel Preapproval on Mercado Pago', err);
+      }
+    }
     await clearPendingDeliveries(supabase, subscriptionId);
     await supabase.from('subscriptions').update({ status: 'cancelada', pending_action: null }).eq('id', subscriptionId);
     revalidatePath('/minha-conta');
@@ -287,11 +344,20 @@ export async function changeSubscriptionPlan(subscriptionId: string, newFreq: Fr
     await clearPendingDeliveries(supabase, subscriptionId);
     await supabase.from('subscriptions').update({ freq: newFreq, size: newSize, price, pending_plan_change: null }).eq('id', subscriptionId);
     const firstDeliveryDate = await computeFirstDeliveryDate(supabase, newFreq, subscription.weekday);
+
+    // TODO(preapproval): this updates our own price/schedule, but doesn't
+    // yet push the new amount/frequency to Mercado Pago
+    // (updatePreapprovalAmount exists for the amount half of this; the
+    // frequency half needs its own auto_recurring update, not implemented
+    // yet). Until this is wired up, a plan change on a Preapproval-backed
+    // subscription changes what we intend to charge without yet telling
+    // Mercado Pago -- flagging this rather than shipping it silently
+    // incomplete.
     await supabase.rpc('build_delivery_schedule', {
       p_subscription_id: subscriptionId,
       p_freq: newFreq,
       p_weekday: subscription.weekday,
-      p_count: FUTURE_CYCLES_GENERATED,
+      p_count: subscription.mp_preapproval_id ? 1 : FUTURE_CYCLES_GENERATED,
       p_message: subscription.message,
       p_recipient_name: subscription.recipient_name,
       p_first_delivery_date: firstDeliveryDate,
