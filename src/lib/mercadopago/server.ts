@@ -166,14 +166,17 @@ export async function chargeSavedCard(opts: {
         description: opts.description,
         installments: opts.installments ?? 1,
         external_reference: opts.externalReference,
-        // Deliberately just {email} here, matching chargeCardToken's
-        // payload -- previously also sent payer.type: 'customer' and
-        // payer.id: mpCustomerId, which isn't what Mercado Pago's own
-        // examples for charging a token show, and is a plausible reason
-        // a token that mints successfully still gets rejected as "not
-        // found" when charged (untested hypothesis, flagged here so it's
-        // easy to revert if the next failure looks the same).
-        payer: { email: opts.payerEmail },
+        // Reverted: a prior attempt dropped payer.type/payer.id here as an
+        // untested hypothesis (matching chargeCardToken's plain {email}
+        // payload). Real evidence says that was wrong, not just unproven --
+        // with the field removed, the exact same card+customer that used to
+        // fail as "Card Token not found" started failing instead as
+        // "Customer not found" (cause[].code 2002). That's not a fluke:
+        // this token comes from a *customer-vaulted* card (minted via
+        // card_id+customer_id, unlike chargeCardToken's plain
+        // card-entry token), so Mercado Pago needs payer.id to associate
+        // the charge with that Customer. Restored it.
+        payer: { email: opts.payerEmail, type: 'customer', id: opts.mpCustomerId },
       },
     });
   } catch (err) {
