@@ -14,9 +14,10 @@ const categoryPreviews = [
   { href: '/monte-seu-buque', src: '/assets/flore-arranjo-5.png', title: 'Monte seu Buquê', desc: 'Monte do zero, peça inspirado ou escolha um pronto.', cta: 'Compor' },
 ];
 
-// The 5 hand-picked products for "Buquês reais da Florê" — ids match the
-// slugs from supabase/migrations/0010_real_catalog_products.sql.
-const HOME_PRODUCT_IDS = ['box-por-do-sol', 'arranjo-de-gerberas-e-calas-grande', 'arranjo-campestre-com-vaso', 'cesta-rustica-de-outono', 'orquidea-cascata'];
+// The 6 hand-picked products for "Buquês reais da Florê" (two full rows of
+// 3, matching the grid) — ids match the slugs from
+// supabase/migrations/0010_real_catalog_products.sql.
+const HOME_PRODUCT_IDS = ['box-por-do-sol', 'arranjo-de-gerberas-e-calas-grande', 'arranjo-campestre-com-vaso', 'cesta-rustica-de-outono', 'orquidea-cascata', 'buque-noiva'];
 
 export default async function HomePage() {
   const [homeProducts, testimonials] = await Promise.all([getBouquetsByIds(HOME_PRODUCT_IDS), getTestimonials()]);
