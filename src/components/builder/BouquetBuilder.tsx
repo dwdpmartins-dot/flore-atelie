@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartContext';
 import { getFlowerVisual } from '@/lib/builder/flowerVisuals';
 import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
+import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import FlowerSvg from './FlowerSvg';
 import type { Database } from '@/lib/supabase/types';
 
@@ -70,6 +71,12 @@ export default function BouquetBuilder({ flowers, aiEnabled }: { flowers: Flower
   const [stage, setStage] = useState<'build' | 'generating' | 'result'>('build');
   const [illustrationUrl, setIllustrationUrl] = useState<string | null>(null);
   const [generateError, setGenerateError] = useState('');
+
+  // "build" -> "generating" -> "result" swap to drastically different page
+  // heights; without this, clicking "Gerar minha ilustração" left the
+  // viewport pointed at the old scroll offset, which usually landed on the
+  // footer instead of the (now much shorter) "generating…" view.
+  useScrollToTopOnChange([stage]);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ seed: number; startX: number; startY: number; originX: number; originY: number } | null>(null);

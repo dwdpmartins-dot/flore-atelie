@@ -9,6 +9,7 @@ import InlineAddressForm from '@/components/address/InlineAddressForm';
 import { updateProfile } from '@/app/minha-conta/actions';
 import { payAvulsoOrder, checkPixStatus } from '@/app/checkout/actions';
 import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
+import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import type { Database } from '@/lib/supabase/types';
 
 function formatDeliveryDate(iso: string): string {
@@ -65,6 +66,13 @@ export default function CheckoutFlow({
   const [error, setError] = useState('');
   const [pixData, setPixData] = useState<{ qrCodeBase64?: string; qrCode?: string; orderId: string } | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+
+  // step/pixData/confirmedOrderId each gate a completely different-height
+  // view (the multi-field form vs. the QR code screen vs. the short
+  // "pedido confirmado" message) — without this, advancing past a tall
+  // step left the viewport at the old scroll offset, usually landing on
+  // the footer instead of the new (much shorter) view.
+  useScrollToTopOnChange([step, pixData, confirmedOrderId]);
 
   const selectedAddress = addresses.find((a) => a.id === addressId);
   const total = cartTotal + (shippingFee ?? 0);

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import CardPaymentBrick from '@/components/payment/CardPaymentBrick';
 import InlineAddressForm from '@/components/address/InlineAddressForm';
 import { createSubscription } from '@/app/assinatura/actions';
+import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import type { Database, Freq, Size, Weekday } from '@/lib/supabase/types';
 
 type Address = Database['public']['Tables']['addresses']['Row'];
@@ -71,6 +72,7 @@ export default function SubscriptionWizard({
 }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  useScrollToTopOnChange([step]);
   const [freq, setFreq] = useState<Freq>('Semanal');
   const [size, setSize] = useState<Size>('M');
   const [weekday, setWeekday] = useState<Weekday>('Quinta');
