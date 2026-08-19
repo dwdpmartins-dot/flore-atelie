@@ -23,8 +23,8 @@ export default function ProductGrid({ bouquets }: { bouquets: Bouquet[] }) {
     <div className="cat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 30 }}>
       {bouquets.map((b) => (
         <div key={b.id} style={{ background: '#FFFFFF', borderRadius: 2, overflow: 'hidden', boxShadow: '0 1px 4px rgba(75,87,64,0.08)', display: 'flex', flexDirection: 'column' }}>
-          <Link href={`/catalogo/${b.id}`} style={{ position: 'relative', width: '100%', height: 230, display: 'block' }}>
-            <Image src={b.image_path} alt={b.name} fill style={{ objectFit: 'cover' }} />
+          <Link href={`/catalogo/${b.id}`} style={{ position: 'relative', width: '100%', height: 260, display: 'block', background: '#FAF7F2' }}>
+            <Image src={b.image_path} alt={b.name} fill style={{ objectFit: 'contain' }} />
           </Link>
           <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
             <Link href={`/catalogo/${b.id}`}>

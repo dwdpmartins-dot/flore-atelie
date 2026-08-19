@@ -21,8 +21,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         ← Voltar ao catálogo
       </Link>
       <div className="product-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 48, marginTop: 24, alignItems: 'start' }}>
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: 2, overflow: 'hidden', boxShadow: '0 4px 20px rgba(75,87,64,0.1)' }}>
-          <Image src={product.image_path} alt={product.name} fill priority style={{ objectFit: 'cover' }} />
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', borderRadius: 2, overflow: 'hidden', boxShadow: '0 4px 20px rgba(75,87,64,0.1)', background: '#FAF7F2' }}>
+          <Image src={product.image_path} alt={product.name} fill priority style={{ objectFit: 'contain' }} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, paddingTop: 8 }}>
           <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 'clamp(28px,3.5vw,38px)', fontStyle: 'italic', color: '#4B5740', margin: 0 }}>
