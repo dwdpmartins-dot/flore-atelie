@@ -72,18 +72,27 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* Gallery */}
-      <div style={{ padding: '90px 28px 40px', maxWidth: 1240, margin: '0 auto' }}>
+      {/* Catálogo preview */}
+      <div style={{ padding: '90px 28px 60px', maxWidth: 1240, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 50 }}>
-          <span style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#C4836A' }}>Galeria</span>
+          <span style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#C4836A' }}>Catálogo</span>
           <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 'clamp(26px,3vw,36px)', fontStyle: 'italic', color: '#4B5740', margin: '10px 0 12px' }}>
-            Buquês reais da Florê
+            Direto do nosso catálogo
           </h2>
           <p style={{ fontSize: 15, color: '#7C7F6D', maxWidth: 560, margin: '0 auto' }}>
-            Composições que já saíram do nosso ateliê — do dia a dia às ocasiões mais especiais.
+            Uma seleção dos nossos favoritos, prontos para pedir agora. O catálogo completo tem ainda mais opções
+            esperando por você.
           </p>
         </div>
         <ProductGrid bouquets={homeProducts} />
+        <div style={{ textAlign: 'center', marginTop: 44 }}>
+          <Link
+            href="/catalogo"
+            style={{ display: 'inline-block', background: 'none', border: '1px solid #4B5740', color: '#4B5740', padding: '14px 32px', borderRadius: 2, fontSize: 13.5, letterSpacing: 0.3 }}
+          >
+            Ver catálogo completo →
+          </Link>
+        </div>
       </div>
 
       {/* Escolha seu jeito de florir */}
