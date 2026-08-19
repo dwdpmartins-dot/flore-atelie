@@ -55,7 +55,8 @@
   .builder-grid {
     grid-template-columns: 1fr !important;
   }
-  .about-grid {
+  .about-grid,
+  .product-detail-grid {
     grid-template-columns: 1fr !important;
   }
   .lightbox-grid {

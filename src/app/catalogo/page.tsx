@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getCatalogBouquets } from '@/lib/supabase/queries';
-import CatalogGrid from '@/components/catalog/CatalogGrid';
+import ProductGrid from '@/components/catalog/ProductGrid';
 
 export const metadata = { title: 'Catálogo — Florê Ateliê' };
 
@@ -19,7 +19,7 @@ export default async function CatalogoPage() {
           <Link href="/monte-seu-buque">Monte seu buquê</Link>.
         </p>
       </div>
-      <CatalogGrid bouquets={bouquets} />
+      <ProductGrid bouquets={bouquets} />
     </section>
   );
 }

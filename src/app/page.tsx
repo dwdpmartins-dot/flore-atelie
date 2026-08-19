@@ -1,16 +1,25 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { getGalleryPhotos, getTestimonials } from '@/lib/supabase/queries';
-import GalleryLightbox from '@/components/home/GalleryLightbox';
+import { getBouquetsByIds, getTestimonials } from '@/lib/supabase/queries';
+import ProductGrid from '@/components/catalog/ProductGrid';
 
+// Order matters here — kept in sync with the "Depois" column of the
+// category-card reorder: Assinatura stays first, then Catálogo Completo
+// (reusing the image/link that used to be "Arranjos Prontos"), then Monte
+// seu Buquê (reusing the image that used to be "Buquê Avulso", but
+// pointing at the builder, not /buque-avulso).
 const categoryPreviews = [
   { href: '/assinatura', src: '/assets/flore-arranjo-1.png', title: 'Assinatura', desc: 'Flores novas na sua casa, em ciclos que você escolhe.', cta: 'Assinar' },
-  { href: '/buque-avulso', src: '/assets/flore-arranjo-5.png', title: 'Buquê Avulso', desc: 'Monte do zero, peça inspirado ou escolha um pronto.', cta: 'Compor' },
-  { href: '/catalogo', src: '/assets/flore-arranjo-2.png', title: 'Arranjos Prontos', desc: 'Composições autorais, prontas para encantar em até 24h.', cta: 'Ver catálogo' },
+  { href: '/catalogo', src: '/assets/flore-arranjo-2.png', title: 'Catálogo Completo', desc: 'Composições autorais, prontas para encantar em até 24h.', cta: 'Ver catálogo' },
+  { href: '/monte-seu-buque', src: '/assets/flore-arranjo-5.png', title: 'Monte seu Buquê', desc: 'Monte do zero, peça inspirado ou escolha um pronto.', cta: 'Compor' },
 ];
 
+// The 5 hand-picked products for "Buquês reais da Florê" — ids match the
+// slugs from supabase/migrations/0010_real_catalog_products.sql.
+const HOME_PRODUCT_IDS = ['box-por-do-sol', 'arranjo-de-gerberas-e-calas-grande', 'arranjo-campestre-com-vaso', 'cesta-rustica-de-outono', 'orquidea-cascata'];
+
 export default async function HomePage() {
-  const [galleryPhotos, testimonials] = await Promise.all([getGalleryPhotos(), getTestimonials()]);
+  const [homeProducts, testimonials] = await Promise.all([getBouquetsByIds(HOME_PRODUCT_IDS), getTestimonials()]);
 
   return (
     <section style={{ display: 'flex', flexDirection: 'column' }}>
@@ -63,18 +72,17 @@ export default async function HomePage() {
       </div>
 
       {/* Gallery */}
-      <div style={{ padding: '90px 28px 40px', maxWidth: 1760, margin: '0 auto' }}>
+      <div style={{ padding: '90px 28px 40px', maxWidth: 1240, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 50 }}>
           <span style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#C4836A' }}>Galeria</span>
           <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 'clamp(26px,3vw,36px)', fontStyle: 'italic', color: '#4B5740', margin: '10px 0 12px' }}>
             Buquês reais da Florê
           </h2>
           <p style={{ fontSize: 15, color: '#7C7F6D', maxWidth: 560, margin: '0 auto' }}>
-            Composições que já saíram do nosso ateliê — do dia a dia às ocasiões mais especiais. Clique em uma foto
-            para usá-la como inspiração no seu pedido.
+            Composições que já saíram do nosso ateliê — do dia a dia às ocasiões mais especiais.
           </p>
         </div>
-        <GalleryLightbox photos={galleryPhotos} />
+        <ProductGrid bouquets={homeProducts} />
       </div>
 
       {/* Escolha seu jeito de florir */}

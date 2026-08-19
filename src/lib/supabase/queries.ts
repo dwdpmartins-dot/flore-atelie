@@ -48,6 +48,25 @@ export async function getCatalogBouquets() {
   return [...catalogo, ...avulsoProntos];
 }
 
+/** A single product for /catalogo/[slug] — bouquets.id doubles as the slug. */
+export async function getBouquetBySlug(slug: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('bouquets').select('*').eq('id', slug).eq('active', true).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+/** A specific, ordered set of bouquets by id — e.g. the 5 hand-picked for
+ * the home page's "Buquês reais da Florê" grid. .in() doesn't preserve the
+ * order of the ids passed in, so this re-sorts the result to match. */
+export async function getBouquetsByIds(ids: string[]) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('bouquets').select('*').in('id', ids).eq('active', true);
+  if (error) throw error;
+  const byId = new Map(data.map((b) => [b.id, b]));
+  return ids.map((id) => byId.get(id)).filter((b): b is NonNullable<typeof b> => Boolean(b));
+}
+
 export async function getFlowers() {
   const supabase = await createClient();
   const { data, error } = await supabase.from('flowers').select('*').eq('active', true).order('sort_order');
