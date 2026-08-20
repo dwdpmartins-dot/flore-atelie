@@ -50,7 +50,16 @@ export async function createSubscription(input: CreateSubscriptionInput) {
   if (!address) return { error: 'Endereço inválido.' };
 
   const firstDeliveryDate = await computeFirstDeliveryDate(supabase, input.freq, input.weekday);
-  const payerEmail = customer?.email || user.email || '';
+  // Mercado Pago requires the Preapproval's payer and collector (seller) to
+  // both be real accounts or both be sandbox test accounts -- can't mix.
+  // While this branch's server-side credentials point at a Mercado Pago
+  // test seller account (see MERCADOPAGO_ACCESS_TOKEN in Vercel, scoped
+  // only to this Preview), the payer also needs to be a test buyer email,
+  // which a real logged-in Florê customer's email never is. This override
+  // only exists to make that possible during manual testing -- it must
+  // never be set in Production, and should come out entirely before this
+  // branch merges to main.
+  const payerEmail = process.env.MERCADOPAGO_TEST_PAYER_EMAIL || customer?.email || user.email || '';
 
   if (await isSimulatingDecline(supabase)) {
     return { declined: true };
