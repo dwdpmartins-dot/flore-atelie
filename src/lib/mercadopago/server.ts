@@ -373,4 +373,19 @@ export async function getPreapproval(preapprovalId: string) {
   return mpFetch(`/preapproval/${preapprovalId}`, { method: 'GET' });
 }
 
+/**
+ * Fetches the detail of a single recurring charge attempt Mercado Pago
+ * generated on its own for a Preapproval (the resource the
+ * `subscription_authorized_payment` webhook event refers to by id).
+ * Expected fields (per Mercado Pago's docs — NOT yet exercised against a
+ * real webhook payload, since this whole flow is still untested with real
+ * credentials; verify shape against the first real event received):
+ * `preapproval_id`, `status` ('scheduled' | 'pending' | 'processed' |
+ * 'rejected' | 'cancelled'), and a nested `payment` object with the
+ * underlying payment's own `id`/`status` once one exists.
+ */
+export async function getAuthorizedPayment(authorizedPaymentId: string) {
+  return mpFetch(`/authorized_payments/${authorizedPaymentId}`, { method: 'GET' });
+}
+
 export { CardToken };

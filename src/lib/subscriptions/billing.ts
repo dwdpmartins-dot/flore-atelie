@@ -18,8 +18,12 @@ const FUTURE_CYCLES_GENERATED = 6;
  * assinatura/actions.ts, which prune every OTHER pending delivery when they
  * set pending_action/pending_plan_change, so this resolved delivery is
  * always the last one standing.
+ *
+ * Exported so the Mercado Pago webhook can call this too — under the
+ * Preapproval model it's the webhook, not this cron, that learns a cycle
+ * resolved.
  */
-async function applyPendingTransition(admin: AdminClient, subscription: Subscription) {
+export async function applyPendingTransition(admin: AdminClient, subscription: Subscription) {
   if (subscription.pending_action) {
     const { type, effective_date } = subscription.pending_action;
     if (type === 'pause') {
@@ -39,11 +43,15 @@ async function applyPendingTransition(admin: AdminClient, subscription: Subscrip
       .eq('id', subscription.id);
 
     const firstDeliveryDate = await computeFirstDeliveryDate(admin, freq, subscription.weekday);
+    // Preapproval-backed subscriptions only ever have one delivery
+    // generated ahead of time (see build_delivery_schedule calls in
+    // assinatura/actions.ts and the webhook) — legacy subscriptions
+    // without a Preapproval keep the old rolling 6-cycle schedule.
     await admin.rpc('build_delivery_schedule', {
       p_subscription_id: subscription.id,
       p_freq: freq,
       p_weekday: subscription.weekday,
-      p_count: FUTURE_CYCLES_GENERATED,
+      p_count: subscription.mp_preapproval_id ? 1 : FUTURE_CYCLES_GENERATED,
       p_message: subscription.message,
       p_recipient_name: subscription.recipient_name,
       p_first_delivery_date: firstDeliveryDate,
@@ -106,7 +114,14 @@ export interface BillingRunResult {
 }
 
 /**
- * The full daily billing pass:
+ * The full daily billing pass. Only ever touches subscriptions WITHOUT a
+ * mp_preapproval_id — i.e. ones created before the Preapproval migration.
+ * Preapproval-backed subscriptions charge themselves on Mercado Pago's own
+ * schedule and are exclusively driven by the subscription_authorized_payment
+ * webhook instead (see api/webhooks/mercadopago/route.ts); this cron never
+ * charges them, marks their deliveries failed, or tops up their schedule.
+ *
+ * For the subscriptions this still applies to:
  * 1. Charge every delivery whose cutoff_date has arrived and is still
  *    pending.
  * 2. Retry every delivery that failed at cutoff and has now reached its
@@ -130,6 +145,12 @@ export async function runBillingPass(): Promise<BillingRunResult> {
   for (const row of dueDeliveries ?? []) {
     const subscription = (row as unknown as { subscriptions: Subscription }).subscriptions;
     if (subscription.status !== 'ativa') continue; // paused/cancelled mid-cycle shouldn't happen, but don't charge if so.
+    // Preapproval-backed subscriptions charge themselves on Mercado Pago's
+    // own schedule — this cron must never touch their deliveries, or it'll
+    // mark a cycle "failed" the moment cutoff_date passes even though
+    // Preapproval hasn't charged (or even attempted) it yet. See the
+    // subscription_authorized_payment handling in the webhook instead.
+    if (subscription.mp_preapproval_id) continue;
 
     const outcome = await chargeDelivery(admin, row, subscription);
     if (outcome === 'paid') {
@@ -149,6 +170,8 @@ export async function runBillingPass(): Promise<BillingRunResult> {
 
   for (const row of overdueFailed ?? []) {
     const subscription = (row as unknown as { subscriptions: Subscription }).subscriptions;
+    if (subscription.mp_preapproval_id) continue; // see note above.
+
     const outcome = await chargeDelivery(admin, row, subscription);
     if (outcome === 'paid') {
       result.charged++;
@@ -159,7 +182,10 @@ export async function runBillingPass(): Promise<BillingRunResult> {
     await applyPendingTransition(admin, subscription);
   }
 
-  const { data: activeSubs } = await admin.from('subscriptions').select('*').eq('status', 'ativa');
+  // Preapproval-backed subscriptions are excluded here too — their schedule
+  // is topped up one cycle at a time, reactively, by the webhook whenever
+  // Mercado Pago confirms a charge, not pre-generated in bulk by this cron.
+  const { data: activeSubs } = await admin.from('subscriptions').select('*').eq('status', 'ativa').is('mp_preapproval_id', null);
   for (const sub of activeSubs ?? []) {
     const { count } = await admin
       .from('subscription_deliveries')
