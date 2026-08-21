@@ -33,6 +33,12 @@ export async function POST(request: Request) {
 
     const card = await attachCardToCustomer(mpCustomerId, token);
 
+    // Mirrors addresses' "first one added becomes preferred" convention —
+    // only applies here (an explicit "add card" in Minha Conta), never to
+    // a card auto-saved in the background after a checkout (see
+    // checkout/actions.ts), which always stays non-default.
+    const { count: existingCount } = await supabase.from('saved_cards').select('id', { count: 'exact', head: true }).eq('customer_id', user.id);
+
     const { data: saved, error } = await supabase
       .from('saved_cards')
       .insert({
@@ -42,6 +48,7 @@ export async function POST(request: Request) {
         brand: card.brand ?? null,
         last4: card.last4 ?? null,
         cardholder_name: card.cardholderName ?? null,
+        preferred: (existingCount ?? 0) === 0,
       })
       .select()
       .single();
@@ -53,6 +60,30 @@ export async function POST(request: Request) {
     logMpError('add card failed', err);
     return NextResponse.json({ error: 'Não foi possível salvar o cartão.' }, { status: 502 });
   }
+}
+
+// PATCH /api/cards — { id } — marks a saved card as the customer's default
+// (preferred), demoting whichever card held that spot before. RLS scopes
+// both updates to the caller's own rows, same reasoning as DELETE below.
+export async function PATCH(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Sessão expirada.' }, { status: 401 });
+
+  const body = await request.json().catch(() => null);
+  const id = body?.id as string | undefined;
+  if (!id) return NextResponse.json({ error: 'Cartão não informado.' }, { status: 400 });
+
+  const { data: card } = await supabase.from('saved_cards').select('id').eq('id', id).maybeSingle();
+  if (!card) return NextResponse.json({ error: 'Cartão não encontrado.' }, { status: 404 });
+
+  await supabase.from('saved_cards').update({ preferred: false }).eq('customer_id', user.id).eq('preferred', true);
+  const { error } = await supabase.from('saved_cards').update({ preferred: true }).eq('id', id);
+  if (error) return NextResponse.json({ error: 'Não foi possível definir o cartão padrão.' }, { status: 502 });
+
+  return NextResponse.json({ ok: true });
 }
 
 // DELETE /api/cards?id=<saved_cards.id> — removes a saved card from both

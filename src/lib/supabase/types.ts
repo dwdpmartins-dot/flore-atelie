@@ -80,6 +80,7 @@ export interface Database {
           brand: string | null;
           last4: string | null;
           cardholder_name: string | null;
+          preferred: boolean;
           created_at: string;
         };
         Insert: Partial<Database['public']['Tables']['saved_cards']['Row']> & {

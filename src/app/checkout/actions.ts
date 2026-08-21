@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { resolveAddress } from '@/lib/geocoding/resolveAddress';
-import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus } from '@/lib/mercadopago/server';
+import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus, ensureMpCustomer, attachCardToCustomer, logMpError } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
 import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
@@ -183,6 +183,39 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
       .from('orders')
       .update({ status: 'em_andamento', mp_payment_id: String(payment.id), mp_status: payment.status })
       .eq('id', order.id);
+
+    // A brand-new card that just paid successfully is saved for next time
+    // — never as the default (an explicit choice the customer never made
+    // just by checking out), just stored so it shows up in Minha Conta >
+    // Cartões and doesn't have to be retyped. Best-effort: if this fails
+    // for any reason (e.g. Mercado Pago's card token has already expired
+    // by the time we get here), the order itself already succeeded and
+    // stays that way — the customer only loses the convenience of a saved
+    // card next time, not the purchase.
+    if (input.newCardToken) {
+      try {
+        const mpCustomerId = await ensureMpCustomer({
+          existingMpCustomerId: customer?.mp_customer_id ?? null,
+          email: payerEmail,
+          name: customer?.name,
+        });
+        if (!customer?.mp_customer_id) {
+          await supabase.from('customers').update({ mp_customer_id: mpCustomerId }).eq('id', user.id);
+        }
+        const card = await attachCardToCustomer(mpCustomerId, input.newCardToken);
+        await supabase.from('saved_cards').insert({
+          customer_id: user.id,
+          mp_customer_id: mpCustomerId,
+          mp_card_id: card.mpCardId,
+          brand: card.brand ?? null,
+          last4: card.last4 ?? null,
+          cardholder_name: card.cardholderName ?? null,
+          preferred: false,
+        });
+      } catch (err) {
+        logMpError('payAvulsoOrder: best-effort card save after checkout failed', err);
+      }
+    }
 
     revalidatePath('/minha-conta');
     return { success: true as const, orderId: order.id as string };

@@ -12,6 +12,7 @@ export default function CartoesTab({ cards: initialCards, email }: { cards: Save
   const [formError, setFormError] = useState('');
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState('');
+  const [settingPreferredId, setSettingPreferredId] = useState<string | null>(null);
 
   async function removeCard(id: string) {
     setRemoveError('');
@@ -24,6 +25,18 @@ export default function CartoesTab({ cards: initialCards, email }: { cards: Save
       return;
     }
     setCards((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  async function setPreferred(id: string) {
+    setRemoveError('');
+    setSettingPreferredId(id);
+    const res = await fetch('/api/cards', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    setSettingPreferredId(null);
+    if (!res.ok) {
+      setRemoveError('Não foi possível definir o cartão padrão.');
+      return;
+    }
+    setCards((prev) => prev.map((c) => ({ ...c, preferred: c.id === id })));
   }
 
   return (
@@ -43,10 +56,26 @@ export default function CartoesTab({ cards: initialCards, email }: { cards: Save
           }}
         >
           <span style={{ fontSize: 13, color: '#4B5740' }}>
-            {c.brand} •••• {c.last4}
+            {c.brand} •••• {c.last4} {c.preferred && <span style={{ fontSize: 10.5, color: '#8FA080' }}>· padrão</span>}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span style={{ fontSize: 12, color: '#8A8D7C' }}>tokenizado</span>
+            {!c.preferred && (
+              <button
+                onClick={() => setPreferred(c.id)}
+                disabled={settingPreferredId === c.id}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#7C7F6D',
+                  fontSize: 12.5,
+                  cursor: settingPreferredId === c.id ? 'default' : 'pointer',
+                  opacity: settingPreferredId === c.id ? 0.6 : 1,
+                  padding: 0,
+                }}
+              >
+                {settingPreferredId === c.id ? 'Definindo…' : 'Definir como padrão'}
+              </button>
+            )}
             <button
               onClick={() => removeCard(c.id)}
               disabled={removingId === c.id}

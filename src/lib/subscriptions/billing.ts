@@ -2,6 +2,7 @@ import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { chargeSavedCard } from '@/lib/mercadopago/server';
 import { computeFirstDeliveryDate } from './schedule';
+import { todayISO } from '@/lib/delivery/holidays';
 import type { Database } from '@/lib/supabase/types';
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -118,7 +119,7 @@ export interface BillingRunResult {
  */
 export async function runBillingPass(): Promise<BillingRunResult> {
   const admin = createAdminClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const result: BillingRunResult = { charged: 0, failed: 0, skipped: 0, toppedUp: 0 };
 
   const { data: dueDeliveries } = await admin

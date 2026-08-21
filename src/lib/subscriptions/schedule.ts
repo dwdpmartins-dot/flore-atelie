@@ -1,6 +1,7 @@
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Freq, Weekday } from '@/lib/supabase/types';
+import { todayISO } from '@/lib/delivery/holidays';
 
 type Client = SupabaseClient<Database>;
 
@@ -12,7 +13,7 @@ type Client = SupabaseClient<Database>;
  * to prep for).
  */
 export async function computeFirstDeliveryDate(supabase: Client, freq: Freq, weekday: Weekday): Promise<string> {
-  const { data: today } = await supabase.rpc('next_weekday_on_or_after', { d: new Date().toISOString().slice(0, 10), weekday_name: weekday });
+  const { data: today } = await supabase.rpc('next_weekday_on_or_after', { d: todayISO(), weekday_name: weekday });
   let candidate = today as unknown as string;
 
   // Guard against an infinite loop from unexpected RPC failures.

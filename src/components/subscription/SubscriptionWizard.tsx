@@ -81,7 +81,7 @@ export default function SubscriptionWizard({
   const [addresses, setAddresses] = useState(initialAddresses);
   const [cards, setCards] = useState(initialCards);
   const [addressId, setAddressId] = useState(initialAddresses.find((a) => a.preferred)?.id ?? initialAddresses[0]?.id ?? '');
-  const [cardId, setCardId] = useState(initialCards[0]?.id ?? '');
+  const [cardId, setCardId] = useState(initialCards.find((c) => c.preferred)?.id ?? initialCards[0]?.id ?? '');
   const [showNewAddress, setShowNewAddress] = useState(addresses.length === 0);
   const [showNewCard, setShowNewCard] = useState(cards.length === 0);
   const [confirming, setConfirming] = useState(false);

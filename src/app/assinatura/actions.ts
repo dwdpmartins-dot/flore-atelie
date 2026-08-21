@@ -6,6 +6,7 @@ import { hasCompleteProfile } from '@/lib/auth/session';
 import { chargeSavedCard } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { computeFirstDeliveryDate, getNextPendingDelivery, isCutoffPassed, clearPendingDeliveries, getPlanPrice } from '@/lib/subscriptions/schedule';
+import { todayISO } from '@/lib/delivery/holidays';
 import type { Freq, Size, Weekday } from '@/lib/supabase/types';
 
 const FUTURE_CYCLES_GENERATED = 6;
@@ -157,7 +158,7 @@ export async function pauseSubscription(subscriptionId: string) {
     await clearPendingDeliveries(supabase, subscriptionId);
     await supabase
       .from('subscriptions')
-      .update({ status: 'pausada', paused_since: new Date().toISOString().slice(0, 10), pending_action: null })
+      .update({ status: 'pausada', paused_since: todayISO(), pending_action: null })
       .eq('id', subscriptionId);
     revalidatePath('/minha-conta');
     revalidatePath('/assinatura');

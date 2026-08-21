@@ -114,8 +114,17 @@ export function upcomingDeliverableDates(fromISO: string, minLeadDays: number, w
   return dates;
 }
 
-/** Today as 'YYYY-MM-DD', matching the simple (non-timezone-aware) "today"
- * convention already used elsewhere in this app (e.g. the admin dashboard). */
+/**
+ * Today as 'YYYY-MM-DD', in the ateliê's own timezone (America/Sao_Paulo)
+ * — NOT `new Date().toISOString().slice(0, 10)`, which renders in UTC.
+ * Brazil is UTC-3, so anywhere from 21:00 to 23:59 local time, the UTC
+ * calendar date is already tomorrow — that made every "earliest delivery
+ * date" offered during those evening hours land one full day later than
+ * intended (e.g. checking out at 21:30 on the 20th offered the 22nd as the
+ * earliest date instead of the 21st). This is the single source of "today"
+ * for delivery-date purposes; use it instead of the raw UTC one-liner
+ * anywhere a calendar date (not an instant) is what's actually meant.
+ */
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }

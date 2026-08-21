@@ -58,7 +58,7 @@ export default function CheckoutFlow({
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [cards, setCards] = useState(initialCards);
-  const [cardId, setCardId] = useState(initialCards[0]?.id ?? '');
+  const [cardId, setCardId] = useState(initialCards.find((c) => c.preferred)?.id ?? initialCards[0]?.id ?? '');
   const [showNewCard, setShowNewCard] = useState(initialCards.length === 0);
 
   const [submitting, setSubmitting] = useState(false);
@@ -428,7 +428,31 @@ export default function CheckoutFlow({
 
   // step 3
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 22 }}>
+      {/* Covers the whole step while the order is being confirmed —
+          without this, submitting a brand-new card (its own Brick button,
+          not the one below) left the card fields just sitting there with
+          no visible feedback for however long the charge call takes,
+          reading as "did this break?" instead of "this is working". */}
+      {submitting && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 30,
+            background: 'rgba(250,247,242,0.85)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 14,
+          }}
+        >
+          <div style={{ width: 34, height: 34, border: '3px solid #D8CFC0', borderTopColor: '#4B5740', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <span style={{ fontSize: 13.5, color: '#4B5740' }}>Confirmando pagamento…</span>
+          <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 10 }}>
         <button
           onClick={() => setPaymentMethod('card')}

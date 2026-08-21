@@ -1,12 +1,13 @@
 import { getAdminSession } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { todayISO } from '@/lib/delivery/holidays';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 
 export default async function AdminDashboardPage() {
   const session = await getAdminSession();
   const admin = createAdminClient();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
 
   const [
     { data: aiSetting },

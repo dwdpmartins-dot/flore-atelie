@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireAdmin } from '@/lib/auth/session';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { todayISO } from '@/lib/delivery/holidays';
 import type { Freq, Size } from '@/lib/supabase/types';
 
 async function adminClient() {
@@ -67,7 +68,7 @@ export async function toggleBouquetActive(id: string) {
 /** Demo tool: force the nearest confirmed delivery into a failed payment state, to preview the customer-facing banner. */
 export async function simulatePaymentFailure() {
   const admin = await adminClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const { data: delivery } = await admin
     .from('subscription_deliveries')
     .select('id')
