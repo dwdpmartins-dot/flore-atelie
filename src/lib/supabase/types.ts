@@ -163,6 +163,10 @@ export interface Database {
           recipient_name: string | null;
           address_id: string | null;
           card_id: string | null;
+          /** Mercado Pago Preapproval id driving this subscription's
+           * recurring charges (see supabase/migrations/0012_preapproval.sql).
+           * Null for any subscription predating that migration. */
+          mp_preapproval_id: string | null;
           price: number;
           paused_since: string | null;
           pending_action: { type: 'pause' | 'cancel'; effective_date: string } | null;

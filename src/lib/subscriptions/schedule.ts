@@ -56,3 +56,33 @@ export async function getPlanPrice(supabase: Client, freq: Freq, size: Database[
   const { data } = await supabase.from('subscription_plans').select('price').eq('freq', freq).eq('size', size).maybeSingle();
   return data?.price ?? null;
 }
+
+/**
+ * Days before a delivery its Preapproval charge should be scheduled for.
+ * Not the same thing as the 3-business-day "cutoff" used for the old
+ * chargeSavedCard model -- this is a wider buffer specifically to leave
+ * Mercado Pago's own automatic retry mechanism room to resolve a declined
+ * card before the delivery date arrives (we no longer control retry
+ * timing ourselves once a Preapproval is charging on its own schedule).
+ */
+export const CHARGE_LEAD_DAYS = 7;
+
+/** When a Preapproval cycle paying for `deliveryDateISO` should be charged
+ * — clamped to today if the buffer would land in the past (e.g. the first
+ * delivery is coming up sooner than the usual lead time allows). */
+export function firstChargeDateFor(deliveryDateISO: string): string {
+  const d = new Date(`${deliveryDateISO}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - CHARGE_LEAD_DAYS);
+  const candidate = d.toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+  return candidate < today ? today : candidate;
+}
+
+/** The recurring interval Mercado Pago should charge on, in days — same
+ * mapping as the freq_step_days Postgres function (single source of
+ * truth for "Semanal"/"Quinzenal"/"Mensal" -> 7/15/30), fetched via RPC
+ * instead of duplicated here so the two never drift apart. */
+export async function freqStepDays(supabase: Client, freq: Freq): Promise<number> {
+  const { data } = await supabase.rpc('freq_step_days', { freq });
+  return data as unknown as number;
+}

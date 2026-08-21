@@ -304,4 +304,117 @@ export async function getPaymentStatus(paymentId: string | number) {
   return result.status;
 }
 
+// ===================== Preapproval (recurring subscriptions) =====================
+//
+// Replaces the old chargeSavedCard-driven recurring model for subscription
+// billing: instead of our own cron re-tokenizing a vaulted card_id every
+// cycle (the mechanism that kept failing inconsistently -- 500s, "Card
+// Token not found", "Customer not found", or a clean 200 that still came
+// back declined, all for the identical request), Mercado Pago's Preapproval
+// API owns the recurring schedule itself and charges the card on its own,
+// notifying us via webhook. The very first charge still uses a token
+// minted fresh from the card just entered (never a saved card_id), exactly
+// like chargeCardToken -- there is no re-tokenization step anywhere in this
+// flow, which is the actual point of migrating to it.
+
+/**
+ * back_url is a required field when creating a Preapproval, but it's only
+ * ever used if the customer goes through Mercado Pago's own hosted
+ * authorization redirect -- we don't use that (card_token_id is provided
+ * directly, no redirect happens), so this just needs to be a valid URL.
+ */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://floreatelie.com.br';
+
+/**
+ * Creates a Preapproval: a recurring billing agreement Mercado Pago itself
+ * drives. `cardTokenId` must be a fresh, single-use token minted directly
+ * from the card just entered (the Card Payment Brick's own token) -- not a
+ * saved card_id re-tokenized through /v1/card_tokens, which is the exact
+ * mechanism this migration removes. `startDate` is when the *first* charge
+ * fires; subsequent charges follow automatically every `frequencyDays`
+ * days from there.
+ */
+export async function createPreapproval(opts: {
+  payerEmail: string;
+  cardTokenId: string;
+  amount: number;
+  frequencyDays: number;
+  reason: string;
+  externalReference: string;
+  startDate: string; // 'YYYY-MM-DD'
+}) {
+  try {
+    return await mpFetch('/preapproval', {
+      method: 'POST',
+      body: JSON.stringify({
+        reason: opts.reason,
+        external_reference: opts.externalReference,
+        payer_email: opts.payerEmail,
+        card_token_id: opts.cardTokenId,
+        back_url: `${SITE_URL}/assinatura`,
+        status: 'authorized',
+        auto_recurring: {
+          frequency: opts.frequencyDays,
+          frequency_type: 'days',
+          transaction_amount: opts.amount,
+          currency_id: 'BRL',
+          start_date: `${opts.startDate}T00:00:00.000-03:00`,
+        },
+      }),
+    });
+  } catch (err) {
+    logMpError('createPreapproval failed', err);
+    throw err;
+  }
+}
+
+/** Pauses, reactivates, or cancels a Preapproval -- e.g. pausing/cancelling
+ * the subscription, or reactivating it on resume. Cancelling is permanent
+ * on Mercado Pago's side (a cancelled Preapproval can't be reactivated;
+ * resuming a cancelled subscription needs a brand new one). */
+export async function updatePreapprovalStatus(preapprovalId: string, status: 'paused' | 'authorized' | 'cancelled') {
+  try {
+    return await mpFetch(`/preapproval/${preapprovalId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+  } catch (err) {
+    logMpError('updatePreapprovalStatus failed', err);
+    throw err;
+  }
+}
+
+/** Updates the amount charged on future cycles (a plan/size change). Does
+ * not affect a cycle already charged. */
+export async function updatePreapprovalAmount(preapprovalId: string, amount: number) {
+  try {
+    return await mpFetch(`/preapproval/${preapprovalId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ auto_recurring: { transaction_amount: amount } }),
+    });
+  } catch (err) {
+    logMpError('updatePreapprovalAmount failed', err);
+    throw err;
+  }
+}
+
+export async function getPreapproval(preapprovalId: string) {
+  return mpFetch(`/preapproval/${preapprovalId}`, { method: 'GET' });
+}
+
+/**
+ * Fetches the detail of a single recurring charge attempt Mercado Pago
+ * generated on its own for a Preapproval (the resource the
+ * `subscription_authorized_payment` webhook event refers to by id).
+ * Expected fields (per Mercado Pago's docs — NOT yet exercised against a
+ * real webhook payload, since this whole flow is still untested with real
+ * credentials; verify shape against the first real event received):
+ * `preapproval_id`, `status` ('scheduled' | 'pending' | 'processed' |
+ * 'rejected' | 'cancelled'), and a nested `payment` object with the
+ * underlying payment's own `id`/`status` once one exists.
+ */
+export async function getAuthorizedPayment(authorizedPaymentId: string) {
+  return mpFetch(`/authorized_payments/${authorizedPaymentId}`, { method: 'GET' });
+}
+
 export { CardToken };

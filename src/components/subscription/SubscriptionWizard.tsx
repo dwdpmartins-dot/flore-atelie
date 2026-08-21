@@ -1,15 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CardPaymentBrick from '@/components/payment/CardPaymentBrick';
 import InlineAddressForm from '@/components/address/InlineAddressForm';
-import { createSubscription } from '@/app/assinatura/actions';
+import { createSubscription, checkFirstChargeStatus } from '@/app/assinatura/actions';
 import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import type { Database, Freq, Size, Weekday } from '@/lib/supabase/types';
 
 type Address = Database['public']['Tables']['addresses']['Row'];
-type SavedCard = Database['public']['Tables']['saved_cards']['Row'];
 
 const FREQS: Freq[] = ['Semanal', 'Quinzenal', 'Mensal'];
 const SIZES: Size[] = ['P', 'M', 'G'];
@@ -62,12 +61,10 @@ function WizardFooter({ onBack, backLabel = '← Voltar', children }: { onBack?:
 export default function SubscriptionWizard({
   plans,
   addresses: initialAddresses,
-  cards: initialCards,
   email,
 }: {
   plans: Record<string, number>;
   addresses: Address[];
-  cards: SavedCard[];
   email: string | null;
 }) {
   const router = useRouter();
@@ -79,42 +76,81 @@ export default function SubscriptionWizard({
   const [message, setMessage] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [addresses, setAddresses] = useState(initialAddresses);
-  const [cards, setCards] = useState(initialCards);
   const [addressId, setAddressId] = useState(initialAddresses.find((a) => a.preferred)?.id ?? initialAddresses[0]?.id ?? '');
-  const [cardId, setCardId] = useState(initialCards.find((c) => c.preferred)?.id ?? initialCards[0]?.id ?? '');
   const [showNewAddress, setShowNewAddress] = useState(addresses.length === 0);
-  const [showNewCard, setShowNewCard] = useState(cards.length === 0);
   const [confirming, setConfirming] = useState(false);
   const [declined, setDeclined] = useState(false);
   const [formError, setFormError] = useState('');
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  // Set once createSubscription succeeds — the Preapproval exists, but its
+  // first charge's outcome isn't known synchronously (see
+  // checkFirstChargeStatus). While this is set the wizard shows a "waiting
+  // for confirmation" screen and polls instead of jumping straight to the
+  // success screen.
+  const [pendingDeliveryId, setPendingDeliveryId] = useState<string | null>(null);
 
   const price = plans[`${freq}-${size}`] ?? 0;
   const selectedAddress = addresses.find((a) => a.id === addressId);
 
-  async function handleConfirm() {
-    if (!addressId || !cardId) {
-      setFormError('Escolha um endereço e uma forma de pagamento.');
+  // Poll for the first charge's outcome once the Preapproval has been
+  // created — mirrors CheckoutFlow's PIX polling.
+  useEffect(() => {
+    if (!pendingDeliveryId) return;
+    const interval = setInterval(async () => {
+      const result = await checkFirstChargeStatus(pendingDeliveryId);
+      if (result.status === 'paid') {
+        clearInterval(interval);
+        setPendingDeliveryId(null);
+        setStep(5);
+      } else if (result.status === 'failed') {
+        clearInterval(interval);
+        setPendingDeliveryId(null);
+        setDeclined(true);
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [pendingDeliveryId]);
+
+  async function handleCardResult(result: { token: string }) {
+    if (!addressId) {
+      setFormError('Escolha um endereço.');
       return;
     }
     setFormError('');
     setConfirming(true);
-    const result = await createSubscription({ freq, size, weekday, message, addressId, cardId, recipientName: recipientName || undefined });
+    const res = await createSubscription({ freq, size, weekday, message, addressId, cardToken: result.token, recipientName: recipientName || undefined });
     setConfirming(false);
-    if (result.declined) {
+    if (res.declined) {
       setDeclined(true);
       return;
     }
-    if (result.error) {
-      if (result.error === 'Sessão expirada.') {
+    if (res.error) {
+      if (res.error === 'Sessão expirada.') {
         router.push('/minha-conta?redirect=' + encodeURIComponent('/assinatura'));
         return;
       }
-      setFormError(result.error);
+      setFormError(res.error);
       return;
     }
-    setConfirmedId(result.subscriptionId ?? null);
-    setStep(5);
+    setConfirmedId(res.subscriptionId ?? null);
+    if (res.firstDeliveryId) {
+      setPendingDeliveryId(res.firstDeliveryId);
+    } else {
+      // No delivery row came back (shouldn't normally happen) — fall back
+      // to the success screen rather than polling forever on a null id.
+      setStep(5);
+    }
+  }
+
+  if (pendingDeliveryId) {
+    return (
+      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, padding: '60px 0' }}>
+        <div style={{ width: 44, height: 44, border: '3px solid #D8CFC0', borderTopColor: '#4B5740', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontStyle: 'italic', color: '#4B5740', margin: 0 }}>Confirmando sua assinatura…</h2>
+        <p style={{ fontSize: 13.5, color: '#7C7F6D', maxWidth: 380 }}>Estamos confirmando a primeira cobrança com a sua operadora. Isso leva só alguns segundos.</p>
+        <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
+      </div>
+    );
   }
 
   if (step === 5) {
@@ -285,83 +321,13 @@ export default function SubscriptionWizard({
             </div>
           </div>
 
-          <div>
-            <label style={{ fontSize: 12.5, color: '#7C7F6D', display: 'block', marginBottom: 10 }}>Forma de pagamento</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {cards.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setCardId(c.id)}
-                  style={{
-                    textAlign: 'left',
-                    padding: '14px 16px',
-                    border: `1.5px solid ${cardId === c.id ? '#4B5740' : '#D8CFC0'}`,
-                    background: cardId === c.id ? '#F3EDE3' : '#FFFFFF',
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                  }}
-                >
-                  <div style={{ width: 16, height: 16, borderRadius: '50%', border: '1.5px solid #4B5740', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {cardId === c.id && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4B5740' }} />}
-                  </div>
-                  <span style={{ fontSize: 13.5, color: '#4B5740' }}>
-                    {c.brand} •••• {c.last4}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setShowNewCard((v) => !v)} style={{ background: 'none', border: 'none', color: '#C4836A', fontSize: 13, cursor: 'pointer', marginTop: 12, padding: 0 }}>
-              {showNewCard ? 'Cancelar' : '+ Adicionar cartão'}
-            </button>
-            {showNewCard && (
-              <div style={{ marginTop: 10 }}>
-                {/* Saving a card for recurring billing, not charging it right
-                    now — maxInstallments=1 hides the installment picker,
-                    since a subscription cycle is never split into parcelas. */}
-                <CardPaymentBrick
-                  amount={price}
-                  maxInstallments={1}
-                  payerEmail={email ?? undefined}
-                  notice={
-                    <>
-                      <strong>Este passo ainda não cobra nada</strong> — ele apenas salva o cartão. A cobrança da
-                      assinatura só acontece depois, quando você confirmar na última tela.
-                    </>
-                  }
-                  onResult={async (result) => {
-                    const res = await fetch('/api/cards', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ token: result.token }),
-                    });
-                    const data = await res.json();
-                    if (data.card) {
-                      setCards((prev) => [...prev, data.card]);
-                      setCardId(data.card.id);
-                      setShowNewCard(false);
-                    } else {
-                      setFormError('Não foi possível salvar o cartão agora.');
-                    }
-                  }}
-                  onError={setFormError}
-                />
-              </div>
-            )}
-            <p style={{ fontSize: 11.5, color: '#A7AB97', margin: '14px 0 0' }}>
-              Assinaturas são cobradas por cartão de crédito, a cada ciclo, na data de corte de cada entrega.
-            </p>
-          </div>
-
           {formError && <p style={{ fontSize: 12.5, color: '#C4836A', margin: 0 }}>{formError}</p>}
 
           <WizardFooter onBack={() => setStep(2)}>
             <button
               onClick={() => setStep(4)}
-              disabled={!addressId || !cardId}
-              style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '14px 28px', borderRadius: 2, fontSize: 14, cursor: 'pointer', opacity: !addressId || !cardId ? 0.5 : 1 }}
+              disabled={!addressId}
+              style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '14px 28px', borderRadius: 2, fontSize: 14, cursor: 'pointer', opacity: !addressId ? 0.5 : 1 }}
             >
               Continuar →
             </button>
@@ -386,10 +352,33 @@ export default function SubscriptionWizard({
           <p style={{ fontSize: 12.5, color: '#8A8D7C', lineHeight: 1.7 }}>
             Você pode ajustar, pausar ou cancelar sua assinatura a qualquer momento em Minha Conta.
           </p>
+
+          <div>
+            <label style={{ fontSize: 12.5, color: '#7C7F6D', display: 'block', marginBottom: 10 }}>Forma de pagamento</label>
+            {/* No saved-card picker here — a subscription's card is always
+                entered fresh, right here, and tokenized once for Mercado
+                Pago's Preapproval to hold on to (never re-tokenized by us
+                on each cycle). maxInstallments=1 hides the installment
+                picker, since a cycle is never split into parcelas. */}
+            <CardPaymentBrick
+              amount={price}
+              maxInstallments={1}
+              payerEmail={email ?? undefined}
+              notice={
+                <>
+                  <strong>Ao confirmar, sua assinatura é ativada</strong> e a primeira cobrança acontece agora,
+                  neste cartão.
+                </>
+              }
+              onResult={handleCardResult}
+              onError={setFormError}
+            />
+          </div>
+
+          {formError && <p style={{ fontSize: 12.5, color: '#C4836A', margin: 0 }}>{formError}</p>}
+
           <WizardFooter onBack={() => setStep(3)}>
-            <button onClick={handleConfirm} disabled={confirming} style={{ background: '#C4836A', color: '#FAF7F2', border: 'none', padding: '15px 30px', borderRadius: 2, fontSize: 14, cursor: 'pointer' }}>
-              {confirming ? 'Confirmando…' : 'Confirmar assinatura'}
-            </button>
+            {confirming && <span style={{ fontSize: 13, color: '#7C7F6D' }}>Confirmando…</span>}
           </WizardFooter>
 
           {declined && (
@@ -398,22 +387,12 @@ export default function SubscriptionWizard({
                 <span style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#C4836A' }}>Pagamento não aprovado</span>
                 <h3 style={{ fontFamily: "'Playfair Display',serif", fontStyle: 'italic', fontSize: 20, color: '#4B5740', margin: 0 }}>Algo não deu certo por aqui.</h3>
                 <p style={{ fontSize: 13.5, color: '#5C5F51', lineHeight: 1.75, margin: 0 }}>
-                  Não conseguimos confirmar a cobrança com o cartão selecionado. Sua assinatura ainda não foi
-                  ativada — tente novamente ou use outro cartão.
+                  Não conseguimos confirmar a cobrança com o cartão informado. Sua assinatura ainda não foi ativada
+                  — tente novamente com o mesmo cartão ou informe outro.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
                   <button onClick={() => setDeclined(false)} style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: 12, borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
                     Tentar novamente
-                  </button>
-                  <button
-                    onClick={() => {
-                      setDeclined(false);
-                      setStep(3);
-                      setShowNewCard(true);
-                    }}
-                    style={{ background: 'none', border: '1px solid #4B5740', color: '#4B5740', padding: 12, borderRadius: 2, fontSize: 13, cursor: 'pointer' }}
-                  >
-                    Usar outro cartão
                   </button>
                 </div>
               </div>
