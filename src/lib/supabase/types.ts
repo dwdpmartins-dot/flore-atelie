@@ -30,6 +30,7 @@ export interface Database {
           phone: string | null;
           email: string | null;
           mp_customer_id: string | null;
+          welcome_email_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -196,6 +197,7 @@ export interface Database {
           payment_status: PaymentStatus;
           charged_at: string | null;
           mp_payment_id: string | null;
+          reminder_email_sent_at: string | null;
           created_at: string;
         };
         Insert: Partial<Database['public']['Tables']['subscription_deliveries']['Row']> & {
@@ -226,6 +228,12 @@ export interface Database {
           mp_status: string | null;
           message: string | null;
           recipient_name: string | null;
+          /** Last order.status we've already sent the customer an email
+           * about (see src/lib/email) — prevents a webhook redelivery from
+           * re-sending the same confirmation/decline email. */
+          status_email_sent_for: string | null;
+          admin_notified_at: string | null;
+          reminder_email_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };

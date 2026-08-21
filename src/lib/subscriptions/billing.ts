@@ -1,6 +1,7 @@
 import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { chargeSavedCard, updatePreapprovalAmount, logMpError } from '@/lib/mercadopago/server';
+import { sendAdminNewOrderNotification, sendSubscriptionConfirmationEmail, sendDirectDeclinedEmail } from '@/lib/email/send';
 import { computeFirstDeliveryDate } from './schedule';
 import { todayISO } from '@/lib/delivery/holidays';
 import type { Database } from '@/lib/supabase/types';
@@ -104,21 +105,43 @@ async function chargeDelivery(admin: AdminClient, delivery: Delivery, subscripti
       .update({ payment_status: 'paid', charged_at: new Date().toISOString(), mp_payment_id: String(payment.id) })
       .eq('id', delivery.id);
 
-    await admin.from('orders').insert({
-      customer_id: subscription.customer_id,
-      kind: 'assinatura',
-      subscription_delivery_id: delivery.id,
-      status: 'em_andamento',
-      subtotal: subscription.price,
-      total: subscription.price,
-      address_id: subscription.address_id,
-      delivery_date: delivery.delivery_date,
-      payment_method: 'card',
-      mp_payment_id: String(payment.id),
-      mp_status: payment.status,
-      message: delivery.message,
-      recipient_name: delivery.recipient_name,
-    });
+    const { data: newOrder } = await admin
+      .from('orders')
+      .insert({
+        customer_id: subscription.customer_id,
+        kind: 'assinatura',
+        subscription_delivery_id: delivery.id,
+        status: 'em_andamento',
+        subtotal: subscription.price,
+        total: subscription.price,
+        address_id: subscription.address_id,
+        delivery_date: delivery.delivery_date,
+        payment_method: 'card',
+        mp_payment_id: String(payment.id),
+        mp_status: payment.status,
+        message: delivery.message,
+        recipient_name: delivery.recipient_name,
+      })
+      .select('id')
+      .single();
+
+    // Same split as the webhook's Preapproval path: admin gets notified
+    // every cycle, the customer only gets a subscription-confirmed email on
+    // the first one.
+    const emailTasks: Promise<unknown>[] = [];
+    if (newOrder) emailTasks.push(sendAdminNewOrderNotification(admin, newOrder.id));
+    if (delivery.sequence_index === 1) {
+      emailTasks.push(
+        sendSubscriptionConfirmationEmail(admin, {
+          customerId: subscription.customer_id,
+          freq: subscription.freq,
+          size: subscription.size,
+          price: subscription.price,
+          nextDeliveryDate: delivery.delivery_date,
+        })
+      );
+    }
+    await Promise.all(emailTasks);
 
     return 'paid';
   } catch {
@@ -179,6 +202,10 @@ export async function runBillingPass(): Promise<BillingRunResult> {
     } else {
       result.failed++;
       await admin.from('subscription_deliveries').update({ payment_status: 'failed' }).eq('id', row.id);
+      // Only this loop (deliveries still 'pending') sends the decline email
+      // -- the retry loop below re-charges rows already 'failed', and a
+      // repeat failure there shouldn't send a second email for the same cycle.
+      await sendDirectDeclinedEmail(admin, { customerId: subscription.customer_id, kind: 'assinatura' });
     }
   }
 

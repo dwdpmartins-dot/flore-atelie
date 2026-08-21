@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { sendWelcomeEmailForCurrentUser } from '@/app/auth/actions';
 import PasswordInput from './PasswordInput';
 
 type View = 'login' | 'signup' | 'forgot';
@@ -117,6 +118,11 @@ export default function AuthGate() {
     // per the "sem verificação de e-mail" rule), signUp returns a session
     // immediately and the person is already logged in.
     if (data.session) {
+      // Fire-and-forget: this is a self-contained request to a Server
+      // Action (its own request/response cycle, not tied to whether we
+      // await it here), so not blocking navigation on it is safe -- the
+      // welcome email shouldn't add latency to signup.
+      void sendWelcomeEmailForCurrentUser();
       router.replace(redirectTo);
       router.refresh();
     } else {

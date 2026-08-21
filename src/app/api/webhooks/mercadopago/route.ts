@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getAuthorizedPayment } from '@/lib/mercadopago/server';
 import { applyPendingTransition } from '@/lib/subscriptions/billing';
+import { sendOrderConfirmationEmail, sendOrderDeclinedEmail, sendAdminNewOrderNotification, sendSubscriptionConfirmationEmail, sendDirectDeclinedEmail } from '@/lib/email/send';
 
 export const runtime = 'nodejs';
 
@@ -96,6 +97,17 @@ export async function POST(request: Request) {
                 ? 'cancelado'
                 : order.status;
         await admin.from('orders').update({ mp_status: status, status: nextStatus }).eq('id', order.id);
+
+        // Emails are idempotent per-status (see send.ts), so this is safe
+        // even though card payments already send these synchronously from
+        // payAvulsoOrder/checkPixStatus -- this webhook is the only path
+        // for a payment that approves/declines asynchronously (PIX, or a
+        // late review outcome).
+        if (nextStatus === 'em_andamento' && order.status !== 'em_andamento') {
+          await Promise.all([sendOrderConfirmationEmail(admin, order.id), sendAdminNewOrderNotification(admin, order.id)]);
+        } else if (nextStatus === 'pagamento_recusado' && order.status !== 'pagamento_recusado') {
+          await sendOrderDeclinedEmail(admin, order.id);
+        }
       }
 
       const { data: delivery } = await admin.from('subscription_deliveries').select('id').eq('mp_payment_id', String(paymentId)).maybeSingle();
@@ -164,21 +176,44 @@ async function handleAuthorizedPayment(admin: AdminClient, authorizedPaymentId: 
       .update({ payment_status: 'paid', charged_at: new Date().toISOString(), mp_payment_id: mpPaymentId })
       .eq('id', delivery.id);
 
-    await admin.from('orders').insert({
-      customer_id: subscription.customer_id,
-      kind: 'assinatura',
-      subscription_delivery_id: delivery.id,
-      status: 'em_andamento',
-      subtotal: subscription.price,
-      total: subscription.price,
-      address_id: subscription.address_id,
-      delivery_date: delivery.delivery_date,
-      payment_method: 'card',
-      mp_payment_id: mpPaymentId,
-      mp_status: detail.payment?.status ?? 'approved',
-      message: delivery.message,
-      recipient_name: delivery.recipient_name,
-    });
+    const { data: newOrder } = await admin
+      .from('orders')
+      .insert({
+        customer_id: subscription.customer_id,
+        kind: 'assinatura',
+        subscription_delivery_id: delivery.id,
+        status: 'em_andamento',
+        subtotal: subscription.price,
+        total: subscription.price,
+        address_id: subscription.address_id,
+        delivery_date: delivery.delivery_date,
+        payment_method: 'card',
+        mp_payment_id: mpPaymentId,
+        mp_status: detail.payment?.status ?? 'approved',
+        message: delivery.message,
+        recipient_name: delivery.recipient_name,
+      })
+      .select('id')
+      .single();
+
+    // The ateliê needs to know about every cycle to prepare/deliver it, not
+    // just the first -- but the customer only gets a special "assinatura
+    // confirmada" email once, on the very first cycle (sendAdminNewOrderNotification
+    // is separately idempotent per order row, so it's safe either way).
+    const emailTasks: Promise<unknown>[] = [];
+    if (newOrder) emailTasks.push(sendAdminNewOrderNotification(admin, newOrder.id));
+    if (delivery.sequence_index === 1) {
+      emailTasks.push(
+        sendSubscriptionConfirmationEmail(admin, {
+          customerId: subscription.customer_id,
+          freq: subscription.freq,
+          size: subscription.size,
+          price: subscription.price,
+          nextDeliveryDate: delivery.delivery_date,
+        })
+      );
+    }
+    await Promise.all(emailTasks);
 
     if (subscription.pending_action || subscription.pending_plan_change) {
       await applyPendingTransition(admin, subscription);
@@ -203,9 +238,14 @@ async function handleAuthorizedPayment(admin: AdminClient, authorizedPaymentId: 
 
   if (detail.status === 'rejected' || detail.status === 'cancelled') {
     // Only flip the row if it isn't already 'failed' — avoids clobbering
-    // anything else a concurrent retry-triggered event might be doing.
+    // anything else a concurrent retry-triggered event might be doing. This
+    // doubles as the email's own idempotency guard: only the first
+    // rejection in a retry sequence sends one (Mercado Pago retries a
+    // declined recurring charge automatically -- see the docstring above --
+    // so without this a customer would get one email per retry attempt).
     if (delivery.payment_status !== 'failed') {
       await admin.from('subscription_deliveries').update({ payment_status: 'failed' }).eq('id', delivery.id);
+      await sendDirectDeclinedEmail(admin, { customerId: subscription.customer_id, kind: 'assinatura' });
     }
   }
 }

@@ -2,8 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { hasCompleteProfile } from '@/lib/auth/session';
 import { createPreapproval, updatePreapprovalStatus, updatePreapprovalAmount } from '@/lib/mercadopago/server';
+import { sendSubscriptionStatusEmail } from '@/lib/email/send';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import {
   computeFirstDeliveryDate,
@@ -217,6 +219,7 @@ export async function pauseSubscription(subscriptionId: string) {
       .from('subscriptions')
       .update({ status: 'pausada', paused_since: todayISO(), pending_action: null })
       .eq('id', subscriptionId);
+    await sendSubscriptionStatusEmail(createAdminClient(), { customerId: subscription.customer_id, action: 'pausada', effectiveDate: null });
     revalidatePath('/minha-conta');
     revalidatePath('/assinatura');
     return { success: true, immediate: true };
@@ -237,6 +240,7 @@ export async function pauseSubscription(subscriptionId: string) {
     .from('subscriptions')
     .update({ pending_action: { type: 'pause', effective_date: effectiveDate } })
     .eq('id', subscriptionId);
+  await sendSubscriptionStatusEmail(createAdminClient(), { customerId: subscription.customer_id, action: 'pausada', effectiveDate });
 
   revalidatePath('/minha-conta');
   revalidatePath('/assinatura');
@@ -303,6 +307,7 @@ export async function cancelSubscription(subscriptionId: string) {
     }
     await clearPendingDeliveries(supabase, subscriptionId);
     await supabase.from('subscriptions').update({ status: 'cancelada', pending_action: null }).eq('id', subscriptionId);
+    await sendSubscriptionStatusEmail(createAdminClient(), { customerId: subscription.customer_id, action: 'cancelada', effectiveDate: null });
     revalidatePath('/minha-conta');
     revalidatePath('/assinatura');
     return { success: true, immediate: true };
@@ -316,6 +321,7 @@ export async function cancelSubscription(subscriptionId: string) {
   });
   const effectiveDate = effectiveDateRaw as string;
   await supabase.from('subscriptions').update({ pending_action: { type: 'cancel', effective_date: effectiveDate } }).eq('id', subscriptionId);
+  await sendSubscriptionStatusEmail(createAdminClient(), { customerId: subscription.customer_id, action: 'cancelada', effectiveDate });
 
   revalidatePath('/minha-conta');
   revalidatePath('/assinatura');

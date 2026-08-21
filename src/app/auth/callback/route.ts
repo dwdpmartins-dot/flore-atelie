@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { sendWelcomeEmail } from '@/lib/email/send';
 
 // Landing point for Google OAuth (and password-recovery links). Exchanges
 // the ?code for a session cookie, then sends the person where they were
@@ -13,7 +15,16 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data } = await supabase.auth.exchangeCodeForSession(code);
+    if (data.user) {
+      // Awaited (not fire-and-forget): this whole request is one
+      // serverless invocation, and nothing here keeps the process alive
+      // past the response, so an un-awaited call risks getting cut off
+      // before it sends. Idempotent (see sendWelcomeEmail), so this is a
+      // safe no-op on every Google login after the first, and on
+      // password-recovery links too.
+      await sendWelcomeEmail(createAdminClient(), data.user.id);
+    }
   }
 
   return NextResponse.redirect(`${origin}${redirectTo}`);

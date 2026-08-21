@@ -97,6 +97,10 @@ O que precisa de um passe com credenciais reais antes de produção:
   do ambiente de desenvolvimento usado).
 - Geração de ilustração via OpenAI (`OPENAI_API_KEY` não configurada
   no ambiente de build).
+- E-mails transacionais via Resend (`RESEND_API_KEY`) — implementados
+  contra a API oficial (ver `src/lib/email`), não exercitados
+  end-to-end neste ambiente. Sem a chave configurada, `sendEmail()`
+  loga e não faz nada; nenhum outro fluxo quebra.
 - Um passe visual em viewport mobile real (375/414px) — a revisão de
   responsividade foi feita por leitura de código, já que as páginas
   dependem de dados do Supabase em tempo de request.

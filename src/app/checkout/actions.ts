@@ -2,11 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveAddress } from '@/lib/geocoding/resolveAddress';
 import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus, attachCardResilient, logMpError } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
 import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
+import { sendOrderConfirmationEmail, sendOrderDeclinedEmail, sendAdminNewOrderNotification } from '@/lib/email/send';
 import type { Database } from '@/lib/supabase/types';
 
 export interface CheckoutItem {
@@ -103,6 +105,8 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
 
   if (orderError || !order) return { error: 'Não foi possível criar o pedido.' as const };
 
+  const admin = createAdminClient();
+
   await supabase.from('order_items').insert(
     input.items.map((i) => ({
       order_id: order.id,
@@ -134,6 +138,7 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
 
   if (await isSimulatingDecline(supabase)) {
     await supabase.from('orders').update({ status: 'pagamento_recusado', mp_status: 'simulated_decline' }).eq('id', order.id);
+    await sendOrderDeclinedEmail(admin, order.id);
     return { declined: true as const };
   }
 
@@ -179,6 +184,7 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
         statusDetail: payment.status_detail,
       });
       await supabase.from('orders').update({ status: 'pagamento_recusado', mp_status: payment.status }).eq('id', order.id);
+      await sendOrderDeclinedEmail(admin, order.id);
       return { declined: true as const };
     }
 
@@ -186,6 +192,7 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
       .from('orders')
       .update({ status: 'em_andamento', mp_payment_id: String(payment.id), mp_status: payment.status })
       .eq('id', order.id);
+    await Promise.all([sendOrderConfirmationEmail(admin, order.id), sendAdminNewOrderNotification(admin, order.id)]);
 
     // A brand-new card that just paid successfully is saved for next time
     // — never as the default (an explicit choice the customer never made
@@ -224,6 +231,7 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
     return { success: true as const, orderId: order.id as string };
   } catch {
     await supabase.from('orders').update({ status: 'pagamento_recusado' }).eq('id', order.id);
+    await sendOrderDeclinedEmail(admin, order.id);
     return { declined: true as const };
   }
 }
@@ -241,6 +249,8 @@ export async function checkPixStatus(orderId: string) {
   const status = await getPaymentStatus(order.mp_payment_id);
   if (status === 'approved' && order.status !== 'em_andamento') {
     await supabase.from('orders').update({ status: 'em_andamento', mp_status: status }).eq('id', orderId);
+    const admin = createAdminClient();
+    await Promise.all([sendOrderConfirmationEmail(admin, orderId), sendAdminNewOrderNotification(admin, orderId)]);
   }
   return { status };
 }
