@@ -32,6 +32,20 @@ export interface CreateSubscriptionInput {
   cardToken: string;
 }
 
+/**
+ * Lets the wizard show the real first-delivery date as soon as the
+ * customer picks a weekday, instead of only finding out after paying —
+ * "próxima segunda" isn't always literally the next occurrence of that
+ * weekday, since one too close to today (inside the prep cutoff) gets
+ * pushed a full week out. Read-only, same computation createSubscription
+ * itself uses right before creating the Preapproval.
+ */
+export async function previewFirstDeliveryDate(freq: Freq, weekday: Weekday) {
+  const supabase = await createClient();
+  const date = await computeFirstDeliveryDate(supabase, freq, weekday);
+  return { date };
+}
+
 export async function createSubscription(input: CreateSubscriptionInput) {
   const supabase = await createClient();
   const {

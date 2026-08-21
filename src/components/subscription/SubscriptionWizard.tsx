@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CardPaymentBrick from '@/components/payment/CardPaymentBrick';
 import InlineAddressForm from '@/components/address/InlineAddressForm';
-import { createSubscription } from '@/app/assinatura/actions';
+import { createSubscription, previewFirstDeliveryDate } from '@/app/assinatura/actions';
 import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import type { Database, Freq, Size, Weekday } from '@/lib/supabase/types';
 
@@ -30,6 +30,10 @@ function optBtn(active: boolean): React.CSSProperties {
  * WhatsApp button's (50) so that button still renders on top if the two
  * ever overlap on a narrow screen.
  */
+function fmtDate(d: string) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
+}
+
 function WizardFooter({ onBack, backLabel = '← Voltar', children }: { onBack?: () => void; backLabel?: string; children: React.ReactNode }) {
   return (
     <div
@@ -84,6 +88,21 @@ export default function SubscriptionWizard({
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
   const price = plans[`${freq}-${size}`] ?? 0;
   const selectedAddress = addresses.find((a) => a.id === addressId);
+
+  // The next occurrence of the chosen weekday isn't always the actual
+  // first delivery -- one too close to today (inside the prep cutoff)
+  // gets pushed a full week out. Shown as soon as freq/weekday are picked
+  // instead of only after payment, so this never comes as a surprise.
+  const [firstDeliveryPreview, setFirstDeliveryPreview] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    previewFirstDeliveryDate(freq, weekday).then((res) => {
+      if (active) setFirstDeliveryPreview(res.date);
+    });
+    return () => {
+      active = false;
+    };
+  }, [freq, weekday]);
 
   async function handleCardResult(result: { token: string }) {
     if (!addressId) {
@@ -212,6 +231,15 @@ export default function SubscriptionWizard({
                 </button>
               ))}
             </div>
+            {/* Not always "a próxima [dia]" — se a próxima ocorrência
+                estiver perto demais de hoje pra dar tempo de preparar, ela
+                pula pra semana seguinte automaticamente. Mostrado aqui,
+                antes da confirmação, pra isso nunca ser surpresa. */}
+            {firstDeliveryPreview && (
+              <p style={{ fontSize: 12.5, color: '#8A8D7C', margin: '10px 0 0' }}>
+                Primeira entrega prevista: <strong style={{ color: '#4B5740' }}>{fmtDate(firstDeliveryPreview)}</strong>
+              </p>
+            )}
           </div>
           <div>
             <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, color: '#4B5740', margin: '0 0 12px' }}>Mensagem do cartão</h3>
@@ -332,6 +360,7 @@ export default function SubscriptionWizard({
           )}
           <div style={{ background: '#F3EDE3', padding: 34, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Row label="Frequência" value={`${freq} · ${weekday}`} />
+            {firstDeliveryPreview && <Row label="Primeira entrega" value={fmtDate(firstDeliveryPreview)} />}
             <Row label="Tamanho" value={size} />
             <Row label="Endereço" value={selectedAddress ? `${selectedAddress.street}, ${selectedAddress.number}` : '—'} />
             {recipientName && <Row label="Presente para" value={recipientName} />}
