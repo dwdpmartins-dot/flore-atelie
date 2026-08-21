@@ -98,6 +98,10 @@ export default function SubscriptionManageCard({
     setBusy(true);
     const result = await changeSubscriptionPlan(subscription.id, freq, size);
     setBusy(false);
+    if (result && 'error' in result && result.error) {
+      setNotice(result.error);
+      return;
+    }
     setChangingPlan(false);
     if (result && 'effectiveDate' in result && result.effectiveDate) {
       setNotice(`Sua próxima entrega já está confirmada com o plano anterior. A alteração de plano vale a partir de ${fmtDate(result.effectiveDate)}.`);
@@ -185,17 +189,24 @@ export default function SubscriptionManageCard({
 
       {changingPlan && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, background: '#FFFFFF', padding: 18, borderRadius: 2, boxShadow: '0 1px 3px rgba(75,87,64,0.06)' }}>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {FREQS.map((f) => (
-              <button
-                key={f}
-                onClick={() => setFreq(f)}
-                style={{ padding: '10px 18px', borderRadius: 2, border: '1px solid #4B5740', background: freq === f ? '#4B5740' : 'transparent', color: freq === f ? '#FAF7F2' : '#4B5740', fontSize: 13, cursor: 'pointer' }}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+          {subscription.mp_preapproval_id ? (
+            <p style={{ fontSize: 12, color: '#8A8D7C', margin: 0 }}>
+              A frequência ({subscription.freq}) não pode ser alterada aqui — para mudar o ritmo das entregas,
+              cancele esta assinatura e assine novamente. O tamanho do buquê pode ser trocado livremente.
+            </p>
+          ) : (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {FREQS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFreq(f)}
+                  style={{ padding: '10px 18px', borderRadius: 2, border: '1px solid #4B5740', background: freq === f ? '#4B5740' : 'transparent', color: freq === f ? '#FAF7F2' : '#4B5740', fontSize: 13, cursor: 'pointer' }}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 10 }}>
             {SIZES.map((sz) => (
               <button

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { hasCompleteProfile } from '@/lib/auth/session';
-import { createPreapproval, updatePreapprovalStatus } from '@/lib/mercadopago/server';
+import { createPreapproval, updatePreapprovalStatus, updatePreapprovalAmount } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import {
   computeFirstDeliveryDate,
@@ -389,22 +389,34 @@ export async function changeSubscriptionPlan(subscriptionId: string, newFreq: Fr
   const price = await getPlanPrice(supabase, newFreq, newSize);
   if (price == null) return { error: 'Plano indisponível.' };
 
+  // Mercado Pago's preapproval update endpoint (PUT /preapproval/{id}) only
+  // accepts start_date/end_date/transaction_amount in auto_recurring -- not
+  // frequency/frequency_type (confirmed against MP's own SDK type
+  // definitions). So there's no way to move an existing Preapproval to a new
+  // billing rhythm; only a brand new Preapproval (with a freshly entered
+  // card) could. Rather than let our own freq drift out of sync with what MP
+  // actually charges on, block a frequency change here until a
+  // cancel-and-recreate flow exists for it. A size-only change (same freq,
+  // new price) is unaffected -- that's the case handled below.
+  if (subscription.mp_preapproval_id && newFreq !== subscription.freq) {
+    return { error: 'Para trocar a frequência da assinatura, é preciso cancelar a atual e assinar novamente no novo ritmo. O tamanho do buquê pode ser alterado a qualquer momento.' };
+  }
+
   const nextDelivery = await getNextPendingDelivery(supabase, subscriptionId);
   const cutoffPassed = nextDelivery ? await isCutoffPassed(supabase, nextDelivery.cutoff_date) : false;
 
   if (!nextDelivery || !cutoffPassed) {
+    if (subscription.mp_preapproval_id && price !== subscription.price) {
+      try {
+        await updatePreapprovalAmount(subscription.mp_preapproval_id, price);
+      } catch {
+        return { error: 'Não foi possível atualizar o valor no Mercado Pago. Tente novamente em instantes.' };
+      }
+    }
     await clearPendingDeliveries(supabase, subscriptionId);
     await supabase.from('subscriptions').update({ freq: newFreq, size: newSize, price, pending_plan_change: null }).eq('id', subscriptionId);
     const firstDeliveryDate = await computeFirstDeliveryDate(supabase, newFreq, subscription.weekday);
 
-    // TODO(preapproval): this updates our own price/schedule, but doesn't
-    // yet push the new amount/frequency to Mercado Pago
-    // (updatePreapprovalAmount exists for the amount half of this; the
-    // frequency half needs its own auto_recurring update, not implemented
-    // yet). Until this is wired up, a plan change on a Preapproval-backed
-    // subscription changes what we intend to charge without yet telling
-    // Mercado Pago -- flagging this rather than shipping it silently
-    // incomplete.
     const { error: planChangeScheduleError } = await supabase.rpc('build_delivery_schedule', {
       p_subscription_id: subscriptionId,
       p_freq: newFreq,

@@ -1,6 +1,6 @@
 import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { chargeSavedCard } from '@/lib/mercadopago/server';
+import { chargeSavedCard, updatePreapprovalAmount, logMpError } from '@/lib/mercadopago/server';
 import { computeFirstDeliveryDate } from './schedule';
 import { todayISO } from '@/lib/delivery/holidays';
 import type { Database } from '@/lib/supabase/types';
@@ -38,9 +38,28 @@ export async function applyPendingTransition(admin: AdminClient, subscription: S
   if (subscription.pending_plan_change) {
     const { freq, size } = subscription.pending_plan_change;
     const { data: plan } = await admin.from('subscription_plans').select('price').eq('freq', freq).eq('size', size).maybeSingle();
+    const newPrice = plan?.price ?? subscription.price;
+
+    // changeSubscriptionPlan already refuses a frequency change on a
+    // Preapproval-backed subscription (MP's update endpoint can't move an
+    // existing preapproval's billing rhythm), so `freq` here always matches
+    // what the Preapproval was created with -- only the amount can differ.
+    if (subscription.mp_preapproval_id && newPrice !== subscription.price) {
+      try {
+        await updatePreapprovalAmount(subscription.mp_preapproval_id, newPrice);
+      } catch (err) {
+        logMpError('applyPendingTransition: updatePreapprovalAmount failed', err);
+        // Don't apply a price our own DB thinks is current if Mercado Pago
+        // never actually got the update -- leave pending_plan_change in
+        // place so the next cycle resolution retries it, instead of quietly
+        // drifting out of sync with what MP will actually charge.
+        return;
+      }
+    }
+
     await admin
       .from('subscriptions')
-      .update({ freq, size, price: plan?.price ?? subscription.price, pending_plan_change: null })
+      .update({ freq, size, price: newPrice, pending_plan_change: null })
       .eq('id', subscription.id);
 
     const firstDeliveryDate = await computeFirstDeliveryDate(admin, freq, subscription.weekday);
