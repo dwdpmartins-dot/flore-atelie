@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { pauseSubscription, resumeSubscription, cancelSubscription, editSubscriptionMessage, changeSubscriptionPlan } from '@/app/assinatura/actions';
+import { pauseSubscription, resumeSubscription, cancelSubscription, editSubscriptionMessage, changeSubscriptionPlan, changeSubscriptionAddress } from '@/app/assinatura/actions';
+import InlineAddressForm from '@/components/address/InlineAddressForm';
 import type { Database, Freq, Size } from '@/lib/supabase/types';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+type Address = Database['public']['Tables']['addresses']['Row'];
 
 const FREQS: Freq[] = ['Semanal', 'Quinzenal', 'Mensal'];
 const SIZES: Size[] = ['P', 'M', 'G'];
@@ -19,10 +21,12 @@ export default function SubscriptionManageCard({
   subscription,
   nextDeliveryDate,
   plans,
+  addresses: initialAddresses,
 }: {
   subscription: Subscription;
   nextDeliveryDate: string | null;
   plans: Record<string, number>;
+  addresses: Address[];
 }) {
   const router = useRouter();
   const [modal, setModal] = useState<'pause' | 'cancel' | null>(null);
@@ -31,8 +35,14 @@ export default function SubscriptionManageCard({
   const [changingPlan, setChangingPlan] = useState(false);
   const [freq, setFreq] = useState<Freq>(subscription.freq);
   const [size, setSize] = useState<Size>(subscription.size);
+  const [changingAddress, setChangingAddress] = useState(false);
+  const [addresses, setAddresses] = useState(initialAddresses);
+  const [addressId, setAddressId] = useState(subscription.address_id ?? '');
+  const [showNewAddress, setShowNewAddress] = useState(false);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const currentAddress = addresses.find((a) => a.id === subscription.address_id);
 
   const isPaused = subscription.status === 'pausada';
 
@@ -95,6 +105,22 @@ export default function SubscriptionManageCard({
     refresh();
   }
 
+  async function saveAddress() {
+    if (!addressId) return;
+    setBusy(true);
+    const result = await changeSubscriptionAddress(subscription.id, addressId);
+    setBusy(false);
+    setChangingAddress(false);
+    if (result && 'error' in result && result.error) {
+      setNotice(result.error);
+      return;
+    }
+    // Takes effect from the next charge onward — no "locked this cycle"
+    // case here, unlike message/plan (see changeSubscriptionAddress).
+    setNotice('Endereço atualizado. Vale a partir da próxima cobrança.');
+    refresh();
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ background: '#F3EDE3', padding: 28, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -109,6 +135,10 @@ export default function SubscriptionManageCard({
           <strong>{isPaused ? `Pausada desde ${fmtDate(subscription.paused_since)}` : subscription.status}</strong>
         </div>
         {isPaused && <p style={{ fontSize: 12, color: '#8A8D7C', margin: 0, fontStyle: 'italic' }}>Sem data de término prevista — sua assinatura espera por você.</p>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#4B5740', gap: 14 }}>
+          <span style={{ flexShrink: 0 }}>Endereço</span>
+          <strong style={{ textAlign: 'right' }}>{currentAddress ? `${currentAddress.street}, ${currentAddress.number}` : '—'}</strong>
+        </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#4B5740' }}>
           <span>Valor por ciclo</span>
           <strong>R$ {subscription.price}</strong>
@@ -128,6 +158,9 @@ export default function SubscriptionManageCard({
           </button>
           <button disabled={busy} onClick={() => setChangingPlan((v) => !v)} style={{ flex: 1, background: '#FFFFFF', border: '1px solid #4B5740', color: '#4B5740', padding: 12, borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
             Alterar plano
+          </button>
+          <button disabled={busy} onClick={() => setChangingAddress((v) => !v)} style={{ flex: 1, background: '#FFFFFF', border: '1px solid #4B5740', color: '#4B5740', padding: 12, borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
+            Alterar endereço
           </button>
           <button disabled={busy} onClick={() => setModal('cancel')} style={{ flex: 1, background: 'none', border: '1px solid #C4836A', color: '#C4836A', padding: 12, borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
             Cancelar
@@ -176,6 +209,60 @@ export default function SubscriptionManageCard({
           </div>
           <button onClick={savePlan} disabled={busy} style={{ alignSelf: 'flex-start', background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '10px 18px', borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
             Confirmar novo plano
+          </button>
+        </div>
+      )}
+
+      {changingAddress && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: '#FFFFFF', padding: 18, borderRadius: 2, boxShadow: '0 1px 3px rgba(75,87,64,0.06)' }}>
+          <p style={{ fontSize: 12, color: '#8A8D7C', margin: 0 }}>
+            Vale a partir da próxima cobrança — não afeta uma entrega já confirmada para o ciclo atual.
+          </p>
+          {addresses.map((a) => (
+            <button
+              key={a.id}
+              onClick={() => setAddressId(a.id)}
+              style={{
+                textAlign: 'left',
+                padding: '12px 14px',
+                border: `1.5px solid ${addressId === a.id ? '#4B5740' : '#D8CFC0'}`,
+                background: addressId === a.id ? '#F3EDE3' : '#FFFFFF',
+                borderRadius: 2,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12,
+              }}
+            >
+              <div style={{ width: 16, height: 16, borderRadius: '50%', border: '1.5px solid #4B5740', flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {addressId === a.id && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4B5740' }} />}
+              </div>
+              <div>
+                <div style={{ fontSize: 13.5, color: '#4B5740', fontWeight: 500 }}>{a.label}</div>
+                <div style={{ fontSize: 12.5, color: '#7C7F6D', marginTop: 3 }}>
+                  {a.street}, {a.number} · {a.neighborhood} · {a.city}/{a.state}
+                </div>
+              </div>
+            </button>
+          ))}
+          <button onClick={() => setShowNewAddress((v) => !v)} style={{ background: 'none', border: 'none', color: '#C4836A', fontSize: 13, cursor: 'pointer', padding: 0, textAlign: 'left' }}>
+            {showNewAddress ? 'Cancelar' : '+ Adicionar endereço'}
+          </button>
+          {showNewAddress && (
+            <InlineAddressForm
+              onSaved={(addr) => {
+                setAddresses((prev) => [...prev, addr]);
+                setAddressId(addr.id);
+                setShowNewAddress(false);
+              }}
+            />
+          )}
+          <button
+            onClick={saveAddress}
+            disabled={busy || !addressId}
+            style={{ alignSelf: 'flex-start', background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '10px 18px', borderRadius: 2, fontSize: 13, cursor: 'pointer' }}
+          >
+            Confirmar novo endereço
           </button>
         </div>
       )}

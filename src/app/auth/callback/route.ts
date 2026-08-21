@@ -7,7 +7,9 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const redirectTo = searchParams.get('redirect') || '/minha-conta';
+  // Same reasoning as AuthGate's default: Home, not Minha Conta, unless the
+  // caller explicitly asked for somewhere else.
+  const redirectTo = searchParams.get('redirect') || '/';
 
   if (code) {
     const supabase = await createClient();

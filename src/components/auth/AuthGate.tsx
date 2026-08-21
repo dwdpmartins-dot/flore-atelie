@@ -41,7 +41,12 @@ const secondaryBtn: React.CSSProperties = {
 export default function AuthGate() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/minha-conta';
+  // Home, not Minha Conta -- only redirect there when the caller explicitly
+  // asked for it (e.g. the header's "Entrar" link sets redirect to
+  // wherever the customer already was). Logging in without an explicit
+  // destination should land on the site's front door, not assume Minha
+  // Conta is what anyone actually wants.
+  const redirectTo = searchParams.get('redirect') || '/';
   const initialView = searchParams.get('view') === 'signup' ? 'signup' : 'login';
 
   const [view, setView] = useState<View>(initialView);

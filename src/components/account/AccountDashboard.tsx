@@ -94,7 +94,7 @@ export default function AccountDashboard({
 
       {tab === 'dados' && <DadosTab customer={customer} email={email} />}
       {tab === 'pedidos' && <PedidosTab orders={orders} activeSubscription={activeSubscription} deliveries={deliveries} />}
-      {tab === 'assinatura' && <AssinaturaTab subscription={activeSubscription} deliveries={deliveries} plans={plans} paymentFailed={paymentFailed} />}
+      {tab === 'assinatura' && <AssinaturaTab subscription={activeSubscription} deliveries={deliveries} plans={plans} paymentFailed={paymentFailed} addresses={addresses} />}
       {tab === 'enderecos' && <EnderecosTab addresses={addresses} />}
       {tab === 'cartoes' && <CartoesTab cards={cards} email={email} />}
     </>

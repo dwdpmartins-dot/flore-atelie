@@ -4,6 +4,7 @@ import type { Database } from '@/lib/supabase/types';
 
 type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 type Delivery = Database['public']['Tables']['subscription_deliveries']['Row'];
+type Address = Database['public']['Tables']['addresses']['Row'];
 
 function fmtDate(d?: string | null) {
   if (!d) return '';
@@ -15,11 +16,13 @@ export default function AssinaturaTab({
   deliveries,
   plans,
   paymentFailed,
+  addresses,
 }: {
   subscription: Subscription | null;
   deliveries: Delivery[];
   plans: Record<string, number>;
   paymentFailed: boolean;
+  addresses: Address[];
 }) {
   if (!subscription) {
     return (
@@ -37,7 +40,7 @@ export default function AssinaturaTab({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <SubscriptionManageCard subscription={subscription} nextDeliveryDate={nextDelivery?.delivery_date ?? null} plans={plans} />
+      <SubscriptionManageCard subscription={subscription} nextDeliveryDate={nextDelivery?.delivery_date ?? null} plans={plans} addresses={addresses} />
 
       {subscription.pending_action && (
         <div style={{ background: '#F6E9D3', border: '1px solid #D9A441', padding: '14px 18px', borderRadius: 2, fontSize: 12.5, color: '#5C4326' }}>

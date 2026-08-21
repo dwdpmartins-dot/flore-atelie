@@ -72,7 +72,7 @@ export default async function AssinaturaPage() {
           <p style={{ fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#C4836A', textAlign: 'center', marginBottom: 14 }}>
             Você já é assinante
           </p>
-          <SubscriptionManageCard subscription={activeSubscription} nextDeliveryDate={nextDeliveryDate} plans={planMap} />
+          <SubscriptionManageCard subscription={activeSubscription} nextDeliveryDate={nextDeliveryDate} plans={planMap} addresses={addresses ?? []} />
         </div>
       ) : (
         <SubscriptionWizard plans={planMap} addresses={addresses ?? []} email={session.email} />

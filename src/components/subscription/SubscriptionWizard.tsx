@@ -358,17 +358,43 @@ export default function SubscriptionWizard({
               <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
             </div>
           )}
-          <div style={{ background: '#F3EDE3', padding: 34, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <Row label="Frequência" value={`${freq} · ${weekday}`} />
-            {firstDeliveryPreview && <Row label="Primeira entrega" value={fmtDate(firstDeliveryPreview)} />}
-            <Row label="Tamanho" value={size} />
-            <Row label="Endereço" value={selectedAddress ? `${selectedAddress.street}, ${selectedAddress.number}` : '—'} />
-            {recipientName && <Row label="Presente para" value={recipientName} />}
-            <Row label="Mensagem" value={message || '(sem mensagem)'} italic />
-            <div style={{ height: 1, background: 'rgba(75,87,64,0.2)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#4B5740' }}>
-              <span>Valor por ciclo</span>
-              <strong>R$ {price}</strong>
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid rgba(75,87,64,0.12)',
+              boxShadow: '0 2px 10px rgba(75,87,64,0.06)',
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                background: '#F3EDE3',
+                padding: '22px 30px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                gap: 14,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <span style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#C4836A' }}>Resumo da assinatura</span>
+                <h3 style={{ fontFamily: "'Playfair Display',serif", fontStyle: 'italic', fontSize: 22, color: '#4B5740', margin: '4px 0 0' }}>
+                  {freq} · {size}
+                </h3>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: '#8A8D7C' }}>por ciclo</div>
+                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, color: '#4B5740' }}>R$ {price}</div>
+              </div>
+            </div>
+            <div style={{ padding: '26px 30px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <SummaryRow icon="calendar" label="Dia de entrega" value={weekday} />
+              {firstDeliveryPreview && <SummaryRow icon="calendar" label="Primeira entrega" value={fmtDate(firstDeliveryPreview)} />}
+              <SummaryRow icon="pin" label="Endereço" value={selectedAddress ? `${selectedAddress.street}, ${selectedAddress.number}` : '—'} />
+              {recipientName && <SummaryRow icon="gift" label="Presente para" value={recipientName} />}
+              <SummaryRow icon="note" label="Mensagem" value={message || '(sem mensagem)'} italic />
             </div>
           </div>
           <p style={{ fontSize: 12.5, color: '#8A8D7C', lineHeight: 1.7 }}>
@@ -426,11 +452,44 @@ export default function SubscriptionWizard({
   );
 }
 
-function Row({ label, value, italic }: { label: string; value: string; italic?: boolean }) {
+const SUMMARY_ICONS: Record<string, React.ReactNode> = {
+  calendar: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA080" strokeWidth="1.8">
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  ),
+  pin: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA080" strokeWidth="1.8">
+      <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </svg>
+  ),
+  gift: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA080" strokeWidth="1.8">
+      <rect x="3" y="9" width="18" height="12" rx="1" />
+      <path d="M3 9h18v-.5A2.5 2.5 0 0 0 18.5 6h-13A2.5 2.5 0 0 0 3 8.5V9z" />
+      <path d="M12 9v12M12 9C10 5 6 5 6 7.5S9 9 12 9zM12 9c2-4 6-4 6-1.5S15 9 12 9z" />
+    </svg>
+  ),
+  note: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FA080" strokeWidth="1.8">
+      <path d="M4 4h13l3 3v13H4z" />
+      <path d="M8 9h8M8 13h8M8 17h5" />
+    </svg>
+  ),
+};
+
+function SummaryRow({ icon, label, value, italic }: { icon: keyof typeof SUMMARY_ICONS; label: string; value: string; italic?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, color: '#4B5740', flexWrap: 'wrap' }}>
-      <span style={{ flexShrink: 0 }}>{label}</span>
-      <strong style={{ maxWidth: 280, textAlign: 'right', fontStyle: italic ? 'italic' : 'normal', wordBreak: 'break-word' }}>{value}</strong>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: '#7C7F6D', flexShrink: 0 }}>
+        {SUMMARY_ICONS[icon]}
+        {label}
+      </span>
+      <strong style={{ maxWidth: 300, textAlign: 'right', fontSize: 14, color: '#4B5740', fontWeight: 500, fontStyle: italic ? 'italic' : 'normal', wordBreak: 'break-word' }}>
+        {value}
+      </strong>
     </div>
   );
 }

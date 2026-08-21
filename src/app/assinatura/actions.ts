@@ -352,6 +352,31 @@ export async function editSubscriptionMessage(subscriptionId: string, message: s
   return { success: true, lockedThisCycle: cutoffPassed, effectiveDate };
 }
 
+/**
+ * Changes which saved address a subscription delivers to. Unlike message
+ * or plan changes, this needs no cutoff-locking logic: subscription_
+ * deliveries doesn't store its own address_id snapshot — the order
+ * created for each cycle (see the webhook's handleAuthorizedPayment)
+ * reads subscriptions.address_id at charge time, whatever it is then. So
+ * updating it here takes effect starting with the very next charge,
+ * automatically, even if a delivery is already "locked in" for cutoff
+ * purposes on the message/plan side.
+ */
+export async function changeSubscriptionAddress(subscriptionId: string, addressId: string) {
+  const ctx = await loadOwnedSubscription(subscriptionId);
+  if ('error' in ctx) return ctx;
+  const { supabase, subscription } = ctx;
+
+  const { data: address } = await supabase.from('addresses').select('id').eq('id', addressId).eq('customer_id', subscription.customer_id).maybeSingle();
+  if (!address) return { error: 'Endereço inválido.' };
+
+  await supabase.from('subscriptions').update({ address_id: addressId }).eq('id', subscriptionId);
+
+  revalidatePath('/minha-conta');
+  revalidatePath('/assinatura');
+  return { success: true };
+}
+
 export async function changeSubscriptionPlan(subscriptionId: string, newFreq: Freq, newSize: Size) {
   const ctx = await loadOwnedSubscription(subscriptionId);
   if ('error' in ctx) return ctx;
