@@ -25,7 +25,8 @@ export default function InlineAddressForm({ onSaved }: { onSaved: (addr: Address
     try {
       const res = await fetch(`/api/cep?cep=${digits}`);
       if (!res.ok) {
-        setError('CEP não encontrado.');
+        const body = await res.json().catch(() => null);
+        setError(body?.error || 'CEP não encontrado.');
         return;
       }
       const data = await res.json();

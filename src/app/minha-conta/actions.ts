@@ -33,6 +33,7 @@ export async function addAddress(formData: FormData) {
 
   const resolved = await resolveAddress(cep);
   if (!resolved) return { error: 'CEP não encontrado.' };
+  if (!resolved.served) return { error: 'Por enquanto entregamos apenas no estado de São Paulo (SP).' };
   if (!number.trim()) return { error: 'Informe o número.' };
 
   const { count } = await supabase.from('addresses').select('id', { count: 'exact', head: true }).eq('customer_id', user.id);

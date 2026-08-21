@@ -68,6 +68,9 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
   const { data: customer } = await supabase.from('customers').select('*').eq('id', user.id).maybeSingle();
   const { data: address } = await supabase.from('addresses').select('*').eq('id', input.addressId).eq('customer_id', user.id).maybeSingle();
   if (!address) return { error: 'Endereço inválido.' as const };
+  // Addresses can only be saved for served states (see addAddress), but this
+  // guards any saved before that rule existed, or added by another path.
+  if (address.state !== 'SP') return { error: 'Por enquanto entregamos apenas no estado de São Paulo (SP).' as const };
 
   // Never trust a client-supplied shipping fee — recompute from the
   // address's own CEP server-side.

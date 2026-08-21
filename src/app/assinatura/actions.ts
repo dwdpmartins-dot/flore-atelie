@@ -61,8 +61,11 @@ export async function createSubscription(input: CreateSubscriptionInput) {
   const price = await getPlanPrice(supabase, input.freq, input.size);
   if (price == null) return { error: 'Plano indisponível no momento.' };
 
-  const { data: address } = await supabase.from('addresses').select('id').eq('id', input.addressId).eq('customer_id', user.id).maybeSingle();
+  const { data: address } = await supabase.from('addresses').select('id, state').eq('id', input.addressId).eq('customer_id', user.id).maybeSingle();
   if (!address) return { error: 'Endereço inválido.' };
+  // Addresses can only be saved for served states (see addAddress), but this
+  // guards any saved before that rule existed, or added by another path.
+  if (address.state !== 'SP') return { error: 'Por enquanto entregamos apenas no estado de São Paulo (SP).' };
 
   const firstDeliveryDate = await computeFirstDeliveryDate(supabase, input.freq, input.weekday);
   const payerEmail = customer?.email || user.email || '';
@@ -367,8 +370,9 @@ export async function changeSubscriptionAddress(subscriptionId: string, addressI
   if ('error' in ctx) return ctx;
   const { supabase, subscription } = ctx;
 
-  const { data: address } = await supabase.from('addresses').select('id').eq('id', addressId).eq('customer_id', subscription.customer_id).maybeSingle();
+  const { data: address } = await supabase.from('addresses').select('id, state').eq('id', addressId).eq('customer_id', subscription.customer_id).maybeSingle();
   if (!address) return { error: 'Endereço inválido.' };
+  if (address.state !== 'SP') return { error: 'Por enquanto entregamos apenas no estado de São Paulo (SP).' };
 
   await supabase.from('subscriptions').update({ address_id: addressId }).eq('id', subscriptionId);
 

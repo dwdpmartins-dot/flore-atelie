@@ -14,6 +14,9 @@ export async function GET(request: Request) {
   if (!resolved) {
     return NextResponse.json({ error: 'CEP não encontrado.' }, { status: 404 });
   }
+  if (!resolved.served) {
+    return NextResponse.json({ error: 'Por enquanto entregamos apenas no estado de São Paulo (SP).' }, { status: 422 });
+  }
 
   return NextResponse.json(resolved);
 }
