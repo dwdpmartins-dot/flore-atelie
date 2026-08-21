@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import SignOutButton from '@/components/auth/SignOutButton';
 import DadosTab from './DadosTab';
@@ -51,6 +51,17 @@ export default function AccountDashboard({
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('aba') as TabKey) || 'dados';
   const [tab, setTab] = useState<TabKey>(initialTab);
+
+  // A link like PedidosTab's "Gerenciar →" only changes the ?aba= query
+  // param on the same route -- Next.js does a client-side navigation
+  // without remounting this component, so the useState above (only ever
+  // read once, at mount) never picked up the new value on its own. That's
+  // why the target tab wouldn't open until something else happened to
+  // force a fresh mount.
+  useEffect(() => {
+    const aba = searchParams.get('aba');
+    if (aba && TABS.some((t) => t.key === aba)) setTab(aba as TabKey);
+  }, [searchParams]);
 
   return (
     <>

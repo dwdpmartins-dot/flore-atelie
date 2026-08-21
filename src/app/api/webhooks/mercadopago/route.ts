@@ -80,9 +80,21 @@ export async function POST(request: Request) {
       const status = payment.status as string;
 
       // Match against whichever record we already stamped with this payment id.
+      // Only 'approved'/'rejected' were handled before -- a refund done
+      // directly in the Mercado Pago dashboard (status flips to 'refunded',
+      // or 'cancelled'/'charged_back' for other reversal paths) fell
+      // through to "leave it as whatever it already was", which is exactly
+      // why a refunded order kept showing "Em andamento" here.
       const { data: order } = await admin.from('orders').select('id, status').eq('mp_payment_id', String(paymentId)).maybeSingle();
       if (order) {
-        const nextStatus = status === 'approved' ? 'em_andamento' : status === 'rejected' ? 'pagamento_recusado' : order.status;
+        const nextStatus =
+          status === 'approved'
+            ? 'em_andamento'
+            : status === 'rejected'
+              ? 'pagamento_recusado'
+              : status === 'refunded' || status === 'cancelled' || status === 'charged_back'
+                ? 'cancelado'
+                : order.status;
         await admin.from('orders').update({ mp_status: status, status: nextStatus }).eq('id', order.id);
       }
 
