@@ -90,3 +90,14 @@ export async function clearPaymentFailure() {
   revalidatePath('/admin');
   revalidatePath('/minha-conta');
 }
+
+/** Marks an order as delivered — the actual fulfillment procedure: a new
+ * order/delivery lands as 'em_andamento' (payment approved), the ateliê
+ * prepares and delivers it, then marks it here so it drops off the
+ * "precisa de atenção" list and shows as 'Entregue' to the customer too. */
+export async function markOrderDelivered(orderId: string) {
+  const admin = await adminClient();
+  await admin.from('orders').update({ status: 'entregue' }).eq('id', orderId);
+  revalidatePath('/admin');
+  revalidatePath('/minha-conta');
+}

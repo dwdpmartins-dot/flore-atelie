@@ -3,11 +3,17 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { todayISO } from '@/lib/delivery/holidays';
 import AdminDashboard from '@/components/admin/AdminDashboard';
 
+// Orders count toward revenue/KPIs once payment is actually confirmed —
+// 'pendente' hasn't been charged yet, 'cancelado'/'pagamento_recusado'
+// never will be (or had the money given back).
+const REVENUE_STATUSES = ['em_andamento', 'entregue'] as const;
+
 export default async function AdminDashboardPage() {
   const session = await getAdminSession();
   const admin = createAdminClient();
 
   const today = todayISO();
+  const monthPrefix = today.slice(0, 7); // 'YYYY-MM'
 
   const [
     { data: aiSetting },
@@ -18,6 +24,9 @@ export default async function AdminDashboardPage() {
     { data: flowers },
     { data: bouquets },
     { data: upcoming },
+    { data: ordersForKpi },
+    { count: activeSubscriptions },
+    { data: recentOrders },
   ] = await Promise.all([
     admin.from('settings').select('value').eq('key', 'ai_illustration_enabled').maybeSingle(),
     admin.from('settings').select('value').eq('key', 'simulate_declined_payment').maybeSingle(),
@@ -32,10 +41,27 @@ export default async function AdminDashboardPage() {
       .lte('cutoff_date', today)
       .order('cutoff_date', { ascending: false })
       .limit(20),
+    // Lightweight: just enough columns to compute KPIs, not the full
+    // order+items+address join used for the fulfillment list below —
+    // this one has no limit, since a revenue total that silently excludes
+    // older orders would be worse than useless.
+    admin.from('orders').select('status, total, created_at'),
+    admin.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'ativa'),
+    admin
+      .from('orders')
+      .select('*, customers(name, phone), addresses(street, number, neighborhood, city), order_items(name_snapshot, qty)')
+      .order('created_at', { ascending: false })
+      .limit(30),
   ]);
 
+  const revenueOrders = (ordersForKpi ?? []).filter((o) => (REVENUE_STATUSES as readonly string[]).includes(o.status));
+  const totalRevenue = revenueOrders.reduce((sum, o) => sum + Number(o.total), 0);
+  const monthRevenue = revenueOrders.filter((o) => o.created_at.startsWith(monthPrefix)).reduce((sum, o) => sum + Number(o.total), 0);
+  const orderCount = revenueOrders.length;
+  const avgTicket = orderCount > 0 ? totalRevenue / orderCount : 0;
+
   return (
-    <section style={{ maxWidth: 900, margin: '0 auto', padding: '60px 28px 110px' }}>
+    <section style={{ maxWidth: 1080, margin: '0 auto', padding: '60px 28px 110px' }}>
       <span style={{ fontSize: 12, letterSpacing: 3, textTransform: 'uppercase', color: '#C4836A' }}>Painel Admin</span>
       <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 30, fontStyle: 'italic', color: '#4B5740', margin: '8px 0 8px' }}>
         Gestão da Florê
@@ -51,6 +77,8 @@ export default async function AdminDashboardPage() {
         flowers={flowers ?? []}
         bouquets={bouquets ?? []}
         upcomingCharges={(upcoming ?? []) as unknown as UpcomingCharge[]}
+        kpis={{ totalRevenue, monthRevenue, orderCount, avgTicket, activeSubscriptions: activeSubscriptions ?? 0 }}
+        recentOrders={(recentOrders ?? []) as unknown as AdminOrder[]}
       />
     </section>
   );
@@ -62,4 +90,17 @@ export interface UpcomingCharge {
   cutoff_date: string;
   payment_status: 'pending' | 'paid' | 'failed' | 'skipped';
   subscriptions: { freq: string; size: string; customers: { name: string | null } | null } | null;
+}
+
+export interface AdminOrder {
+  id: string;
+  kind: 'avulso' | 'assinatura';
+  status: 'pendente' | 'em_andamento' | 'entregue' | 'cancelado' | 'pagamento_recusado';
+  total: number;
+  delivery_date: string | null;
+  delivery_period: 'manha' | 'tarde' | null;
+  created_at: string;
+  customers: { name: string | null; phone: string | null } | null;
+  addresses: { street: string; number: string; neighborhood: string | null; city: string | null } | null;
+  order_items: { name_snapshot: string; qty: number }[];
 }
