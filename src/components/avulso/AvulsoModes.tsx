@@ -7,14 +7,12 @@ import { useSearchParams } from 'next/navigation';
 import { useCart } from '@/lib/cart/CartContext';
 import type { Database } from '@/lib/supabase/types';
 
-type Bouquet = Database['public']['Tables']['bouquets']['Row'];
 type GalleryPhoto = Database['public']['Tables']['gallery_photos']['Row'];
 type Size = 'P' | 'M' | 'G';
 
 const MODES = [
   { key: 'zero', label: 'Montar do zero' },
   { key: 'inspirado', label: 'Inspirado da Florê' },
-  { key: 'pronto', label: 'Prontos' },
 ] as const;
 
 // Shown when the customer opens "Inspirado da Florê" directly (no gallery
@@ -23,21 +21,21 @@ const MODES = [
 const DEFAULT_INSPIRADO_IMAGE = '/assets/flore-arranjo-4.png';
 
 export default function AvulsoModes({
-  readyOptions,
   galleryPhotos,
   inspiradoDefaultPrices,
 }: {
-  readyOptions: Bouquet[];
   galleryPhotos: GalleryPhoto[];
   inspiradoDefaultPrices: Record<Size, number>;
 }) {
   const searchParams = useSearchParams();
-  const initialMode = (searchParams.get('modo') as (typeof MODES)[number]['key']) || 'zero';
+  // Old bookmarked/shared links may still carry ?modo=pronto (removed) —
+  // fall back to 'zero' instead of landing on a mode that no longer exists.
+  const requestedMode = searchParams.get('modo');
+  const initialMode = MODES.some((m) => m.key === requestedMode) ? (requestedMode as (typeof MODES)[number]['key']) : 'zero';
   const refId = searchParams.get('ref');
 
   const [mode, setMode] = useState<(typeof MODES)[number]['key']>(initialMode);
   const [size, setSize] = useState<Size>('M');
-  const [qty, setQty] = useState<Record<string, number>>({});
   const { addToCart } = useCart();
 
   const reference = useMemo(() => galleryPhotos.find((g) => g.id === refId) ?? null, [galleryPhotos, refId]);
@@ -45,9 +43,6 @@ export default function AvulsoModes({
   const inspiradoPrices: Record<Size, number> = reference
     ? { P: reference.price_p, M: reference.price_m, G: reference.price_g }
     : inspiradoDefaultPrices;
-
-  const qtyOf = (id: string) => qty[id] ?? 1;
-  const setQtyOf = (id: string, v: number) => setQty((s) => ({ ...s, [id]: Math.max(1, v) }));
 
   return (
     <section style={{ maxWidth: 1080, margin: '0 auto', padding: '64px 28px 100px' }}>
@@ -147,42 +142,6 @@ export default function AvulsoModes({
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {mode === 'pronto' && (
-        <div className="cat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 28 }}>
-          {readyOptions.map((r) => (
-            <div key={r.id} style={{ background: '#FFFFFF', borderRadius: 2, overflow: 'hidden', boxShadow: '0 1px 4px rgba(75,87,64,0.08)' }}>
-              <div style={{ position: 'relative', width: '100%', height: 210 }}>
-                <Image src={r.image_path} alt={r.name} fill style={{ objectFit: 'cover' }} />
-              </div>
-              <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontStyle: 'italic', color: '#4B5740', margin: 0 }}>{r.name}</h3>
-                <p style={{ fontSize: 13, color: '#7C7F6D', margin: 0 }}>{r.description}</p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, color: '#4B5740' }}>R$ {r.price}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #D8CFC0', borderRadius: 2, padding: '4px 8px' }}>
-                      <button onClick={() => setQtyOf(r.id, qtyOf(r.id) - 1)} style={{ background: 'none', border: 'none', color: '#4B5740', fontSize: 15, cursor: 'pointer', width: 18 }}>
-                        −
-                      </button>
-                      <span style={{ fontSize: 13, color: '#4B5740', minWidth: 14, textAlign: 'center' }}>{qtyOf(r.id)}</span>
-                      <button onClick={() => setQtyOf(r.id, qtyOf(r.id) + 1)} style={{ background: 'none', border: 'none', color: '#4B5740', fontSize: 15, cursor: 'pointer', width: 18 }}>
-                        +
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => addToCart({ key: 'pronto-' + r.id, label: r.name, price: r.price, qty: qtyOf(r.id), kind: 'Buquê Avulso · Pronto' })}
-                      style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '9px 14px', borderRadius: 2, fontSize: 12, cursor: 'pointer' }}
-                    >
-                      Adicionar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
       )}
     </section>
