@@ -101,6 +101,35 @@ export async function attachCardToCustomer(mpCustomerId: string, cardToken: stri
 }
 
 /**
+ * Saves a card, self-healing if `existingMpCustomerId` turns out to be
+ * stale on Mercado Pago's side (the exact failure mode after switching
+ * from TEST- to APP_USR- credentials: customers.mp_customer_id still
+ * pointed at a Customer that only ever existed under the old
+ * credentials/environment). ensureMpCustomer trusts a stored id blindly
+ * for speed — this is the one place that actually finds out whether that
+ * trust was warranted, since attaching a card is the first real call made
+ * against it. On "customer not found" specifically, creates a brand new
+ * Customer and retries once; any other failure is not retried. Returns
+ * the id that actually worked, so the caller can persist it (it may
+ * differ from `existingMpCustomerId`).
+ */
+export async function attachCardResilient(opts: { existingMpCustomerId: string | null; email: string; name?: string | null; token: string }) {
+  let mpCustomerId = await ensureMpCustomer({ existingMpCustomerId: opts.existingMpCustomerId, email: opts.email, name: opts.name });
+  try {
+    const card = await attachCardToCustomer(mpCustomerId, opts.token);
+    return { mpCustomerId, card };
+  } catch (err) {
+    const mpBody = (err as Error & { mpBody?: { message?: string } }).mpBody;
+    const customerGone = mpBody?.message?.toLowerCase().includes('customer not found');
+    if (!customerGone) throw err;
+    logMpError('attachCardResilient: stale customer id, creating a fresh one', err);
+    mpCustomerId = await ensureMpCustomer({ existingMpCustomerId: null, email: opts.email, name: opts.name });
+    const card = await attachCardToCustomer(mpCustomerId, opts.token);
+    return { mpCustomerId, card };
+  }
+}
+
+/**
  * Detaches (deletes) a card from a Mercado Pago Customer. Written as a plain
  * fetch instead of mpFetch because this endpoint's success response isn't
  * guaranteed to be JSON — mpFetch's unconditional res.json() would throw on

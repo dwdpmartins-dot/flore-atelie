@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { ensureMpCustomer, attachCardToCustomer, detachCardFromCustomer, logMpError } from '@/lib/mercadopago/server';
+import { attachCardResilient, detachCardFromCustomer, logMpError } from '@/lib/mercadopago/server';
 
 export const runtime = 'nodejs';
 
@@ -21,17 +21,16 @@ export async function POST(request: Request) {
   const { data: customer } = await supabase.from('customers').select('mp_customer_id, name, email').eq('id', user.id).maybeSingle();
 
   try {
-    const mpCustomerId = await ensureMpCustomer({
+    const { mpCustomerId, card } = await attachCardResilient({
       existingMpCustomerId: customer?.mp_customer_id ?? null,
       email: customer?.email || user.email || '',
       name: customer?.name,
+      token,
     });
 
-    if (!customer?.mp_customer_id) {
+    if (mpCustomerId !== customer?.mp_customer_id) {
       await supabase.from('customers').update({ mp_customer_id: mpCustomerId }).eq('id', user.id);
     }
-
-    const card = await attachCardToCustomer(mpCustomerId, token);
 
     // Mirrors addresses' "first one added becomes preferred" convention —
     // only applies here (an explicit "add card" in Minha Conta), never to

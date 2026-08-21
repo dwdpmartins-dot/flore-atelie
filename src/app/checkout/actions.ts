@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { resolveAddress } from '@/lib/geocoding/resolveAddress';
-import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus, ensureMpCustomer, attachCardToCustomer, logMpError } from '@/lib/mercadopago/server';
+import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus, attachCardResilient, logMpError } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
 import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
@@ -194,15 +194,15 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
     // card next time, not the purchase.
     if (input.newCardToken) {
       try {
-        const mpCustomerId = await ensureMpCustomer({
+        const { mpCustomerId, card } = await attachCardResilient({
           existingMpCustomerId: customer?.mp_customer_id ?? null,
           email: payerEmail,
           name: customer?.name,
+          token: input.newCardToken,
         });
-        if (!customer?.mp_customer_id) {
+        if (mpCustomerId !== customer?.mp_customer_id) {
           await supabase.from('customers').update({ mp_customer_id: mpCustomerId }).eq('id', user.id);
         }
-        const card = await attachCardToCustomer(mpCustomerId, input.newCardToken);
         await supabase.from('saved_cards').insert({
           customer_id: user.id,
           mp_customer_id: mpCustomerId,
