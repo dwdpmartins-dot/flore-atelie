@@ -101,3 +101,16 @@ export async function markOrderDelivered(orderId: string) {
   revalidatePath('/admin');
   revalidatePath('/minha-conta');
 }
+
+/** Manual correction for cases the webhook doesn't catch on its own — e.g.
+ * a refund done directly in the Mercado Pago dashboard for an order that
+ * was already stuck as 'em_andamento' before the webhook learned to
+ * handle 'refunded'/'cancelled'/'charged_back' (see api/webhooks/
+ * mercadopago). New refunds flip automatically now; this is the fallback
+ * for anything from before that fix, or any other edge case. */
+export async function markOrderCancelled(orderId: string) {
+  const admin = await adminClient();
+  await admin.from('orders').update({ status: 'cancelado' }).eq('id', orderId);
+  revalidatePath('/admin');
+  revalidatePath('/minha-conta');
+}

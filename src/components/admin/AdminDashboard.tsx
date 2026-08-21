@@ -14,6 +14,7 @@ import {
   simulatePaymentFailure,
   clearPaymentFailure,
   markOrderDelivered,
+  markOrderCancelled,
 } from '@/app/admin/(protected)/actions';
 import type { Database, Freq, Size } from '@/lib/supabase/types';
 import type { UpcomingCharge, AdminOrder } from '@/app/admin/(protected)/page';
@@ -137,12 +138,24 @@ export default function AdminDashboard({
                 </div>
               )}
               {o.status === 'em_andamento' && (
-                <button
-                  onClick={() => markOrderDelivered(o.id).then(refresh)}
-                  style={{ alignSelf: 'flex-start', marginTop: 4, background: 'none', border: '1px solid #4B5740', color: '#4B5740', padding: '7px 14px', borderRadius: 2, fontSize: 12, cursor: 'pointer' }}
-                >
-                  Marcar como entregue
-                </button>
+                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <button
+                    onClick={() => markOrderDelivered(o.id).then(refresh)}
+                    style={{ alignSelf: 'flex-start', background: 'none', border: '1px solid #4B5740', color: '#4B5740', padding: '7px 14px', borderRadius: 2, fontSize: 12, cursor: 'pointer' }}
+                  >
+                    Marcar como entregue
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Marcar este pedido como cancelado? Use isso para refletir um estorno feito no Mercado Pago, por exemplo.')) {
+                        markOrderCancelled(o.id).then(refresh);
+                      }
+                    }}
+                    style={{ alignSelf: 'flex-start', background: 'none', border: '1px solid #C4836A', color: '#C4836A', padding: '7px 14px', borderRadius: 2, fontSize: 12, cursor: 'pointer' }}
+                  >
+                    Marcar como cancelado
+                  </button>
+                </div>
               )}
             </div>
           ))}

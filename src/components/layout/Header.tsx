@@ -42,6 +42,13 @@ export default function Header() {
   // never wrong, since the section stays blank until this actually resolves.
   const [auth, setAuth] = useState<AuthState>({ loaded: false, isLoggedIn: false, customerName: null, email: null });
 
+  // "Pedidos" only makes sense once signed in (it's a Minha Conta tab, not
+  // a public page) — was previously reachable only by clicking into Minha
+  // Conta first, which buried the one thing customers most want to check
+  // after buying something. Appended (not merged into NAV_LINKS itself) so
+  // logged-out visitors see the same three links as always.
+  const navLinks = auth.isLoggedIn ? [...NAV_LINKS, { href: '/minha-conta?aba=pedidos', label: 'Pedidos' }] : NAV_LINKS;
+
   useEffect(() => {
     const supabase = createClient();
     let active = true;
@@ -104,7 +111,7 @@ export default function Header() {
         </Link>
 
         <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -264,7 +271,7 @@ export default function Header() {
       </div>
       {menuOpen && (
         <nav style={{ display: 'flex', flexDirection: 'column', padding: '8px 28px 20px', gap: 14, borderTop: '1px solid rgba(107,124,92,0.15)' }}>
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link key={link.href} href={link.href} onClick={() => setMenuOpen(false)} style={{ fontSize: 14, color: '#4B5740' }}>
               {link.label}
             </Link>
