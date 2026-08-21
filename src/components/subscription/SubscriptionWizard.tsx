@@ -336,7 +336,30 @@ export default function SubscriptionWizard({
       )}
 
       {step === 4 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 26 }}>
+          {/* Same issue as CheckoutFlow's card step: the Brick's own
+              "Pagar" button submits straight into handleCardResult, and
+              without this the card fields just sat there for however long
+              createSubscription took, looking broken instead of working. */}
+          {confirming && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 30,
+                background: 'rgba(250,247,242,0.85)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 14,
+              }}
+            >
+              <div style={{ width: 34, height: 34, border: '3px solid #D8CFC0', borderTopColor: '#4B5740', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <span style={{ fontSize: 13.5, color: '#4B5740' }}>Confirmando assinatura…</span>
+              <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
+            </div>
+          )}
           <div style={{ background: '#F3EDE3', padding: 34, borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Row label="Frequência" value={`${freq} · ${weekday}`} />
             <Row label="Tamanho" value={size} />
