@@ -180,7 +180,7 @@ export default function AdminDashboard({
       <div style={card}>
         <h3 style={h3}>Próximas cobranças confirmadas</h3>
         <p style={{ fontSize: 12, color: '#8A8D7C', margin: '0 0 16px' }}>
-          Ciclos que já passaram do prazo de corte (3 dias úteis antes da entrega) — compre as flores com base nessa lista.
+          Ciclos que já passaram do prazo de corte (2 dias úteis antes da entrega) — compre as flores com base nessa lista.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {upcomingCharges.length === 0 && <p style={{ fontSize: 12.5, color: '#A7AB97', margin: 0 }}>Nenhum ciclo confirmado no momento.</p>}

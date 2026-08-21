@@ -7,7 +7,7 @@ type Client = SupabaseClient<Database>;
 
 /**
  * The earliest legal first-delivery date for a given weekday: the next
- * occurrence of that weekday whose 3-business-day cutoff hasn't already
+ * occurrence of that weekday whose 2-business-day cutoff hasn't already
  * passed today. Used for brand-new subscriptions and for resuming a
  * paused one (both need a "first delivery" that isn't already too late
  * to prep for).
@@ -18,7 +18,7 @@ export async function computeFirstDeliveryDate(supabase: Client, freq: Freq, wee
 
   // Guard against an infinite loop from unexpected RPC failures.
   for (let i = 0; i < 10; i++) {
-    const { data: cutoff } = await supabase.rpc('subtract_business_days', { d: candidate, n: 3 });
+    const { data: cutoff } = await supabase.rpc('subtract_business_days', { d: candidate, n: 2 });
     const { data: passed } = await supabase.rpc('is_cutoff_passed', { p_cutoff_date: cutoff as unknown as string });
     if (!passed) return candidate;
     const { data: next } = await supabase.rpc('next_delivery_after', { prev_date: candidate, freq, weekday_name: weekday });
