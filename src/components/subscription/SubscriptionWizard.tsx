@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CardPaymentBrick from '@/components/payment/CardPaymentBrick';
 import InlineAddressForm from '@/components/address/InlineAddressForm';
-import { createSubscription, checkFirstChargeStatus } from '@/app/assinatura/actions';
+import { createSubscription } from '@/app/assinatura/actions';
 import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import type { Database, Freq, Size, Weekday } from '@/lib/supabase/types';
 
@@ -82,34 +82,8 @@ export default function SubscriptionWizard({
   const [declined, setDeclined] = useState(false);
   const [formError, setFormError] = useState('');
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
-  // Set once createSubscription succeeds — the Preapproval exists, but its
-  // first charge's outcome isn't known synchronously (see
-  // checkFirstChargeStatus). While this is set the wizard shows a "waiting
-  // for confirmation" screen and polls instead of jumping straight to the
-  // success screen.
-  const [pendingDeliveryId, setPendingDeliveryId] = useState<string | null>(null);
-
   const price = plans[`${freq}-${size}`] ?? 0;
   const selectedAddress = addresses.find((a) => a.id === addressId);
-
-  // Poll for the first charge's outcome once the Preapproval has been
-  // created — mirrors CheckoutFlow's PIX polling.
-  useEffect(() => {
-    if (!pendingDeliveryId) return;
-    const interval = setInterval(async () => {
-      const result = await checkFirstChargeStatus(pendingDeliveryId);
-      if (result.status === 'paid') {
-        clearInterval(interval);
-        setPendingDeliveryId(null);
-        setStep(5);
-      } else if (result.status === 'failed') {
-        clearInterval(interval);
-        setPendingDeliveryId(null);
-        setDeclined(true);
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [pendingDeliveryId]);
 
   async function handleCardResult(result: { token: string }) {
     if (!addressId) {
@@ -133,24 +107,19 @@ export default function SubscriptionWizard({
       return;
     }
     setConfirmedId(res.subscriptionId ?? null);
-    if (res.firstDeliveryId) {
-      setPendingDeliveryId(res.firstDeliveryId);
-    } else {
-      // No delivery row came back (shouldn't normally happen) — fall back
-      // to the success screen rather than polling forever on a null id.
-      setStep(5);
+    // A Preapproval doesn't charge on creation -- Mercado Pago authorizes
+    // it and charges automatically on its own schedule later, so there's
+    // nothing to poll for here (checkFirstChargeStatus exists for a
+    // failure discovered days later, surfaced via the banner in Minha
+    // Conta > Assinatura, not for this screen). A missing firstDeliveryId
+    // does mean something real went wrong on our side, though -- the
+    // Preapproval itself may be fine, but we don't have proof the first
+    // delivery got scheduled, so this isn't safe to show as success.
+    if (!res.firstDeliveryId) {
+      setFormError('Sua assinatura foi criada, mas não conseguimos agendar a primeira entrega. Fale com a gente pelo WhatsApp para confirmar.');
+      return;
     }
-  }
-
-  if (pendingDeliveryId) {
-    return (
-      <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18, padding: '60px 0' }}>
-        <div style={{ width: 44, height: 44, border: '3px solid #D8CFC0', borderTopColor: '#4B5740', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-        <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontStyle: 'italic', color: '#4B5740', margin: 0 }}>Confirmando sua assinatura…</h2>
-        <p style={{ fontSize: 13.5, color: '#7C7F6D', maxWidth: 380 }}>Estamos confirmando a primeira cobrança com a sua operadora. Isso leva só alguns segundos.</p>
-        <style>{'@keyframes spin { to { transform: rotate(360deg); } }'}</style>
-      </div>
-    );
+    setStep(5);
   }
 
   if (step === 5) {
@@ -166,8 +135,9 @@ export default function SubscriptionWizard({
           {freq} · {size} · R$ {price} por ciclo
         </p>
         <p style={{ fontSize: 14, color: '#7C7F6D', maxWidth: 420 }}>
-          Sua entrega já está a caminho, conforme a frequência {freq.toLowerCase()} escolhida. Gerencie, edite a
-          mensagem ou pause quando quiser em Minha Conta.
+          Sua assinatura está ativa, com a frequência {freq.toLowerCase()} escolhida. A primeira entrega e a
+          cobrança do ciclo acontecem automaticamente, seguindo essa frequência — acompanhe a data prevista em
+          Minha Conta. Gerencie, edite a mensagem ou pause quando quiser por lá.
         </p>
         <button onClick={() => router.push('/minha-conta?aba=assinatura')} style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '14px 28px', borderRadius: 2, fontSize: 14, cursor: 'pointer' }}>
           Ir para Minha Conta
@@ -389,8 +359,8 @@ export default function SubscriptionWizard({
               payerEmail={email ?? undefined}
               notice={
                 <>
-                  <strong>Ao confirmar, sua assinatura é ativada</strong> e a primeira cobrança acontece agora,
-                  neste cartão.
+                  <strong>Ao confirmar, sua assinatura é ativada</strong> neste cartão. A cobrança de cada ciclo
+                  acontece automaticamente, direto pelo Mercado Pago.
                 </>
               }
               onResult={handleCardResult}

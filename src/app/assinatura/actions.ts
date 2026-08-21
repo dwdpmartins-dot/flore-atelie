@@ -109,7 +109,7 @@ export async function createSubscription(input: CreateSubscriptionInput) {
   // of this first charge (which, per Preapproval's own semantics, isn't
   // guaranteed to be reflected synchronously in the createPreapproval
   // response above — see checkFirstChargeStatus, which the wizard polls).
-  await supabase.rpc('build_delivery_schedule', {
+  const { error: scheduleError } = await supabase.rpc('build_delivery_schedule', {
     p_subscription_id: subscription.id,
     p_freq: input.freq,
     p_weekday: input.weekday,
@@ -118,6 +118,13 @@ export async function createSubscription(input: CreateSubscriptionInput) {
     p_recipient_name: input.recipientName || null,
     p_first_delivery_date: firstDeliveryDate,
   });
+  // Never silently swallowed again: this call previously errored on every
+  // single subscription (a missing RLS policy blocked the insert), and
+  // because the error went unchecked, the wizard fell back to a path that
+  // showed "Assinatura confirmada!" anyway, with zero deliveries actually
+  // scheduled. Logged loudly here so a regression is visible in Vercel
+  // logs instead of only discoverable by manually querying the database.
+  if (scheduleError) console.error('createSubscription: build_delivery_schedule failed', scheduleError);
 
   const firstDelivery = await getNextPendingDelivery(supabase, subscription.id);
 
@@ -242,7 +249,7 @@ export async function resumeSubscription(subscriptionId: string) {
   // createSubscription. FUTURE_CYCLES_GENERATED only still applies to
   // subscriptions predating the Preapproval migration (no
   // mp_preapproval_id), so their old topped-up schedule keeps working.
-  await supabase.rpc('build_delivery_schedule', {
+  const { error: resumeScheduleError } = await supabase.rpc('build_delivery_schedule', {
     p_subscription_id: subscriptionId,
     p_freq: subscription.freq,
     p_weekday: subscription.weekday,
@@ -251,6 +258,7 @@ export async function resumeSubscription(subscriptionId: string) {
     p_recipient_name: subscription.recipient_name,
     p_first_delivery_date: firstDeliveryDate,
   });
+  if (resumeScheduleError) console.error('resumeSubscription: build_delivery_schedule failed', resumeScheduleError);
 
   revalidatePath('/minha-conta');
   revalidatePath('/assinatura');
@@ -354,7 +362,7 @@ export async function changeSubscriptionPlan(subscriptionId: string, newFreq: Fr
     // subscription changes what we intend to charge without yet telling
     // Mercado Pago -- flagging this rather than shipping it silently
     // incomplete.
-    await supabase.rpc('build_delivery_schedule', {
+    const { error: planChangeScheduleError } = await supabase.rpc('build_delivery_schedule', {
       p_subscription_id: subscriptionId,
       p_freq: newFreq,
       p_weekday: subscription.weekday,
@@ -363,6 +371,7 @@ export async function changeSubscriptionPlan(subscriptionId: string, newFreq: Fr
       p_recipient_name: subscription.recipient_name,
       p_first_delivery_date: firstDeliveryDate,
     });
+    if (planChangeScheduleError) console.error('changeSubscriptionPlan: build_delivery_schedule failed', planChangeScheduleError);
     revalidatePath('/minha-conta');
     revalidatePath('/assinatura');
     return { success: true, immediate: true };
