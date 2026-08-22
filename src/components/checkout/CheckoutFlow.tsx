@@ -74,6 +74,12 @@ export default function CheckoutFlow({
   const [error, setError] = useState('');
   const [pixData, setPixData] = useState<{ qrCodeBase64?: string; qrCode?: string; orderId: string } | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
+  // Snapshot of `total` taken right before clearCart() runs -- clearCart
+  // empties the cart context, so cartTotal (and therefore `total`) drops to
+  // 0 on the very next render, leaving the confirmation screen showing just
+  // the shipping fee alone (e.g. "R$ 30,00" instead of the real R$ 99,00
+  // that was actually charged).
+  const [confirmedTotal, setConfirmedTotal] = useState<number | null>(null);
 
   // step/pixData/confirmedOrderId each gate a completely different-height
   // view (the multi-field form vs. the QR code screen vs. the short
@@ -115,12 +121,17 @@ export default function CheckoutFlow({
       const result = await checkPixStatus(pixData.orderId);
       if (result.status === 'approved') {
         clearInterval(interval);
+        setConfirmedTotal(total);
         clearCart();
         setConfirmedOrderId(pixData.orderId);
         setStep(4);
       }
     }, 3000);
     return () => clearInterval(interval);
+    // total isn't a dep on purpose: nothing on the QR-code screen can
+    // change cart/shipping while this poll is running, and adding it would
+    // restart the interval (and its 3s wait) on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pixData, clearCart]);
 
   async function saveContact() {
@@ -190,6 +201,7 @@ export default function CheckoutFlow({
       return;
     }
     if ('success' in result && result.success) {
+      setConfirmedTotal(total);
       clearCart();
       setConfirmedOrderId(result.orderId);
       setStep(4);
@@ -206,7 +218,7 @@ export default function CheckoutFlow({
         </div>
         <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontStyle: 'italic', color: '#4B5740', margin: 0 }}>Pedido confirmado</h2>
         <p style={{ fontSize: 14, color: '#7C7F6D', maxWidth: 400 }}>
-          Total pago: R$ {total.toFixed(2)}. Vamos preparar tudo com carinho e avisar quando saírmos para entrega.
+          Total pago: R$ {(confirmedTotal ?? total).toFixed(2)}. Vamos preparar tudo com carinho e avisar quando saírmos para entrega.
         </p>
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={() => router.push('/minha-conta?aba=pedidos')} style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '14px 24px', borderRadius: 2, fontSize: 13, cursor: 'pointer' }}>
