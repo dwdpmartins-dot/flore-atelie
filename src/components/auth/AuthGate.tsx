@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Script from 'next/script';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { sendWelcomeEmailForCurrentUser } from '@/app/auth/actions';
+import { generateNonce } from '@/lib/auth/googleIdentity';
 import PasswordInput from './PasswordInput';
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 type View = 'login' | 'signup' | 'forgot';
 
@@ -24,16 +28,6 @@ const primaryBtn: React.CSSProperties = {
   fontSize: '14px',
   cursor: 'pointer',
 };
-const secondaryBtn: React.CSSProperties = {
-  background: '#FFFFFF',
-  color: '#4B5740',
-  border: '1px solid #D8CFC0',
-  padding: '14px',
-  borderRadius: '2px',
-  fontSize: '14px',
-  cursor: 'pointer',
-};
-
 /**
  * The logged-out state of Minha Conta: login / signup / forgot-password,
  * as one screen the user toggles between — same structure as the prototype,
@@ -67,6 +61,66 @@ export default function AuthGate() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotSent, setForgotSent] = useState(false);
 
+  const [googleScriptReady, setGoogleScriptReady] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
+  const googleNonceRef = useRef('');
+
+  async function handleGoogleCredential(response: { credential: string }) {
+    setError('');
+    setLoading(true);
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: response.credential,
+      nonce: googleNonceRef.current,
+    });
+    setLoading(false);
+    if (error) {
+      setError('Não foi possível entrar com o Google. Tente novamente.');
+      return;
+    }
+    if (data.session) {
+      void sendWelcomeEmailForCurrentUser();
+    }
+    router.replace(redirectTo);
+    router.refresh();
+  }
+
+  // Renders Google's own "Sign in with Google" button into googleButtonRef
+  // once its script has loaded -- re-runs whenever the login view mounts
+  // again (view flips back to 'login'), since switching away unmounts the
+  // container div and an already-loaded script's onLoad won't fire a
+  // second time to trigger this on its own. A fresh nonce is generated
+  // each time, so every render of the button carries its own.
+  useEffect(() => {
+    if (!googleScriptReady || view !== 'login' || !GOOGLE_CLIENT_ID) return;
+    let cancelled = false;
+    generateNonce().then(({ raw, hashed }) => {
+      if (cancelled || !window.google || !googleButtonRef.current) return;
+      googleNonceRef.current = raw;
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+        nonce: hashed,
+      });
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        shape: 'rectangular',
+        width: 320,
+        locale: 'pt-BR',
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // handleGoogleCredential intentionally excluded -- it's recreated every
+    // render but reads googleNonceRef.current fresh at call time, so an
+    // older closure is never stale in a way that matters here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleScriptReady, view]);
+
   async function doLogin() {
     setError('');
     setLoading(true);
@@ -79,14 +133,6 @@ export default function AuthGate() {
     }
     router.replace(redirectTo);
     router.refresh();
-  }
-
-  async function doGoogleLogin() {
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectTo)}` },
-    });
   }
 
   async function doSignup() {
@@ -219,6 +265,7 @@ export default function AuthGate() {
 
   return (
     <>
+      {GOOGLE_CLIENT_ID && <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={() => setGoogleScriptReady(true)} />}
       <div style={{ maxWidth: 360, margin: '60px auto', display: 'flex', flexDirection: 'column', gap: 16, textAlign: 'center' }}>
         <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, fontStyle: 'italic', color: '#4B5740', margin: '0 0 6px' }}>
           Entrar na sua conta
@@ -234,9 +281,12 @@ export default function AuthGate() {
         <button style={{ ...primaryBtn, opacity: loading ? 0.6 : 1 }} onClick={doLogin} disabled={loading}>
           Entrar com e-mail
         </button>
-        <button style={secondaryBtn} onClick={doGoogleLogin}>
-          Entrar com Google
-        </button>
+        {/* Google's own rendered button -- required to stay compliant with
+            their branding guidelines for Identity Services; it won't match
+            our custom button style pixel for pixel, but it's what lets this
+            skip the ugly "Sign in to <supabase-project>.supabase.co" screen
+            (see lib/auth/googleIdentity.ts) for free. */}
+        <div ref={googleButtonRef} style={{ display: 'flex', justifyContent: 'center' }} />
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
           <a href="#" onClick={(e) => { e.preventDefault(); setView('signup'); }} style={{ fontSize: 12.5 }}>
             Criar conta

@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
-import { sendWelcomeEmail } from '@/lib/email/send';
 
-// Landing point for Google OAuth (and password-recovery links). Exchanges
-// the ?code for a session cookie, then sends the person where they were
-// headed before authenticating.
+// Landing point for password-recovery links. Exchanges the ?code for a
+// session cookie, then sends the person where they were headed --
+// redefinir-senha, per resetPasswordForEmail's own redirectTo in
+// AuthGate.tsx.
+//
+// Google OAuth used to redirect through here too, but doesn't anymore: it
+// now signs in via Google Identity Services directly on the page (see
+// lib/auth/googleIdentity.ts and AuthGate.tsx), specifically to avoid
+// bouncing through this route's domain, which is what Google's own
+// consent screen showed to the customer instead of "Florê Ateliê".
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
@@ -15,16 +20,7 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { data } = await supabase.auth.exchangeCodeForSession(code);
-    if (data.user) {
-      // Awaited (not fire-and-forget): this whole request is one
-      // serverless invocation, and nothing here keeps the process alive
-      // past the response, so an un-awaited call risks getting cut off
-      // before it sends. Idempotent (see sendWelcomeEmail), so this is a
-      // safe no-op on every Google login after the first, and on
-      // password-recovery links too.
-      await sendWelcomeEmail(createAdminClient(), data.user.id);
-    }
+    await supabase.auth.exchangeCodeForSession(code);
   }
 
   return NextResponse.redirect(`${origin}${redirectTo}`);
