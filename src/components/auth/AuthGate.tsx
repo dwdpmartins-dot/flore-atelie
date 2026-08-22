@@ -86,23 +86,50 @@ export default function AuthGate() {
     router.refresh();
   }
 
+  // Covers logging out and landing back on this same login view within one
+  // browser session: the script tag from the earlier mount is already
+  // loaded (Google's script, once fetched, is never removed from the
+  // page), but next/script's onLoad only fires for the <Script> instance
+  // that's mounted *when the load completes* -- a component that mounts
+  // afterward has no guarantee it gets notified on its own. Checking
+  // directly for window.google here catches that case without waiting on
+  // an onLoad that may never come again.
+  useEffect(() => {
+    if (window.google?.accounts?.id) setGoogleScriptReady(true);
+  }, []);
+
   // Renders Google's own "Sign in with Google" button into googleButtonRef
-  // once its script has loaded -- re-runs whenever the login view mounts
-  // again (view flips back to 'login'), since switching away unmounts the
-  // container div and an already-loaded script's onLoad won't fire a
-  // second time to trigger this on its own. A fresh nonce is generated
-  // each time, so every render of the button carries its own.
+  // once its script is confirmed ready -- re-runs whenever the login view
+  // mounts again (view flips back to 'login'), since switching away
+  // unmounts the container div and it needs a fresh renderButton() call
+  // into the new one. A fresh nonce is generated each time, so every
+  // render of the button carries its own. Retries briefly instead of
+  // giving up on the first check: window.google can exist as an object a
+  // moment before accounts.id is actually populated.
   useEffect(() => {
     if (!googleScriptReady || view !== 'login' || !GOOGLE_CLIENT_ID) return;
     let cancelled = false;
-    generateNonce().then(({ raw, hashed }) => {
-      if (cancelled || !window.google || !googleButtonRef.current) return;
+    let attempts = 0;
+
+    async function tryRender() {
+      if (cancelled) return;
+      if (!window.google?.accounts?.id || !googleButtonRef.current) {
+        if (attempts++ < 20) window.setTimeout(tryRender, 100);
+        return;
+      }
+      const { raw, hashed } = await generateNonce();
+      if (cancelled || !googleButtonRef.current) return;
       googleNonceRef.current = raw;
       window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
+        client_id: GOOGLE_CLIENT_ID as string,
         callback: handleGoogleCredential,
         nonce: hashed,
       });
+      // Clears out anything left from a previous render into this same
+      // container (defensive -- renderButton is expected to replace its
+      // contents on its own, but a stale/orphaned iframe from an earlier
+      // pass is cheap to rule out).
+      googleButtonRef.current.innerHTML = '';
       window.google.accounts.id.renderButton(googleButtonRef.current, {
         theme: 'outline',
         size: 'large',
@@ -111,7 +138,9 @@ export default function AuthGate() {
         width: 320,
         locale: 'pt-BR',
       });
-    });
+    }
+
+    tryRender();
     return () => {
       cancelled = true;
     };
