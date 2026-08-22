@@ -8,7 +8,7 @@ import CardPaymentBrick, { type CardBrickResult } from '@/components/payment/Car
 import InlineAddressForm from '@/components/address/InlineAddressForm';
 import { updateProfile } from '@/app/minha-conta/actions';
 import { payAvulsoOrder, checkPixStatus } from '@/app/checkout/actions';
-import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
+import { upcomingDeliverableDates, todayISO, isMorningBlockedForEarliestDate } from '@/lib/delivery/holidays';
 import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import { isValidCpf, formatCpf, onlyDigits } from '@/lib/validation/cpf';
 import type { Database } from '@/lib/supabase/types';
@@ -48,7 +48,6 @@ export default function CheckoutFlow({
   const [showNewAddress, setShowNewAddress] = useState(initialAddresses.length === 0);
   const [shippingFee, setShippingFee] = useState<number | null>(null);
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
-  const [period, setPeriod] = useState<'manha' | 'tarde'>('manha');
   // Delivery date: tomorrow at the earliest, within the next 7 days, no
   // Sundays/holidays (see lib/delivery/holidays.ts). Computed client-side
   // for the picker's options, but payAvulsoOrder recomputes and validates
@@ -56,6 +55,13 @@ export default function CheckoutFlow({
   // client-submitted date, same reasoning as the shipping fee.
   const deliveryDateOptions = upcomingDeliverableDates(todayISO(), 1, 7);
   const [deliveryDate, setDeliveryDate] = useState(deliveryDateOptions[0] ?? '');
+
+  // Manhã isn't offered on the soonest deliverable date once it's already
+  // too late in the day to prep for a 9h-12h window tomorrow (see
+  // isMorningBlockedForEarliestDate) — payAvulsoOrder enforces this same
+  // rule server-side, never trusting a client-submitted period either.
+  const morningBlocked = isMorningBlockedForEarliestDate() && deliveryDate === deliveryDateOptions[0];
+  const [period, setPeriod] = useState<'manha' | 'tarde'>(morningBlocked ? 'tarde' : 'manha');
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
   const [cpf, setCpf] = useState(formatCpf(customer?.cpf ?? ''));
@@ -78,6 +84,14 @@ export default function CheckoutFlow({
 
   const selectedAddress = addresses.find((a) => a.id === addressId);
   const total = cartTotal + (shippingFee ?? 0);
+
+  // Switching the date picker back to the soonest date after having picked
+  // a later one (where Manhã was fine) must re-apply the block; switching
+  // away from it must lift it — deliveryDate is the only thing that can
+  // change morningBlocked after mount.
+  useEffect(() => {
+    if (morningBlocked && period === 'manha') setPeriod('tarde');
+  }, [morningBlocked, period]);
 
   useEffect(() => {
     if (!selectedAddress) {
@@ -398,8 +412,19 @@ export default function CheckoutFlow({
           <label style={{ fontSize: 12.5, color: '#7C7F6D', display: 'block', marginBottom: 10 }}>Período de entrega (horário comercial)</label>
           <div style={{ display: 'flex', gap: 10 }}>
             <button
-              onClick={() => setPeriod('manha')}
-              style={{ flex: 1, padding: 12, border: '1px solid #4B5740', background: period === 'manha' ? '#4B5740' : 'transparent', color: period === 'manha' ? '#FAF7F2' : '#4B5740', borderRadius: 2, fontSize: 13.5, cursor: 'pointer' }}
+              onClick={() => !morningBlocked && setPeriod('manha')}
+              disabled={morningBlocked}
+              style={{
+                flex: 1,
+                padding: 12,
+                border: '1px solid #4B5740',
+                background: period === 'manha' && !morningBlocked ? '#4B5740' : 'transparent',
+                color: morningBlocked ? '#C9CBB8' : period === 'manha' ? '#FAF7F2' : '#4B5740',
+                borderRadius: 2,
+                fontSize: 13.5,
+                cursor: morningBlocked ? 'not-allowed' : 'pointer',
+                opacity: morningBlocked ? 0.6 : 1,
+              }}
             >
               Manhã (9h–12h)
             </button>
@@ -410,6 +435,12 @@ export default function CheckoutFlow({
               Tarde (13h–18h)
             </button>
           </div>
+          {morningBlocked && (
+            <p style={{ fontSize: 11.5, color: '#A7AB97', margin: '8px 0 0' }}>
+              Pedidos feitos a partir do meio-dia não conseguem mais entrega na manhã de {formatDeliveryDate(deliveryDate)} —
+              escolha a tarde, ou uma data mais à frente.
+            </p>
+          )}
         </div>
 
         <div style={{ background: '#F3EDE3', padding: '18px 20px', borderRadius: 2, display: 'flex', justifyContent: 'space-between', fontSize: 14, color: '#4B5740' }}>

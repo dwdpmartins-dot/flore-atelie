@@ -7,7 +7,7 @@ import { resolveAddress } from '@/lib/geocoding/resolveAddress';
 import { chargeSavedCard, chargeCardToken, createPixPayment, getPaymentStatus, attachCardResilient, logMpError } from '@/lib/mercadopago/server';
 import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
-import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
+import { upcomingDeliverableDates, todayISO, isMorningBlockedForEarliestDate } from '@/lib/delivery/holidays';
 import { sendOrderConfirmationEmail, sendOrderDeclinedEmail, sendAdminNewOrderNotification } from '@/lib/email/send';
 import { isValidCpf, onlyDigits } from '@/lib/validation/cpf';
 import type { Database } from '@/lib/supabase/types';
@@ -67,8 +67,16 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
   // (CheckoutFlow.tsx) are computed client-side for display, but the
   // actual allowed window -- tomorrow at the earliest, up to 7 days out,
   // no Sundays/holidays -- is recomputed and enforced here.
-  if (!upcomingDeliverableDates(todayISO(), 1, 7).includes(input.deliveryDate)) {
+  const deliverableDates = upcomingDeliverableDates(todayISO(), 1, 7);
+  if (!deliverableDates.includes(input.deliveryDate)) {
     return { error: 'Data de entrega inválida. Escolha uma data disponível.' as const };
+  }
+
+  // Same reasoning again: CheckoutFlow disables the Manhã button once it's
+  // too late in the day, but the disabled attribute alone doesn't stop a
+  // direct call here.
+  if (input.deliveryPeriod === 'manha' && input.deliveryDate === deliverableDates[0] && isMorningBlockedForEarliestDate()) {
+    return { error: 'Não é mais possível entregar pela manhã nessa data. Escolha a tarde ou uma data mais à frente.' as const };
   }
 
   // Mercado Pago rejects a PIX payment with no payer identification (CPF)

@@ -128,3 +128,31 @@ export function upcomingDeliverableDates(fromISO: string, minLeadDays: number, w
 export function todayISO(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
+
+/** Current hour (0-23), in the ateliê's own timezone -- used for same-day
+ * cutoffs like isMorningBlockedForEarliestDate below. hourCycle: 'h23' is
+ * deliberate: the default en-US hour cycle renders midnight as "24"
+ * instead of "0", which would silently break an ">= 12" comparison. */
+function currentHourSaoPaulo(): number {
+  const hourStr = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', hourCycle: 'h23', hour: '2-digit' }).format(new Date());
+  return parseInt(hourStr, 10);
+}
+
+/** Ordering from this hour onward (São Paulo time) no longer leaves enough
+ * lead time to prep and deliver in the very next deliverable date's Manhã
+ * window (9h-12h). Symmetric with the periods themselves: once "a tarde"
+ * has started today, tomorrow's manhã is off the table. */
+export const MORNING_CUTOFF_HOUR = 12;
+
+/**
+ * True once it's too late in the day to still offer the Manhã period on
+ * the SOONEST deliverable date (upcomingDeliverableDates(...)[0]) --
+ * ordering today at/after MORNING_CUTOFF_HOUR only leaves ~21h or less
+ * until a 9h-12h window tomorrow, not enough to source and prep flowers.
+ * Every later date already carries more lead time and is unaffected --
+ * callers must only apply this to the first entry in the deliverable-dates
+ * list, not to dates generally.
+ */
+export function isMorningBlockedForEarliestDate(): boolean {
+  return currentHourSaoPaulo() >= MORNING_CUTOFF_HOUR;
+}
