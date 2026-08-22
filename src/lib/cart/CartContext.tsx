@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { trackGA4Event } from '@/lib/analytics/ga4';
 
 export interface CartItem {
   key: string;
@@ -52,14 +53,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addToCart: CartContextValue['addToCart'] = useCallback(
     (item) => {
+      const qty = item.qty ?? 1;
       setCart((prev) => {
         const existing = prev.find((c) => c.key === item.key);
         if (existing) {
-          return prev.map((c) => (c.key === item.key ? { ...c, qty: c.qty + (item.qty ?? 1) } : c));
+          return prev.map((c) => (c.key === item.key ? { ...c, qty: c.qty + qty } : c));
         }
-        return [...prev, { ...item, qty: item.qty ?? 1 }];
+        return [...prev, { ...item, qty }];
       });
       showToast(`${item.label} adicionado ao carrinho.`);
+      // Single call site for every "add to cart" across the site (builder,
+      // home, catálogo, avulso) -- see lib/analytics/ga4.ts.
+      trackGA4Event('add_to_cart', {
+        currency: 'BRL',
+        value: item.price * qty,
+        items: [{ item_name: item.label, item_category: item.kind, price: item.price, quantity: qty }],
+      });
     },
     [showToast]
   );

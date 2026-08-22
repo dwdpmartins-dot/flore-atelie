@@ -6,6 +6,7 @@ import CardPaymentBrick from '@/components/payment/CardPaymentBrick';
 import InlineAddressForm from '@/components/address/InlineAddressForm';
 import { createSubscription, previewFirstDeliveryDate } from '@/app/assinatura/actions';
 import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
+import { trackGA4Event } from '@/lib/analytics/ga4';
 import type { Database, Freq, Size, Weekday } from '@/lib/supabase/types';
 
 type Address = Database['public']['Tables']['addresses']['Row'];
@@ -134,10 +135,26 @@ export default function SubscriptionWizard({
     // does mean something real went wrong on our side, though -- the
     // Preapproval itself may be fine, but we don't have proof the first
     // delivery got scheduled, so this isn't safe to show as success.
-    if (!res.firstDeliveryId) {
+    const { firstDeliveryId, subscriptionId } = res;
+    if (!firstDeliveryId) {
       setFormError('Sua assinatura foi criada, mas não conseguimos agendar a primeira entrega. Fale com a gente pelo WhatsApp para confirmar.');
       return;
     }
+    // Fired here because this is the only "confirmed" moment client-side JS
+    // can see -- Mercado Pago authorizes the Preapproval on creation but
+    // doesn't charge the card until its own schedule days later (see the
+    // comment above), and that actual charge is only confirmed
+    // server-side, via the subscription_authorized_payment webhook. A
+    // fully accurate "charge succeeded" purchase event would need the GA4
+    // Measurement Protocol firing from that webhook instead of gtag.js
+    // here -- flagging this rather than presenting it as more precise than
+    // it is.
+    trackGA4Event('purchase', {
+      transaction_id: subscriptionId ?? firstDeliveryId,
+      currency: 'BRL',
+      value: price,
+      items: [{ item_name: `Assinatura ${freq} ${size}`, item_category: 'Assinatura', price, quantity: 1 }],
+    });
     setStep(5);
   }
 
@@ -323,7 +340,14 @@ export default function SubscriptionWizard({
 
           <WizardFooter onBack={() => setStep(2)}>
             <button
-              onClick={() => setStep(4)}
+              onClick={() => {
+                trackGA4Event('begin_checkout', {
+                  currency: 'BRL',
+                  value: price,
+                  items: [{ item_name: `Assinatura ${freq} ${size}`, item_category: 'Assinatura', price, quantity: 1 }],
+                });
+                setStep(4);
+              }}
               disabled={!addressId}
               style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '14px 28px', borderRadius: 2, fontSize: 14, cursor: 'pointer', opacity: !addressId ? 0.5 : 1 }}
             >

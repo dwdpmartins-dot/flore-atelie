@@ -8,6 +8,8 @@ import WhatsAppFloat from '@/components/layout/WhatsAppFloat';
 import Toast from '@/components/layout/Toast';
 import MetaPixel from '@/components/analytics/MetaPixel';
 import MetaPixelPageView from '@/components/analytics/MetaPixelPageView';
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+import GoogleAnalyticsPageView from '@/components/analytics/GoogleAnalyticsPageView';
 
 export const metadata: Metadata = {
   title: 'Florê Ateliê — Boutique Floral Artesanal',
@@ -34,17 +36,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:wght@300;400;500;600&display=swap"
           rel="stylesheet"
         />
-        {/* GOOGLE TAG MANAGER: inserir código aqui */}
       </head>
       <body>
         <MetaPixel />
-        {/* useSearchParams (inside MetaPixelPageView) needs its own Suspense
-            boundary or every page in the app loses static prerendering --
-            scoping it here keeps that cost limited to just this component,
-            same reasoning as Header fetching its own auth state client-side
-            instead of a cookies() call up here. */}
+        <GoogleAnalytics />
+        {/* useSearchParams (inside MetaPixelPageView/GoogleAnalyticsPageView)
+            needs its own Suspense boundary or every page in the app loses
+            static prerendering -- scoping it here keeps that cost limited
+            to just these components, same reasoning as Header fetching its
+            own auth state client-side instead of a cookies() call up here. */}
         <Suspense fallback={null}>
           <MetaPixelPageView />
+          <GoogleAnalyticsPageView />
         </Suspense>
         <CartProvider>
           <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>

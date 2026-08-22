@@ -11,6 +11,7 @@ import { payAvulsoOrder, checkPixStatus } from '@/app/checkout/actions';
 import { upcomingDeliverableDates, todayISO, isMorningBlockedForEarliestDate } from '@/lib/delivery/holidays';
 import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
 import { isValidCpf, formatCpf, onlyDigits } from '@/lib/validation/cpf';
+import { trackGA4Event } from '@/lib/analytics/ga4';
 import type { Database } from '@/lib/supabase/types';
 
 function formatDeliveryDate(iso: string): string {
@@ -150,6 +151,13 @@ export default function CheckoutFlow({
       if (result.status === 'approved') {
         clearInterval(interval);
         setConfirmedTotal(total);
+        trackGA4Event('purchase', {
+          transaction_id: pixData.orderId,
+          currency: 'BRL',
+          value: total,
+          shipping: shippingFee ?? 0,
+          items: cart.map((c) => ({ item_name: c.label, item_category: c.kind, price: c.price, quantity: c.qty })),
+        });
         clearCart();
         setConfirmedOrderId(pixData.orderId);
         setStep(4);
@@ -230,6 +238,13 @@ export default function CheckoutFlow({
     }
     if ('success' in result && result.success) {
       setConfirmedTotal(total);
+      trackGA4Event('purchase', {
+        transaction_id: result.orderId,
+        currency: 'BRL',
+        value: total,
+        shipping: shippingFee ?? 0,
+        items: cart.map((c) => ({ item_name: c.label, item_category: c.kind, price: c.price, quantity: c.qty })),
+      });
       clearCart();
       setConfirmedOrderId(result.orderId);
       setStep(4);
@@ -519,7 +534,14 @@ export default function CheckoutFlow({
             ← Voltar
           </button>
           <button
-            onClick={() => setStep(3)}
+            onClick={() => {
+              trackGA4Event('begin_checkout', {
+                currency: 'BRL',
+                value: total,
+                items: cart.map((c) => ({ item_name: c.label, item_category: c.kind, price: c.price, quantity: c.qty })),
+              });
+              setStep(3);
+            }}
             disabled={!canContinue}
             style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '14px 28px', borderRadius: 2, fontSize: 14, cursor: 'pointer', opacity: canContinue ? 1 : 0.5 }}
           >
