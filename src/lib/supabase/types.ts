@@ -30,6 +30,7 @@ export interface Database {
           phone: string | null;
           email: string | null;
           mp_customer_id: string | null;
+          cpf: string | null;
           welcome_email_sent_at: string | null;
           created_at: string;
           updated_at: string;

@@ -9,6 +9,7 @@ import { isSimulatingDecline } from '@/lib/mercadopago/simulate';
 import { BUILDER_MIN_TOTAL } from '@/lib/builder/constants';
 import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
 import { sendOrderConfirmationEmail, sendOrderDeclinedEmail, sendAdminNewOrderNotification } from '@/lib/email/send';
+import { isValidCpf, onlyDigits } from '@/lib/validation/cpf';
 import type { Database } from '@/lib/supabase/types';
 
 export interface CheckoutItem {
@@ -32,6 +33,9 @@ export interface PayAvulsoInput {
   /** Only set for a brand-new card, straight from the Card Payment Brick. */
   paymentMethodId?: string;
   issuerId?: string;
+  /** Required for PIX — Mercado Pago rejects a PIX payment without payer
+   * identification (see lib/validation/cpf.ts). Never used for card. */
+  cpf?: string;
 }
 
 const itemTypeFor = (kind: string): Database['public']['Tables']['order_items']['Row']['item_type'] => {
@@ -65,6 +69,14 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
   // no Sundays/holidays -- is recomputed and enforced here.
   if (!upcomingDeliverableDates(todayISO(), 1, 7).includes(input.deliveryDate)) {
     return { error: 'Data de entrega inválida. Escolha uma data disponível.' as const };
+  }
+
+  // Mercado Pago rejects a PIX payment with no payer identification (CPF)
+  // -- this is what was actually failing before (see lib/validation/cpf.ts).
+  // Checked before creating the order, same as every other input above,
+  // so a missing/invalid CPF never leaves an orphaned 'pendente' order.
+  if (input.paymentMethod === 'pix' && (!input.cpf || !isValidCpf(input.cpf))) {
+    return { error: 'Informe um CPF válido para pagar com PIX.' as const };
   }
 
   const { data: customer } = await supabase.from('customers').select('*').eq('id', user.id).maybeSingle();
@@ -119,6 +131,11 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
   );
 
   if (input.paymentMethod === 'pix') {
+    const cpfDigits = onlyDigits(input.cpf as string);
+    if (cpfDigits !== customer?.cpf) {
+      await supabase.from('customers').update({ cpf: cpfDigits }).eq('id', user.id);
+    }
+
     try {
       const pix = await createPixPayment({
         amount: total,
@@ -126,6 +143,7 @@ export async function payAvulsoOrder(input: PayAvulsoInput) {
         externalReference,
         payerEmail,
         payerFirstName: customer?.name ?? undefined,
+        payerCpf: cpfDigits,
       });
       await supabase.from('orders').update({ mp_payment_id: String(pix.id), mp_status: pix.status }).eq('id', order.id);
       revalidatePath('/minha-conta');

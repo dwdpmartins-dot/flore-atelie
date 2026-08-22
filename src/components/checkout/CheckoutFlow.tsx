@@ -10,6 +10,7 @@ import { updateProfile } from '@/app/minha-conta/actions';
 import { payAvulsoOrder, checkPixStatus } from '@/app/checkout/actions';
 import { upcomingDeliverableDates, todayISO } from '@/lib/delivery/holidays';
 import { useScrollToTopOnChange } from '@/lib/hooks/useScrollToTopOnChange';
+import { isValidCpf, formatCpf, onlyDigits } from '@/lib/validation/cpf';
 import type { Database } from '@/lib/supabase/types';
 
 function formatDeliveryDate(iso: string): string {
@@ -57,6 +58,7 @@ export default function CheckoutFlow({
   const [deliveryDate, setDeliveryDate] = useState(deliveryDateOptions[0] ?? '');
 
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'pix'>('card');
+  const [cpf, setCpf] = useState(formatCpf(customer?.cpf ?? ''));
   const [cards, setCards] = useState(initialCards);
   const [cardId, setCardId] = useState(initialCards.find((c) => c.preferred)?.id ?? initialCards[0]?.id ?? '');
   const [showNewCard, setShowNewCard] = useState(initialCards.length === 0);
@@ -135,6 +137,11 @@ export default function CheckoutFlow({
       return;
     }
 
+    if (paymentMethod === 'pix' && !isValidCpf(cpf)) {
+      setError('Informe um CPF válido para pagar com PIX.');
+      return;
+    }
+
     setSubmitting(true);
     const result = await payAvulsoOrder({
       items: cart,
@@ -148,6 +155,7 @@ export default function CheckoutFlow({
       installments: newCard?.installments,
       paymentMethodId: newCard?.paymentMethodId,
       issuerId: newCard?.issuerId,
+      cpf: paymentMethod === 'pix' ? onlyDigits(cpf) : undefined,
     });
     setSubmitting(false);
 
@@ -517,6 +525,17 @@ export default function CheckoutFlow({
           <p style={{ fontSize: 12.5, color: '#7C7F6D', textAlign: 'center' }}>
             O QR Code para pagamento é gerado ao confirmar o pedido, e expira em alguns minutos.
           </p>
+          <div style={{ width: '100%', maxWidth: 260 }}>
+            <label style={{ fontSize: 12.5, color: '#7C7F6D', display: 'block', marginBottom: 8, textAlign: 'center' }}>CPF do titular (exigido para PIX)</label>
+            <input
+              value={cpf}
+              onChange={(e) => setCpf(formatCpf(e.target.value))}
+              inputMode="numeric"
+              maxLength={14}
+              placeholder="000.000.000-00"
+              style={{ width: '100%', padding: 12, border: '1px solid #D8CFC0', borderRadius: 2, fontSize: 14, textAlign: 'center' }}
+            />
+          </div>
         </div>
       )}
 
