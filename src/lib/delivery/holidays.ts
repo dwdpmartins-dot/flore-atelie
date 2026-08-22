@@ -145,14 +145,23 @@ function currentHourSaoPaulo(): number {
 export const MORNING_CUTOFF_HOUR = 12;
 
 /**
- * True once it's too late in the day to still offer the Manhã period on
- * the SOONEST deliverable date (upcomingDeliverableDates(...)[0]) --
- * ordering today at/after MORNING_CUTOFF_HOUR only leaves ~21h or less
- * until a 9h-12h window tomorrow, not enough to source and prep flowers.
- * Every later date already carries more lead time and is unaffected --
- * callers must only apply this to the first entry in the deliverable-dates
- * list, not to dates generally.
+ * True when the Manhã period shouldn't be offered on the SOONEST
+ * deliverable date (upcomingDeliverableDates(...)[0]) -- every later date
+ * already carries more lead time and is unaffected; callers must only
+ * apply this to the first entry in the deliverable-dates list, not to
+ * dates generally. Two independent reasons this can be true:
+ *
+ * 1. Today itself isn't a deliverable day (Sunday or a holiday) -- the
+ *    ateliê didn't operate today at all, so there was no prep day
+ *    immediately before tomorrow's 9h-12h window, no matter what hour
+ *    the order comes in. A Sunday-morning order for Monday gets exactly
+ *    the same "nobody worked the day before" problem as a Sunday-night
+ *    one -- this used to only catch the second case.
+ * 2. Today IS a normal working day, but it's already at/after
+ *    MORNING_CUTOFF_HOUR -- ordering that late only leaves ~21h or less
+ *    until a 9h-12h window tomorrow, not enough to source and prep.
  */
 export function isMorningBlockedForEarliestDate(): boolean {
+  if (!isDeliverableDay(todayISO())) return true;
   return currentHourSaoPaulo() >= MORNING_CUTOFF_HOUR;
 }

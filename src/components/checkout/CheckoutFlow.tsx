@@ -85,6 +85,7 @@ export default function CheckoutFlow({
   // wait forever with no explanation. null while there's no expiry to
   // track (e.g. expiresAt missing) or once it's already hit zero.
   const [pixSecondsLeft, setPixSecondsLeft] = useState<number | null>(null);
+  const [pixCopied, setPixCopied] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   // Snapshot of `total` taken right before clearCart() runs -- clearCart
   // empties the cart context, so cartTotal (and therefore `total`) drops to
@@ -169,6 +170,18 @@ export default function CheckoutFlow({
     // restart the interval (and its 3s wait) on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pixData, pixExpired, clearCart]);
+
+  async function copyPixCode() {
+    if (!pixData?.qrCode) return;
+    try {
+      await navigator.clipboard.writeText(pixData.qrCode);
+      setPixCopied(true);
+      window.setTimeout(() => setPixCopied(false), 2500);
+    } catch {
+      // Clipboard API can fail (permissions, non-secure context) -- the
+      // textarea below is still selectable by hand as a fallback.
+    }
+  }
 
   async function saveContact() {
     const fd = new FormData();
@@ -305,12 +318,29 @@ export default function CheckoutFlow({
         )}
         <p style={{ fontSize: 12.5, color: '#7C7F6D' }}>Escaneie o QR ou copie o código PIX abaixo.</p>
         {pixData.qrCode && (
-          <textarea
-            readOnly
-            value={pixData.qrCode}
-            onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-            style={{ width: '100%', maxWidth: 420, minHeight: 70, padding: 10, fontSize: 11, border: '1px solid #D8CFC0', borderRadius: 2 }}
-          />
+          <div style={{ width: '100%', maxWidth: 420, display: 'flex', gap: 8, alignItems: 'stretch' }}>
+            <textarea
+              readOnly
+              value={pixData.qrCode}
+              onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+              style={{ flex: 1, minWidth: 0, minHeight: 70, padding: 10, fontSize: 11, border: '1px solid #D8CFC0', borderRadius: 2 }}
+            />
+            <button
+              onClick={copyPixCode}
+              style={{
+                flexShrink: 0,
+                width: 84,
+                background: pixCopied ? '#4B5740' : '#FFFFFF',
+                color: pixCopied ? '#FAF7F2' : '#4B5740',
+                border: '1px solid #4B5740',
+                borderRadius: 2,
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              {pixCopied ? 'Copiado!' : 'Copiar'}
+            </button>
+          </div>
         )}
         {pixSecondsLeft != null && (
           <p style={{ fontSize: 12.5, color: pixSecondsLeft <= 60 ? '#C4836A' : '#7C7F6D', fontWeight: pixSecondsLeft <= 60 ? 600 : 400, margin: 0 }}>
@@ -518,8 +548,8 @@ export default function CheckoutFlow({
           </div>
           {morningBlocked && (
             <p style={{ fontSize: 11.5, color: '#A7AB97', margin: '8px 0 0' }}>
-              Pedidos feitos a partir do meio-dia não conseguem mais entrega na manhã de {formatDeliveryDate(deliveryDate)} —
-              escolha a tarde, ou uma data mais à frente.
+              Não conseguimos mais entregar de manhã em {formatDeliveryDate(deliveryDate)} — escolha a tarde, ou uma
+              data mais à frente.
             </p>
           )}
         </div>
