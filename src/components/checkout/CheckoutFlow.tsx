@@ -19,6 +19,12 @@ function formatDeliveryDate(iso: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
+function formatCountdown(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
 type Customer = Database['public']['Tables']['customers']['Row'];
 type Address = Database['public']['Tables']['addresses']['Row'];
 type SavedCard = Database['public']['Tables']['saved_cards']['Row'];
@@ -72,7 +78,12 @@ export default function CheckoutFlow({
   const [submitting, setSubmitting] = useState(false);
   const [declined, setDeclined] = useState(false);
   const [error, setError] = useState('');
-  const [pixData, setPixData] = useState<{ qrCodeBase64?: string; qrCode?: string; orderId: string } | null>(null);
+  const [pixData, setPixData] = useState<{ qrCodeBase64?: string; qrCode?: string; orderId: string; expiresAt?: string } | null>(null);
+  // Ticking countdown to pixData.expiresAt -- Mercado Pago auto-cancels the
+  // payment once this passes, so the confirmation poll below would just
+  // wait forever with no explanation. null while there's no expiry to
+  // track (e.g. expiresAt missing) or once it's already hit zero.
+  const [pixSecondsLeft, setPixSecondsLeft] = useState<number | null>(null);
   const [confirmedOrderId, setConfirmedOrderId] = useState<string | null>(null);
   // Snapshot of `total` taken right before clearCart() runs -- clearCart
   // empties the cart context, so cartTotal (and therefore `total`) drops to
@@ -114,9 +125,26 @@ export default function CheckoutFlow({
       });
   }, [selectedAddress]);
 
+  // Countdown to the QR code's expiration -- Mercado Pago returns
+  // expiresAt but nothing used to read it, so the code just silently
+  // stopped working with no explanation once it expired.
+  useEffect(() => {
+    if (!pixData?.expiresAt) {
+      setPixSecondsLeft(null);
+      return;
+    }
+    const expiresAtMs = new Date(pixData.expiresAt).getTime();
+    const tick = () => setPixSecondsLeft(Math.max(0, Math.round((expiresAtMs - Date.now()) / 1000)));
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [pixData?.expiresAt]);
+
+  const pixExpired = pixSecondsLeft === 0;
+
   // Poll for PIX confirmation.
   useEffect(() => {
-    if (!pixData) return;
+    if (!pixData || pixExpired) return;
     const interval = setInterval(async () => {
       const result = await checkPixStatus(pixData.orderId);
       if (result.status === 'approved') {
@@ -132,7 +160,7 @@ export default function CheckoutFlow({
     // change cart/shipping while this poll is running, and adding it would
     // restart the interval (and its 3s wait) on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pixData, clearCart]);
+  }, [pixData, pixExpired, clearCart]);
 
   async function saveContact() {
     const fd = new FormData();
@@ -233,6 +261,27 @@ export default function CheckoutFlow({
   }
 
   if (pixData) {
+    if (pixExpired) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '30px 0' }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#FBE3E0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A8412F" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 7v6M12 16.5h.01" strokeLinecap="round" />
+            </svg>
+          </div>
+          <p style={{ fontSize: 14, color: '#4B5740', textAlign: 'center', maxWidth: 320 }}>
+            Esse QR Code expirou antes do pagamento ser confirmado. Nenhum valor foi cobrado.
+          </p>
+          <button
+            onClick={() => setPixData(null)}
+            style={{ background: '#4B5740', color: '#FAF7F2', border: 'none', padding: '13px 26px', borderRadius: 2, fontSize: 13, cursor: 'pointer' }}
+          >
+            Gerar novo QR Code
+          </button>
+        </div>
+      );
+    }
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, padding: '20px 0' }}>
         {pixData.qrCodeBase64 && (
@@ -247,6 +296,11 @@ export default function CheckoutFlow({
             onClick={(e) => (e.target as HTMLTextAreaElement).select()}
             style={{ width: '100%', maxWidth: 420, minHeight: 70, padding: 10, fontSize: 11, border: '1px solid #D8CFC0', borderRadius: 2 }}
           />
+        )}
+        {pixSecondsLeft != null && (
+          <p style={{ fontSize: 12.5, color: pixSecondsLeft <= 60 ? '#C4836A' : '#7C7F6D', fontWeight: pixSecondsLeft <= 60 ? 600 : 400, margin: 0 }}>
+            Expira em {formatCountdown(pixSecondsLeft)}
+          </p>
         )}
         <p style={{ fontSize: 11, color: '#A7AB97', margin: 0 }}>Aguardando confirmação do pagamento…</p>
       </div>
